@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Summer Body Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root {
+  --green-50: #E1F5EE;
+  --green-100: #9FE1CB;
+  --green-500: #1D9E75;
+  --green-700: #0F6E56;
+  --green-900: #085041;
+  --blue-50: #E6F1FB;
+  --blue-100: #B5D4F4;
+  --blue-500: #378ADD;
+  --blue-700: #185FA5;
+  --blue-900: #0C447C;
+  --amber-50: #FAEEDA;
+  --amber-500: #BA7517;
+  --amber-900: #633806;
+  --purple-50: #EEEDFE;
+  --purple-500: #7F77DD;
+  --purple-900: #3C3489;
+  --pink-50: #FBEAF0;
+  --pink-500: #D4537E;
+  --pink-900: #72243E;
+  --gray-50: #F7F6F3;
+  --gray-100: #EFEFEB;
+  --gray-200: #D3D1C7;
+  --gray-400: #888780;
+  --gray-600: #5F5E5A;
+  --gray-900: #1A1A18;
+  --bg: #F7F6F3;
+  --surface: #FFFFFF;
+  --border: rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.14);
+  --text-primary: #1A1A18;
+  --text-secondary: #5F5E5A;
+  --text-tertiary: #888780;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --nav-h: 64px;
+  --bottom-nav-h: 72px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { font-size: 16px; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); min-height: 100vh; }
+
+/* NAV */
+.top-nav {
+  position: fixed; top: 0; left: 0; right: 0; height: var(--nav-h);
+  background: rgba(247,246,243,0.92); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border); z-index: 100;
+  display: flex; align-items: center; padding: 0 24px; gap: 0;
+}
+.nav-brand { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--text-primary); margin-right: 40px; white-space: nowrap; }
+.nav-brand span { color: var(--green-500); }
+.nav-links { display: flex; gap: 4px; flex: 1; }
+.nav-link { padding: 7px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text-secondary); border: none; background: none; transition: all .15s; white-space: nowrap; }
+.nav-link:hover { background: var(--gray-100); color: var(--text-primary); }
+.nav-link.active { background: var(--green-50); color: var(--green-900); }
+.nav-date { margin-left: auto; font-size: 12px; color: var(--text-tertiary); white-space: nowrap; }
+
+.bottom-nav {
+  display: none; position: fixed; bottom: 0; left: 0; right: 0;
+  height: var(--bottom-nav-h); background: rgba(247,246,243,0.96);
+  backdrop-filter: blur(12px); border-top: 1px solid var(--border);
+  z-index: 100; padding: 0 8px; padding-bottom: env(safe-area-inset-bottom);
+  align-items: center; justify-content: space-around;
+}
+.bnav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--text-tertiary); border: none; background: none; min-width: 56px; }
+.bnav-item i { font-size: 20px; }
+.bnav-item span { font-size: 10px; font-weight: 500; }
+.bnav-item.active { color: var(--green-500); }
+
+/* MAIN */
+.main { padding-top: calc(var(--nav-h) + 24px); padding-bottom: 40px; max-width: 900px; margin: 0 auto; padding-left: 24px; padding-right: 24px; }
+
+/* SECTIONS */
+.section { display: none; }
+.section.active { display: block; }
+
+/* PAGE HEADER */
+.page-header { margin-bottom: 24px; }
+.page-header h1 { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--text-primary); margin-bottom: 4px; }
+.page-header p { font-size: 14px; color: var(--text-secondary); }
+
+/* PHASE TOGGLE */
+.phase-toggle { display: flex; gap: 6px; margin-bottom: 20px; background: var(--gray-100); padding: 4px; border-radius: 24px; width: fit-content; }
+.ptoggle { padding: 7px 18px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; background: none; color: var(--text-secondary); transition: all .2s; }
+.ptoggle.on { background: var(--surface); color: var(--green-900); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+.ptoggle.on.p2 { color: var(--blue-900); }
+
+/* DAY TABS */
+.day-tabs { display: flex; gap: 5px; margin-bottom: 16px; flex-wrap: wrap; }
+.dtab { padding: 6px 14px; border-radius: 18px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); transition: all .15s; }
+.dtab.on { background: var(--blue-50); color: var(--blue-900); border-color: var(--blue-100); }
+
+.dc { display: none; }
+.dc.show { display: block; }
+.cc { display: none; }
+.cc.show { display: block; }
+
+/* CARDS */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 10px; }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.card-title { font-size: 14px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+.card-kcal { font-size: 12px; color: var(--text-secondary); }
+.card-body { font-size: 13px; color: var(--text-secondary); line-height: 1.75; }
+.card-note { font-size: 11px; color: var(--text-tertiary); font-style: italic; margin-top: 5px; }
+
+/* TAGS */
+.tag { font-size: 10px; font-weight: 600; padding: 2px 9px; border-radius: 10px; letter-spacing: 0.02em; }
+.tag-b { background: var(--amber-50); color: var(--amber-900); }
+.tag-l { background: var(--green-50); color: var(--green-900); }
+.tag-d { background: var(--blue-50); color: var(--blue-900); }
+.tag-s { background: var(--purple-50); color: var(--purple-900); }
+
+/* MACRO PILLS */
+.mpills { display: flex; gap: 7px; margin-top: 8px; flex-wrap: wrap; }
+.pill { font-size: 10px; font-weight: 500; padding: 2px 9px; border-radius: 10px; }
+.pill-p { background: var(--blue-50); color: var(--blue-900); }
+.pill-c { background: var(--purple-50); color: var(--purple-900); }
+.pill-f { background: var(--green-50); color: var(--green-900); }
+
+/* TOTALS GRID */
+.totals-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+.tbox { background: var(--gray-50); border-radius: var(--radius-sm); padding: 10px 12px; border: 1px solid var(--border); }
+.tbox-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 3px; }
+.tbox-val { font-size: 17px; font-weight: 600; color: var(--text-primary); }
+
+/* TIP BOXES */
+.tip { border-left: 2px solid var(--green-500); padding: 8px 12px; margin-top: 10px; background: var(--green-50); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 12px; color: var(--green-900); line-height: 1.6; }
+.tip2 { border-left: 2px solid var(--blue-500); padding: 8px 12px; margin-top: 10px; background: var(--blue-50); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 12px; color: var(--blue-900); line-height: 1.6; }
+
+/* METRICS ROW */
+.metrics-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin: 12px 0; }
+.metric-box { background: var(--gray-50); border-radius: var(--radius-sm); padding: 10px 12px; border: 1px solid var(--border); }
+.metric-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 3px; }
+.metric-val { font-size: 18px; font-weight: 600; color: var(--text-primary); }
+.metric-sub { font-size: 10px; color: var(--text-tertiary); margin-top: 1px; }
+
+/* MACRO BAR */
+.macro-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 12px; }
+.macro-bar-name { width: 58px; color: var(--text-secondary); }
+.macro-bar-bg { flex: 1; height: 7px; background: var(--gray-100); border-radius: 4px; overflow: hidden; }
+.macro-bar-fill { height: 100%; border-radius: 4px; }
+.macro-bar-val { width: 40px; text-align: right; font-weight: 500; color: var(--text-primary); }
+
+/* GYM WEEK GRID */
+.week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 12px; }
+.day-box { border-radius: var(--radius-sm); padding: 7px 3px; text-align: center; }
+.day-box-name { font-size: 9px; color: var(--text-tertiary); margin-bottom: 3px; }
+.day-box-type { font-size: 9px; font-weight: 600; }
+.d-lift { background: var(--blue-50); color: var(--blue-700); }
+.d-card { background: var(--green-50); color: var(--green-700); }
+.d-rest { background: var(--gray-100); color: var(--text-tertiary); }
+.d-foot { background: var(--amber-50); color: var(--amber-900); }
+.d-ppl  { background: var(--purple-50); color: var(--purple-900); }
+.d-legs { background: var(--pink-50); color: var(--pink-900); }
+.d-act  { background: var(--purple-50); color: var(--purple-900); }
+
+/* WORKOUT ITEMS */
+.workout-list { display: flex; flex-direction: column; gap: 6px; }
+.workout-item { display: flex; align-items: flex-start; gap: 10px; padding: 9px 12px; background: var(--gray-50); border-radius: var(--radius-sm); font-size: 13px; border: 1px solid var(--border); }
+.workout-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.workout-name { font-weight: 600; color: var(--text-primary); margin-bottom: 2px; font-size: 12px; }
+.workout-detail { font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
+
+/* TIMELINE */
+.timeline { display: flex; margin-bottom: 20px; border-radius: var(--radius-md); overflow: hidden; }
+.tl-seg { flex: 1; padding: 10px 12px; text-align: center; font-size: 11px; font-weight: 600; }
+.tl-a { background: var(--green-50); color: var(--green-900); }
+.tl-b { background: #c8eedd; color: var(--green-900); }
+.tl-c { background: var(--blue-50); color: var(--blue-900); }
+.tl-sub { font-size: 10px; margin-top: 2px; opacity: 0.75; font-weight: 400; }
+
+/* SECTION LABEL */
+.section-label { font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin: 14px 0 8px; }
+
+/* PHASE BADGE */
+.phase-badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 12px; }
+.pb1 { background: var(--green-50); color: var(--green-900); }
+.pb2 { background: var(--blue-50); color: var(--blue-900); }
+
+/* RECIPE BOX */
+.recipe-box { background: var(--gray-50); border-radius: var(--radius-sm); padding: 10px 12px; margin-top: 8px; border: 1px solid var(--border); }
+.recipe-title { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+.recipe-steps { font-size: 12px; color: var(--text-secondary); line-height: 1.9; }
+
+/* SHOPPING LIST */
+.cat-tabs { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
+.ctab { padding: 6px 14px; border-radius: 18px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); transition: all .15s; }
+.ctab.on { background: var(--blue-50); color: var(--blue-900); border-color: var(--blue-100); }
+.item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 6px; }
+.shop-item { display: flex; align-items: flex-start; gap: 9px; padding: 8px 10px; background: var(--gray-50); border-radius: var(--radius-sm); cursor: pointer; border: 1px solid var(--border); transition: all .1s; }
+.shop-item:hover { background: var(--gray-100); }
+.shop-item.done { opacity: 0.5; }
+.shop-item.done .item-name { text-decoration: line-through; }
+.item-check { width: 17px; height: 17px; border: 1.5px solid var(--gray-200); border-radius: 4px; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all .1s; }
+.shop-item.done .item-check { background: var(--green-500); border-color: var(--green-500); }
+.item-name { font-size: 12px; font-weight: 500; color: var(--text-primary); }
+.item-qty { font-size: 11px; color: var(--text-tertiary); margin-top: 1px; }
+.progress-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.progress-bg { flex: 1; height: 6px; background: var(--gray-100); border-radius: 3px; overflow: hidden; border: 1px solid var(--border); }
+.progress-fill { height: 100%; background: var(--green-500); border-radius: 3px; transition: width .25s; }
+.progress-label { font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
+.reset-btn { font-size: 11px; padding: 5px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.reset-btn:hover { background: var(--gray-100); }
+.cat-header-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.cat-icon { font-size: 16px; color: var(--text-secondary); }
+.cat-title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+
+/* PROGRESS TRACKER */
+.tracker-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.tracker-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; }
+.tracker-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 500; }
+.tracker-val { font-size: 32px; font-family: 'DM Serif Display', serif; color: var(--text-primary); }
+.tracker-sub { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+.tracker-input-row { display: flex; gap: 8px; margin-top: 10px; }
+.tracker-input { flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: 'DM Sans', sans-serif; background: var(--gray-50); color: var(--text-primary); }
+.tracker-input:focus { outline: none; border-color: var(--green-500); }
+.tracker-btn { padding: 8px 16px; border-radius: var(--radius-sm); border: none; background: var(--green-500); color: white; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.tracker-btn:hover { background: var(--green-700); }
+.log-list { list-style: none; margin-top: 12px; display: flex; flex-direction: column; gap: 5px; }
+.log-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px; background: var(--gray-50); border-radius: var(--radius-sm); font-size: 12px; border: 1px solid var(--border); }
+.log-date { color: var(--text-tertiary); }
+.log-val { font-weight: 600; color: var(--text-primary); }
+.log-del { color: var(--text-tertiary); cursor: pointer; background: none; border: none; font-size: 14px; padding: 2px 6px; border-radius: 4px; }
+.log-del:hover { background: var(--gray-100); color: var(--text-primary); }
+.workout-log-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 16px; }
+.wday { border-radius: var(--radius-sm); padding: 8px 4px; text-align: center; cursor: pointer; border: 1px solid var(--border); background: var(--surface); transition: all .15s; }
+.wday-name { font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; }
+.wday-date { font-size: 11px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
+.wday-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gray-200); margin: 0 auto; }
+.wday.done .wday-dot { background: var(--green-500); }
+.wday.done { border-color: var(--green-100); background: var(--green-50); }
+.wday.rest-day { background: var(--gray-50); cursor: default; }
+.week-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.week-btn { padding: 6px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); cursor: pointer; font-size: 13px; color: var(--text-secondary); }
+.week-btn:hover { background: var(--gray-100); }
+.week-label { font-size: 13px; font-weight: 500; color: var(--text-primary); flex: 1; text-align: center; }
+.stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+.stat-box { background: var(--gray-50); border-radius: var(--radius-sm); padding: 10px 12px; text-align: center; border: 1px solid var(--border); }
+.stat-num { font-size: 22px; font-weight: 600; color: var(--text-primary); }
+.stat-label { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+.streak-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 14px; background: var(--amber-50); color: var(--amber-900); font-size: 12px; font-weight: 600; margin-bottom: 12px; }
+
+/* DIVIDER */
+.divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+/* PHASE CARD */
+.phase-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; margin-bottom: 14px; }
+.phase-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.phase-title { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+.phase-dates { font-size: 12px; color: var(--text-secondary); margin-left: auto; }
+
+/* LEGEND */
+.legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-secondary); }
+.legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+/* MOBILE */
+@media (max-width: 680px) {
+  .top-nav { display: none; }
+  .bottom-nav { display: flex; }
+  .main { padding-top: 24px; padding-bottom: calc(var(--bottom-nav-h) + 16px); padding-left: 16px; padding-right: 16px; }
+  .totals-grid { grid-template-columns: repeat(2, 1fr); }
+  .metrics-row { grid-template-columns: repeat(2, 1fr); }
+  .week-grid { gap: 3px; }
+  .day-box-type { font-size: 8px; }
+  .page-header h1 { font-size: 22px; }
+  .tracker-grid { grid-template-columns: 1fr; }
+  .stat-row { grid-template-columns: repeat(3, 1fr); }
+  .workout-log-grid { gap: 3px; }
+  .phase-toggle { width: 100%; }
+  .ptoggle { flex: 1; text-align: center; font-size: 11px; padding: 7px 8px; }
+}
+
+/* ==================== SESSION LOGGER ==================== */
+.modal-overlay { position: fixed; inset: 0; background: rgba(26,26,24,0.55); z-index: 200; backdrop-filter: blur(2px); }
+.modal-panel {
+  position: fixed; inset: 0; top: 5vh;
+  background: var(--bg); border-radius: 20px 20px 0 0;
+  z-index: 201; overflow-y: auto; -webkit-overflow-scrolling: touch;
+}
+.modal-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 20px 20px 14px; border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; background: var(--bg); z-index: 2;
+}
+.modal-title { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text-primary); margin-bottom: 3px; }
+.modal-sub { font-size: 12px; color: var(--text-secondary); }
+.modal-close {
+  width: 32px; height: 32px; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--surface); cursor: pointer; display: flex; align-items: center;
+  justify-content: center; color: var(--text-secondary); flex-shrink: 0; font-size: 16px;
+}
+.modal-close:hover { background: var(--gray-100); }
+.modal-body { padding: 16px 20px 40px; max-width: 680px; margin: 0 auto; }
+
+.ex-section-label { font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin: 16px 0 8px; }
+.ex-row { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 7px; overflow: hidden; transition: border-color .15s; }
+.ex-row.checked { border-color: var(--green-100); }
+.ex-toggle { display: flex; align-items: center; gap: 10px; padding: 11px 14px; cursor: pointer; user-select: none; }
+.ex-toggle:hover { background: var(--gray-50); }
+.ex-row.checked .ex-toggle { background: var(--green-50); }
+.ex-check {
+  width: 20px; height: 20px; border: 1.5px solid var(--gray-200); border-radius: 6px;
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  transition: all .15s; background: var(--surface);
+}
+.ex-row.checked .ex-check { background: var(--green-500); border-color: var(--green-500); }
+.ex-info { flex: 1; }
+.ex-name { font-size: 13px; font-weight: 500; color: var(--text-primary); display: block; }
+.ex-muscle { font-size: 11px; color: var(--text-tertiary); }
+.ex-key-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: var(--amber-50); color: var(--amber-900); white-space: nowrap; }
+.ex-inputs { padding: 10px 14px 12px; border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: var(--gray-50); }
+.ex-inputs.two-col { grid-template-columns: 1fr 1fr; }
+.ex-input-group label { font-size: 10px; color: var(--text-secondary); display: block; margin-bottom: 4px; font-weight: 500; }
+.ex-input-num {
+  width: 100%; padding: 7px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif;
+  background: var(--surface); color: var(--text-primary); text-align: center;
+}
+.ex-input-num:focus { outline: none; border-color: var(--green-500); }
+
+.add-ex-row { display: flex; gap: 8px; margin-top: 10px; }
+.add-ex-input {
+  flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 13px; font-family: 'DM Sans', sans-serif; background: var(--surface); color: var(--text-primary);
+}
+.add-ex-input:focus { outline: none; border-color: var(--green-500); }
+.add-ex-btn {
+  padding: 8px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); font-size: 12px; font-weight: 500; font-family: 'DM Sans', sans-serif;
+  color: var(--text-secondary); cursor: pointer; white-space: nowrap;
+}
+.add-ex-btn:hover { background: var(--gray-100); }
+
+.feedback-panel { margin-top: 20px; }
+.fb-score-row { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.score-circle {
+  width: 68px; height: 68px; border-radius: 50%; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; flex-shrink: 0; border: 2.5px solid;
+}
+.score-num { font-family: 'DM Serif Display', serif; font-size: 24px; line-height: 1; }
+.score-label { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.score-great { border-color: var(--green-500); background: var(--green-50); color: var(--green-700); }
+.score-good { border-color: var(--amber-500); background: var(--amber-50); color: var(--amber-900); }
+.score-ok { border-color: var(--gray-400); background: var(--gray-100); color: var(--text-secondary); }
+.score-summary { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+.score-sub { font-size: 12px; color: var(--text-secondary); }
+.fb-section { margin-bottom: 12px; }
+.fb-section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.fb-item { font-size: 13px; padding: 8px 12px; border-radius: var(--radius-sm); border-left: 2px solid; margin-bottom: 4px; line-height: 1.55; }
+.fb-good { background: var(--green-50); border-color: var(--green-500); color: var(--green-900); }
+.fb-improve { background: var(--amber-50); border-color: var(--amber-500); color: var(--amber-900); }
+.fb-tip { background: var(--blue-50); border-color: var(--blue-500); color: var(--blue-900); }
+
+.modal-actions { display: flex; gap: 8px; margin-top: 20px; }
+.btn-primary-modal { flex: 1; padding: 12px 20px; border: none; border-radius: var(--radius-md); background: var(--green-500); color: white; font-size: 14px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; }
+.btn-primary-modal:hover { background: var(--green-700); }
+.btn-feedback-modal { flex: 1; padding: 12px 20px; border: 1px solid var(--green-100); border-radius: var(--radius-md); background: var(--green-50); color: var(--green-900); font-size: 14px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; }
+.btn-feedback-modal:hover { background: var(--green-100); }
+.btn-secondary-modal { padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); color: var(--text-secondary); font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; }
+.btn-secondary-modal:hover { background: var(--gray-100); }
+
+.log-session-btn {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 14px 18px; cursor: pointer; margin-bottom: 14px; text-align: left;
+  transition: all .15s; font-family: 'DM Sans', sans-serif;
+}
+.log-session-btn:hover { border-color: var(--green-500); background: var(--green-50); }
+.log-btn-icon { width: 38px; height: 38px; border-radius: 10px; background: var(--green-50); display: flex; align-items: center; justify-content: center; color: var(--green-700); font-size: 17px; flex-shrink: 0; }
+.log-btn-text { flex: 1; }
+.log-btn-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+.log-btn-sub { font-size: 12px; color: var(--text-secondary); }
+
+.session-hist-item {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+  padding: 12px 14px; margin-bottom: 6px; cursor: pointer; transition: all .15s;
+}
+.session-hist-item:hover { border-color: var(--border-strong); }
+.sh-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px; }
+.sh-type { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.sh-meta { font-size: 11px; color: var(--text-tertiary); }
+.sh-score { font-size: 13px; font-weight: 700; }
+.sh-exs { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+
+.wday-score { font-size: 9px; font-weight: 700; color: var(--green-700); margin-top: 1px; }
+
+@media (min-width: 681px) {
+  .modal-panel { top: 6vh; left: 50%; right: auto; transform: translateX(-50%); width: 640px; max-height: 86vh; border-radius: var(--radius-lg); }
+}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="nav-brand">Summer<span>Body</span></div>
+  <div class="nav-links">
+    <button class="nav-link active" onclick="showSection('plan',this)"><i class="fa-regular fa-calendar-days"></i> Training Plan</button>
+    <button class="nav-link" onclick="showSection('meals',this)"><i class="fa-regular fa-bowl-food"></i> Meal Plan</button>
+    <button class="nav-link" onclick="showSection('shopping',this)"><i class="fa-regular fa-basket-shopping"></i> Shopping</button>
+    <button class="nav-link" onclick="showSection('progress',this)"><i class="fa-regular fa-chart-line"></i> Progress</button>
+  </div>
+  <div class="nav-date" id="nav-date"></div>
+</nav>
+
+<nav class="bottom-nav">
+  <button class="bnav-item active" onclick="showSection('plan',this)" data-bnav>
+    <i class="fa-regular fa-calendar-days"></i><span>Plan</span>
+  </button>
+  <button class="bnav-item" onclick="showSection('meals',this)" data-bnav>
+    <i class="fa-regular fa-bowl-food"></i><span>Meals</span>
+  </button>
+  <button class="bnav-item" onclick="showSection('shopping',this)" data-bnav>
+    <i class="fa-regular fa-basket-shopping"></i><span>Shopping</span>
+  </button>
+  <button class="bnav-item" onclick="showSection('progress',this)" data-bnav>
+    <i class="fa-regular fa-chart-line"></i><span>Progress</span>
+  </button>
+</nav>
+
+<main class="main">
+
+<!-- ==================== TRAINING PLAN ==================== -->
+<div class="section active" id="sec-plan">
+  <div class="page-header">
+    <h1>Training Plan</h1>
+    <p>10 weeks · June 1 → August 8 · Three phases</p>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-seg tl-a">Phase 1a — Fat loss + football<div class="tl-sub">June 1–20</div></div>
+    <div class="tl-seg tl-b">Phase 1b — Fat loss, full gym<div class="tl-sub">June 21 – July 6</div></div>
+    <div class="tl-seg tl-c">Phase 2 — Muscle build<div class="tl-sub">July 7 – Aug 8</div></div>
+  </div>
+
+  <!-- PHASE 1a -->
+  <div class="phase-card">
+    <div class="phase-header">
+      <span class="phase-badge pb1">Phase 1a</span>
+      <span class="phase-title">Fat loss — football still on</span>
+      <span class="phase-dates">June 1–20</span>
+    </div>
+    <div class="metrics-row">
+      <div class="metric-box"><div class="metric-label">Daily calories</div><div class="metric-val">~2,100</div><div class="metric-sub">~400 below maintenance</div></div>
+      <div class="metric-box"><div class="metric-label">Protein target</div><div class="metric-val">160g</div><div class="metric-sub">Every day, non-negotiable</div></div>
+      <div class="metric-box"><div class="metric-label">Cardio</div><div class="metric-val">Tue + Thu</div><div class="metric-sub">Gym HIIT + football</div></div>
+      <div class="metric-box"><div class="metric-label">Gym days</div><div class="metric-val">4×/week</div><div class="metric-sub">Mon · Tue · Wed · Fri</div></div>
+    </div>
+    <div class="section-label">Weekly schedule</div>
+    <div class="week-grid">
+      <div class="day-box d-lift"><div class="day-box-name">Mon</div><div class="day-box-type">Upper body</div></div>
+      <div class="day-box d-card"><div class="day-box-name">Tue</div><div class="day-box-type">Cardio + core</div></div>
+      <div class="day-box d-lift"><div class="day-box-name">Wed</div><div class="day-box-type">Lower + core</div></div>
+      <div class="day-box d-foot"><div class="day-box-name">Thu</div><div class="day-box-type">Football</div></div>
+      <div class="day-box d-lift"><div class="day-box-name">Fri</div><div class="day-box-type">Full body</div></div>
+      <div class="day-box d-rest"><div class="day-box-name">Sat</div><div class="day-box-type">Rest</div></div>
+      <div class="day-box d-rest"><div class="day-box-name">Sun</div><div class="day-box-type">Rest</div></div>
+    </div>
+    <div class="section-label">Workout focus</div>
+    <div class="workout-list">
+      <div class="workout-item"><div class="workout-dot" style="background:#378ADD"></div><div><div class="workout-name">Monday — upper body</div><div class="workout-detail">Bench press, shoulder press, cable rows, tricep pushdowns, bicep curls · E-gym chest press + seated row · 3×10–12</div></div></div>
+      <div class="workout-item"><div class="workout-dot" style="background:#1D9E75"></div><div><div class="workout-name">Tuesday — cardio + core</div><div class="workout-detail">20–25 min HIIT on treadmill (30s on / 60s off × 10–12 rounds) or 30 min incline walk · Finish with 10 min core: planks, leg raises, cable crunches</div></div></div>
+      <div class="workout-item"><div class="workout-dot" style="background:#7F77DD"></div><div><div class="workout-name">Wednesday — lower body + core</div><div class="workout-detail">E-gym leg press, leg extension, leg curl + barbell squats, planks, leg raises · 3×12</div></div></div>
+      <div class="workout-item"><div class="workout-dot" style="background:#BA7517"></div><div><div class="workout-name">Thursday — football training</div><div class="workout-detail">Counts as your cardio session. No gym needed — just play and recover well</div></div></div>
+      <div class="workout-item"><div class="workout-dot" style="background:#378ADD"></div><div><div class="workout-name">Friday — full body compound</div><div class="workout-detail">Deadlifts, pull-ups / lat pulldown, overhead press, cable flies, farmer carries · 4×8–10</div></div></div>
+    </div>
+    <div class="tip">Two cardio sessions per week (Tue gym + Thu football) puts you in a strong fat-burning position. Sat and Sun are full rest — don't skip recovery.</div>
+    <div class="section-label">Macros</div>
+    <div class="macro-bar-row"><span class="macro-bar-name">Protein</span><div class="macro-bar-bg"><div class="macro-bar-fill" style="width:32%;background:#378ADD"></div></div><span class="macro-bar-val">160g</span></div>
+    <div class="macro-bar-row"><span class="macro-bar-name">Carbs</span><div class="macro-bar-bg"><div class="macro-bar-fill" style="width:44%;background:#7F77DD"></div></div><span class="macro-bar-val">200g</span></div>
+    <div class="macro-bar-row"><span class="macro-bar-name">Fats</span><div class="macro-bar-bg"><div class="macro-bar-fill" style="width:24%;background:#1D9E75"></div></div><span class="macro-bar-val">60g</span></div>
+  </div>
+
+  <!-- PHASE 1b -->
+  <div class="phase-card">
+    <div class="phase-header">
+      <span class="phase-badge pb1">Phase 1b</span>
+      <span class="phase-title">Fat loss — full gym schedule</span>
+      <span class="phase-dates">June 21 – July 6</span>
+    </div>
+    <div class="metrics-row">
+      <div class="metric-box"><div class="metric-label">Daily calories</div><div class="metric-val">~2,100</div><div class="metric-sub">Same deficit continues</div></div>
+      <div class="metric-box"><div class="metric-label">Protein</div><div class="metric-val">160g</div><div class="metric-sub">Protects muscle while cutting</div></div>
+      <div class="metric-box"><div class="metric-label">Cardio</div><div class="metric-val">2–3×/week</div><div class="metric-sub">HIIT or incline walk</div></div>
+      <div class="metric-box"><div class="metric-label">Gym days</div><div class="metric-val">5×/week</div><div class="metric-sub">Season finished — ramp up</div></div>
+    </div>
+    <div class="section-label">Weekly schedule</div>
+    <div class="week-grid">
+      <div class="day-box d-lift"><div class="day-box-name">Mon</div><div class="day-box-type">Upper body</div></div>
+      <div class="day-box d-card"><div class="day-box-name">Tue</div><div class="day-box-type">Cardio</div></div>
+      <div class="day-box d-lift"><div class="day-box-name">Wed</div><div class="day-box-type">Lower + core</div></div>
+      <div class="day-box d-lift"><div class="day-box-name">Thu</div><div class="day-box-type">Full body</div></div>
+      <div class="day-box d-lift"><div class="day-box-name">Fri</div><div class="day-box-type">Upper body</div></div>
+      <div class="day-box d-card"><div class="day-box-name">Sat</div><div class="day-box-type">Cardio</div></div>
+      <div class="day-box d-rest"><div class="day-box-name">Sun</div><div class="day-box-type">Rest</div></div>
+    </div>
+    <div class="tip">Thursday now becomes a full body gym session. Cardio stays on Tuesday and moves back to Saturday too.</div>
+    <div class="section-label">Macros</div>
+    <div class="macro-bar-row"><span class="macro-bar-name">Protein</span><div class="macro-bar-bg"><div class="macro-bar-fill" style="width:32%;background:#378ADD"></div></div><span class="macro-bar-val">160g</span></div>
+    <div class="macro-bar-row"><span class="macro-bar-name">Carbs</span><div class="macro-bar-bg"><div class="macro-bar-fill" style="width:44%;background:#7F77DD"></div></div><span class="macro-bar-val">200g</span></div>
+    <div class="macro-bar-row"><span class="macro-bar-name">Fats</span><div class="macro-bar-bg"><div class="macro-bar-fill" style="width:24%;background:#1D9E75"></div></div><span class="macro-bar-val">60g</span></div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="phase-card">
+    <div class="phase-header">
+      <span class="phase-badge pb2">Phase 2</span>
+      <span class="phase-title">Muscle build — PPL split</span>
+      <span class="phase-dates">July 7 – August 8</span>
+    </div>
+    <div class="metrics-row">
+      <div class="metric-box"><div class="metric-label">Daily calories</div><div class="metric-val">~2,700</div><div class="metric-sub">~200 above maintenance</div></div>
+      <div class="metric-box"><div class="metric-label">Protein</div><div class="metric-val">170g</div><div class="metric-sub">Fuels muscle growth</div></div>
+      <div class="metric-box"><div class="metric-label">Focus</div><div class="metric-val">Upper body</div><div class="metric-sub">Chest · arms · shoulders · abs</div></div>
+      <div class="metric-box"><div class="metric-label">Key rule</div><div class="metric-val">Overload</div><div class="metric-sub">Add weight or reps weekly</div></div>
+    </div>
+    <div class="section-label">Weekly schedule</div>
+    <div class="week-grid">
+      <div class="day-box d-ppl"><div class="day-box-name">Mon</div><div class="day-box-type">Push</div></div>
+      <div class="day-box d-ppl"><div class="day-box-name">Tue</div><div class="day-box-type">Pull</div></div>
+      <div class="day-box d-legs"><div class="day-box-name">Wed</div><div class="day-box-type">Legs + abs</div></div>
+      <div class="day-box d-act"><div class="day-box-name">Thu</div><div class="day-box-type">Active rest</div></div>
+      <div class="day-box d-ppl"><div class="day-box-name">Fri</div><div class="day-box-type">Push</div></div>
+      <div class="day-box d-ppl"><div class="day-box-name">Sat</div><div class="day-box-type">Pull</div></div>
+      <div class="day-box d-rest"><div class="day-box-name">Sun</div><div class="day-box-type">Rest</div></div>
+    </div>
+    <div class="section-label">Workout focus</div>
+    <div class="workout-list">
+      <div class="workout-item"><div class="workout-dot" style="background:#378ADD"></div><div><div class="workout-name">Push days (Mon + Fri)</div><div class="workout-detail">Incline bench, flat bench, E-gym chest press, shoulder press, E-gym shoulder press, lateral raises, tricep pushdowns, cable flies · 4×8–10</div></div></div>
+      <div class="workout-item"><div class="workout-dot" style="background:#1D9E75"></div><div><div class="workout-name">Pull days (Tue + Sat)</div><div class="workout-detail">Pull-ups / lat pulldown, E-gym lat pulldown, bent-over rows, E-gym seated row, face pulls, bicep curls, hammer curls · 4×8–10</div></div></div>
+      <div class="workout-item"><div class="workout-dot" style="background:#D4537E"></div><div><div class="workout-name">Legs + abs (Wed)</div><div class="workout-detail">E-gym leg press, leg extension, leg curl + squats, Romanian deadlifts, cable crunches, leg raises, planks · 4×10</div></div></div>
+      <div class="workout-item"><div class="workout-dot" style="background:#7F77DD"></div><div><div class="workout-name">Thursday — active rest</div><div class="workout-detail">Easy swim at Knutsford pool, 20 min walk, or light stretching. Keep moving but don't train hard</div></div></div>
+    </div>
+    <div class="tip2">Free weights and cables are the priority in phase 2. Use E-gym machines as finishers — build sessions around the barbell, dumbbells and cable machine first. Progressive overload every week.</div>
+    <div class="section-label">Macros</div>
+    <div class="macro-bar-row"><span class="macro-bar-name">Protein</span><div class="macro-bar-bg"><div class="macro-bar-fill" style="width:28%;background:#378ADD"></div></div><span class="macro-bar-val">170g</span></div>
+    <div class="macro-bar-row"><span class="macro-bar-name">Carbs</span><div class="macro-bar-bg"><div class="macro-bar-fill" style="width:48%;background:#7F77DD"></div></div><span class="macro-bar-val">240g</span></div>
+    <div class="macro-bar-row"><span class="macro-bar-name">Fats</span><div class="macro-bar-bg"><div class="macro-bar-fill" style="width:24%;background:#1D9E75"></div></div><span class="macro-bar-val">65g</span></div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#B5D4F4"></div>Lifting</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#9FE1CB"></div>Cardio</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#FAC775"></div>Football</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#CECBF6"></div>Push/pull</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#F4C0D1"></div>Legs + abs</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--gray-100);border:1px solid var(--border)"></div>Rest</div>
+  </div>
+</div>
+
+<!-- ==================== MEAL PLAN ==================== -->
+<div class="section" id="sec-meals">
+  <div class="page-header">
+    <h1>Meal Plan</h1>
+    <p>Personalised around your preferences · Mexican · Italian · British · Wraps · Sweet potato</p>
+  </div>
+
+  <div class="phase-toggle">
+    <button class="ptoggle on" onclick="switchMealPhase('mp1',this)">Phase 1 — fat loss (~2,100 kcal)</button>
+    <button class="ptoggle" onclick="switchMealPhase('mp2',this)">Phase 2 — muscle build (~2,700 kcal)</button>
+  </div>
+
+  <!-- MEAL PHASE 1 -->
+  <div id="mp1" class="meal-phase" style="display:block">
+    <div class="day-tabs">
+      <div class="dtab on" onclick="switchMealDay('mp1','mon',this)">Mon</div>
+      <div class="dtab" onclick="switchMealDay('mp1','tue',this)">Tue</div>
+      <div class="dtab" onclick="switchMealDay('mp1','wed',this)">Wed</div>
+      <div class="dtab" onclick="switchMealDay('mp1','thu',this)">Thu</div>
+      <div class="dtab" onclick="switchMealDay('mp1','fri',this)">Fri</div>
+      <div class="dtab" onclick="switchMealDay('mp1','sat',this)">Sat</div>
+      <div class="dtab" onclick="switchMealDay('mp1','sun',this)">Sun</div>
+    </div>
+
+    <div class="dc show" id="mp1-mon">
+      <div class="totals-grid">
+        <div class="tbox"><div class="tbox-label">Calories</div><div class="tbox-val">2,090</div></div>
+        <div class="tbox"><div class="tbox-label">Protein</div><div class="tbox-val">162g</div></div>
+        <div class="tbox"><div class="tbox-label">Carbs</div><div class="tbox-val">196g</div></div>
+        <div class="tbox"><div class="tbox-label">Fats</div><div class="tbox-val">59g</div></div>
+      </div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-b">Breakfast</span>Overnight weetabix</div><div class="card-kcal">~440 kcal</div></div><div class="card-body">3 weetabix · 200ml semi-skimmed milk · 150g Greek yogurt (0%) · 1 scoop whey protein · 1 tbsp honey · handful blueberries</div><div class="card-note">Crush weetabix, mix with milk and yogurt the night before · stir in protein powder · fridge overnight · top with honey and berries in the morning</div><div class="mpills"><span class="pill pill-p">P: 46g</span><span class="pill pill-c">C: 54g</span><span class="pill pill-f">F: 8g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Mid-morning</div><div class="card-kcal">~180 kcal</div></div><div class="card-body">150g cottage cheese · 1 tbsp honey · 1 apple (sliced)</div><div class="mpills"><span class="pill pill-p">P: 18g</span><span class="pill pill-c">C: 20g</span><span class="pill pill-f">F: 2g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-l">Lunch</span>Chicken honey wrap</div><div class="card-kcal">~490 kcal</div></div><div class="card-body">2 large wholemeal wraps · 180g grilled chicken breast (sliced) · 1 tsp honey mustard · lettuce + cucumber + sweetcorn · squeeze of lemon</div><div class="card-note">Your existing lunch — upgraded with wholemeal wrap, more chicken and proper veg</div><div class="mpills"><span class="pill pill-p">P: 52g</span><span class="pill pill-c">C: 48g</span><span class="pill pill-f">F: 10g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Pre-workout</div><div class="card-kcal">~190 kcal</div></div><div class="card-body">1 banana · 20g whey protein in water · 5g creatine stirred in</div><div class="mpills"><span class="pill pill-p">P: 22g</span><span class="pill pill-c">C: 28g</span><span class="pill pill-f">F: 2g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-d">Dinner</span>Proper chicken fajitas</div><div class="card-kcal">~790 kcal</div></div><div class="card-body">220g chicken breast strips · 3 large flour tortillas · mixed peppers + red onion · 1 tsp fajita seasoning · 2 tbsp salsa · 2 tbsp 0% Greek yogurt · sweetcorn · shredded lettuce</div><div class="card-note">Fry chicken strips with peppers and onion in fajita seasoning ~15 mins · serve in warm tortillas with toppings</div><div class="mpills"><span class="pill pill-p">P: 54g</span><span class="pill pill-c">C: 78g</span><span class="pill pill-f">F: 18g</span></div></div>
+      <div class="tip">Monday is upper body gym day — fajitas are a great post-workout dinner. The tortillas refuel your muscles and the chicken hits your protein perfectly.</div>
+    </div>
+
+    <div class="dc" id="mp1-tue">
+      <div class="totals-grid">
+        <div class="tbox"><div class="tbox-label">Calories</div><div class="tbox-val">2,080</div></div>
+        <div class="tbox"><div class="tbox-label">Protein</div><div class="tbox-val">160g</div></div>
+        <div class="tbox"><div class="tbox-label">Carbs</div><div class="tbox-val">194g</div></div>
+        <div class="tbox"><div class="tbox-label">Fats</div><div class="tbox-val">60g</div></div>
+      </div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-b">Breakfast</span>Protein pancakes</div><div class="card-kcal">~450 kcal</div></div><div class="card-body">2 whole eggs · 1 scoop whey protein · 60g oats · splash of milk · pinch of baking powder</div><div class="recipe-box"><div class="recipe-title"><i class="fa-regular fa-hat-chef"></i> How to make them</div><div class="recipe-steps">1. Blend oats into flour using a blender or NutriBullet<br>2. Mix oat flour + whey + eggs + milk until smooth batter<br>3. Heat a non-stick pan on medium, add tiny spray of oil<br>4. Pour small circles (~8cm), cook 2 mins each side until golden<br>5. Top with Greek yogurt + berries + drizzle of honey<br>Makes ~6 small pancakes</div></div><div class="mpills"><span class="pill pill-p">P: 38g</span><span class="pill pill-c">C: 46g</span><span class="pill pill-f">F: 12g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Mid-morning</div><div class="card-kcal">~160 kcal</div></div><div class="card-body">25g mixed nuts · 1 orange</div><div class="mpills"><span class="pill pill-p">P: 5g</span><span class="pill pill-c">C: 20g</span><span class="pill pill-f">F: 12g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-l">Lunch</span>Chicken + sweet potato wrap</div><div class="card-kcal">~510 kcal</div></div><div class="card-body">2 large wholemeal wraps · 170g grilled chicken · 150g roasted sweet potato (cubed) · carrots (grated) · 1 tbsp light mayo · handful spinach</div><div class="card-note">Roast sweet potato chunks the night before — takes 25 mins at 200°C then just assemble in the morning</div><div class="mpills"><span class="pill pill-p">P: 48g</span><span class="pill pill-c">C: 58g</span><span class="pill pill-f">F: 10g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Pre-cardio</div><div class="card-kcal">~150 kcal</div></div><div class="card-body">1 banana · black coffee (optional — boosts fat burn during HIIT)</div><div class="mpills"><span class="pill pill-p">P: 1g</span><span class="pill pill-c">C: 27g</span><span class="pill pill-f">F: 0g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-d">Dinner</span>Salmon + new potatoes</div><div class="card-kcal">~810 kcal</div></div><div class="card-body">200g salmon fillet · 300g new potatoes (boiled or roasted) · peas + sweetcorn · 1 tsp butter · lemon + dill · salt + pepper</div><div class="card-note">Bake salmon at 200°C for 15 mins while potatoes boil · proper sit-down dinner feel</div><div class="mpills"><span class="pill pill-p">P: 46g</span><span class="pill pill-c">C: 62g</span><span class="pill pill-f">F: 28g</span></div></div>
+      <div class="tip">Cardio day — save your bigger carb meal for dinner to refuel after HIIT. Salmon and potatoes is a brilliant recovery meal.</div>
+    </div>
+
+    <div class="dc" id="mp1-wed">
+      <div class="totals-grid">
+        <div class="tbox"><div class="tbox-label">Calories</div><div class="tbox-val">2,100</div></div>
+        <div class="tbox"><div class="tbox-label">Protein</div><div class="tbox-val">163g</div></div>
+        <div class="tbox"><div class="tbox-label">Carbs</div><div class="tbox-val">198g</div></div>
+        <div class="tbox"><div class="tbox-label">Fats</div><div class="tbox-val">60g</div></div>
+      </div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-b">Breakfast</span>Overnight weetabix</div><div class="card-kcal">~440 kcal</div></div><div class="card-body">3 weetabix · 200ml semi-skimmed milk · 150g Greek yogurt · 1 scoop whey · 1 tbsp honey · sliced banana</div><div class="card-note">Prep Tuesday night — same as Monday</div><div class="mpills"><span class="pill pill-p">P: 46g</span><span class="pill pill-c">C: 58g</span><span class="pill pill-f">F: 8g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Mid-morning</div><div class="card-kcal">~180 kcal</div></div><div class="card-body">2 rice cakes · 100g cottage cheese · pinch of black pepper · 1 pear</div><div class="mpills"><span class="pill pill-p">P: 14g</span><span class="pill pill-c">C: 22g</span><span class="pill pill-f">F: 2g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-l">Lunch</span>Turkey wrap</div><div class="card-kcal">~480 kcal</div></div><div class="card-body">2 wholemeal wraps · 180g turkey breast slices · 1 tbsp light mayo · lettuce + cucumber + sweetcorn + grated carrot · squeeze of lemon</div><div class="mpills"><span class="pill pill-p">P: 50g</span><span class="pill pill-c">C: 46g</span><span class="pill pill-f">F: 10g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Pre-workout</div><div class="card-kcal">~190 kcal</div></div><div class="card-body">1 banana · 20g whey in water · 5g creatine</div><div class="mpills"><span class="pill pill-p">P: 22g</span><span class="pill pill-c">C: 28g</span><span class="pill pill-f">F: 2g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-d">Dinner</span>Chicken pasta bake</div><div class="card-kcal">~810 kcal</div></div><div class="card-body">200g chicken breast (diced) · 90g penne pasta · passata (200ml) · sweetcorn + peas · garlic + Italian herbs · 20g cheddar melted on top</div><div class="card-note">Cook pasta, fry chicken with garlic, mix with passata and veg, top with cheese and grill for 5 mins — 35 mins total</div><div class="mpills"><span class="pill pill-p">P: 56g</span><span class="pill pill-c">C: 76g</span><span class="pill pill-f">F: 14g</span></div></div>
+    </div>
+
+    <div class="dc" id="mp1-thu">
+      <div class="totals-grid">
+        <div class="tbox"><div class="tbox-label">Calories</div><div class="tbox-val">2,120</div></div>
+        <div class="tbox"><div class="tbox-label">Protein</div><div class="tbox-val">158g</div></div>
+        <div class="tbox"><div class="tbox-label">Carbs</div><div class="tbox-val">218g</div></div>
+        <div class="tbox"><div class="tbox-label">Fats</div><div class="tbox-val">56g</div></div>
+      </div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-b">Breakfast</span>Overnight weetabix</div><div class="card-kcal">~440 kcal</div></div><div class="card-body">3 weetabix · 200ml milk · 150g Greek yogurt · 1 scoop whey · 1 tbsp honey · raspberries</div><div class="mpills"><span class="pill pill-p">P: 46g</span><span class="pill pill-c">C: 56g</span><span class="pill pill-f">F: 8g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Mid-morning</div><div class="card-kcal">~160 kcal</div></div><div class="card-body">2 boiled eggs · 1 orange</div><div class="mpills"><span class="pill pill-p">P: 13g</span><span class="pill pill-c">C: 16g</span><span class="pill pill-f">F: 10g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-l">Lunch</span>Chicken + sweet potato wrap</div><div class="card-kcal">~510 kcal</div></div><div class="card-body">2 wholemeal wraps · 180g grilled chicken · 150g roasted sweet potato · peas + sweetcorn · 1 tbsp light mayo</div><div class="mpills"><span class="pill pill-p">P: 50g</span><span class="pill pill-c">C: 60g</span><span class="pill pill-f">F: 10g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Pre-football (1–2hrs before)</div><div class="card-kcal">~210 kcal</div></div><div class="card-body">2 rice cakes · 1 tbsp peanut butter · 1 banana · water</div><div class="mpills"><span class="pill pill-p">P: 6g</span><span class="pill pill-c">C: 38g</span><span class="pill pill-f">F: 8g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-d">Dinner</span>Steak + sweet potato chips + peas</div><div class="card-kcal">~800 kcal</div></div><div class="card-body">200g sirloin or rump steak · 250g sweet potato fries (oven baked) · peas + sweetcorn · 1 tsp olive oil · garlic butter (5g) · salt + pepper</div><div class="card-note">Oven fries at 200°C for 25 mins · pan fry steak 3 mins each side for medium</div><div class="mpills"><span class="pill pill-p">P: 52g</span><span class="pill pill-c">C: 64g</span><span class="pill pill-f">F: 22g</span></div></div>
+      <div class="tip">Football day — slightly more carbs throughout. Steak after football is great for recovery — high protein and iron helps muscles repair overnight.</div>
+    </div>
+
+    <div class="dc" id="mp1-fri">
+      <div class="totals-grid">
+        <div class="tbox"><div class="tbox-label">Calories</div><div class="tbox-val">2,090</div></div>
+        <div class="tbox"><div class="tbox-label">Protein</div><div class="tbox-val">161g</div></div>
+        <div class="tbox"><div class="tbox-label">Carbs</div><div class="tbox-val">196g</div></div>
+        <div class="tbox"><div class="tbox-label">Fats</div><div class="tbox-val">60g</div></div>
+      </div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-b">Breakfast</span>Protein pancakes</div><div class="card-kcal">~450 kcal</div></div><div class="card-body">2 whole eggs · 1 scoop whey · 60g oats · splash of milk · baking powder · Greek yogurt + honey + strawberries on top</div><div class="card-note">Same recipe as Tuesday — you'll have it nailed by Friday</div><div class="mpills"><span class="pill pill-p">P: 38g</span><span class="pill pill-c">C: 46g</span><span class="pill pill-f">F: 12g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Mid-morning</div><div class="card-kcal">~180 kcal</div></div><div class="card-body">150g cottage cheese · 1 tbsp honey · sliced apple</div><div class="mpills"><span class="pill pill-p">P: 18g</span><span class="pill pill-c">C: 20g</span><span class="pill pill-f">F: 2g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-l">Lunch</span>Chicken honey wrap</div><div class="card-kcal">~490 kcal</div></div><div class="card-body">2 wholemeal wraps · 180g grilled chicken · 1 tsp honey mustard · lettuce + carrots (grated) + sweetcorn</div><div class="mpills"><span class="pill pill-p">P: 50g</span><span class="pill pill-c">C: 50g</span><span class="pill pill-f">F: 10g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Pre-workout</div><div class="card-kcal">~190 kcal</div></div><div class="card-body">1 banana · 20g whey in water · 5g creatine</div><div class="mpills"><span class="pill pill-p">P: 22g</span><span class="pill pill-c">C: 28g</span><span class="pill pill-f">F: 2g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-d">Dinner</span>Chicken burrito bowl</div><div class="card-kcal">~780 kcal</div></div><div class="card-body">220g grilled chicken breast · 200g sweet potato (roasted cubes) · sweetcorn + peas · 2 tbsp salsa · 2 tbsp 0% Greek yogurt · shredded lettuce · squeeze of lime · sprinkle of paprika</div><div class="card-note">Mexican style in a bowl — roast sweet potato while cooking chicken · 30 mins total</div><div class="mpills"><span class="pill pill-p">P: 58g</span><span class="pill pill-c">C: 68g</span><span class="pill pill-f">F: 12g</span></div></div>
+    </div>
+
+    <div class="dc" id="mp1-sat">
+      <div class="totals-grid">
+        <div class="tbox"><div class="tbox-label">Calories</div><div class="tbox-val">2,060</div></div>
+        <div class="tbox"><div class="tbox-label">Protein</div><div class="tbox-val">160g</div></div>
+        <div class="tbox"><div class="tbox-label">Carbs</div><div class="tbox-val">184g</div></div>
+        <div class="tbox"><div class="tbox-label">Fats</div><div class="tbox-val">62g</div></div>
+      </div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-b">Breakfast</span>Protein pancakes</div><div class="card-kcal">~450 kcal</div></div><div class="card-body">2 whole eggs · 1 scoop whey · 60g oats · milk · baking powder · honey + mixed berries + Greek yogurt on top</div><div class="card-note">Saturday morning treat breakfast</div><div class="mpills"><span class="pill pill-p">P: 38g</span><span class="pill pill-c">C: 46g</span><span class="pill pill-f">F: 12g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Mid-morning</div><div class="card-kcal">~160 kcal</div></div><div class="card-body">25g mixed nuts · 1 pear</div><div class="mpills"><span class="pill pill-p">P: 5g</span><span class="pill pill-c">C: 18g</span><span class="pill pill-f">F: 12g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-l">Lunch</span>Steak wrap</div><div class="card-kcal">~560 kcal</div></div><div class="card-body">150g rump steak (sliced thin) · 2 large flour tortillas · sweetcorn + peas + lettuce · 1 tbsp light mayo or salsa · squeeze of lime</div><div class="card-note">Pan fry steak 2 mins each side, slice thin, load into wraps — 15 mins max</div><div class="mpills"><span class="pill pill-p">P: 48g</span><span class="pill pill-c">C: 52g</span><span class="pill pill-f">F: 18g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-d">Dinner</span>Proper roast chicken</div><div class="card-kcal">~890 kcal</div></div><div class="card-body">2 large chicken breasts or 3 thighs · 300g roasted potatoes · peas + carrots + sweetcorn · light chicken gravy</div><div class="card-note">Saturday roast — roast potatoes at 200°C with a tiny bit of oil for 40 mins · save leftover chicken for Sunday</div><div class="mpills"><span class="pill pill-p">P: 58g</span><span class="pill pill-c">C: 74g</span><span class="pill pill-f">F: 22g</span></div></div>
+      <div class="tip">Rest day — batch cook: roast extra chicken and sweet potato to use Mon–Wed. Saves you 30 mins every morning.</div>
+    </div>
+
+    <div class="dc" id="mp1-sun">
+      <div class="totals-grid">
+        <div class="tbox"><div class="tbox-label">Calories</div><div class="tbox-val">2,070</div></div>
+        <div class="tbox"><div class="tbox-label">Protein</div><div class="tbox-val">159g</div></div>
+        <div class="tbox"><div class="tbox-label">Carbs</div><div class="tbox-val">186g</div></div>
+        <div class="tbox"><div class="tbox-label">Fats</div><div class="tbox-val">62g</div></div>
+      </div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-b">Breakfast</span>Overnight weetabix</div><div class="card-kcal">~440 kcal</div></div><div class="card-body">3 weetabix · 200ml milk · 150g Greek yogurt · 1 scoop whey · 1 tbsp honey · banana</div><div class="card-note">Prep Saturday night</div><div class="mpills"><span class="pill pill-p">P: 46g</span><span class="pill pill-c">C: 56g</span><span class="pill pill-f">F: 8g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Mid-morning</div><div class="card-kcal">~180 kcal</div></div><div class="card-body">150g cottage cheese · 1 tbsp honey · 1 apple</div><div class="mpills"><span class="pill pill-p">P: 18g</span><span class="pill pill-c">C: 20g</span><span class="pill pill-f">F: 2g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-l">Lunch</span>Leftover chicken wrap</div><div class="card-kcal">~480 kcal</div></div><div class="card-body">Leftover roast chicken (shredded) · 2 wholemeal wraps · light mayo · lettuce + sweetcorn + grated carrot</div><div class="card-note">Zero effort Sunday lunch — Saturday's batch cook doing the work</div><div class="mpills"><span class="pill pill-p">P: 46g</span><span class="pill pill-c">C: 46g</span><span class="pill pill-f">F: 12g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-d">Dinner</span>Salmon + sweet potato mash</div><div class="card-kcal">~970 kcal</div></div><div class="card-body">220g salmon fillet · 350g sweet potato (mashed with a tiny bit of butter + milk) · peas + sweetcorn · lemon + dill · salt + pepper</div><div class="card-note">Bake salmon 15 mins · boil and mash sweet potato · proper Sunday dinner feel</div><div class="mpills"><span class="pill pill-p">P: 48g</span><span class="pill pill-c">C: 76g</span><span class="pill pill-f">F: 28g</span></div></div>
+      <div class="tip">Sunday prep — boil a batch of eggs, cook extra chicken and portion into containers. 30 mins now saves every morning this week.</div>
+    </div>
+  </div>
+
+  <!-- MEAL PHASE 2 -->
+  <div id="mp2" class="meal-phase" style="display:none">
+    <div class="day-tabs">
+      <div class="dtab on" onclick="switchMealDay('mp2','mon',this)">Mon</div>
+      <div class="dtab" onclick="switchMealDay('mp2','tue',this)">Tue</div>
+      <div class="dtab" onclick="switchMealDay('mp2','wed',this)">Wed</div>
+      <div class="dtab" onclick="switchMealDay('mp2','thu',this)">Thu</div>
+      <div class="dtab" onclick="switchMealDay('mp2','fri',this)">Fri</div>
+      <div class="dtab" onclick="switchMealDay('mp2','sat',this)">Sat</div>
+      <div class="dtab" onclick="switchMealDay('mp2','sun',this)">Sun</div>
+    </div>
+    <div class="dc show" id="mp2-mon">
+      <div class="totals-grid"><div class="tbox"><div class="tbox-label">Calories</div><div class="tbox-val">2,700</div></div><div class="tbox"><div class="tbox-label">Protein</div><div class="tbox-val">171g</div></div><div class="tbox"><div class="tbox-label">Carbs</div><div class="tbox-val">242g</div></div><div class="tbox"><div class="tbox-label">Fats</div><div class="tbox-val">66g</div></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-b">Breakfast</span>Overnight weetabix — bigger</div><div class="card-kcal">~560 kcal</div></div><div class="card-body">4 weetabix · 250ml milk · 200g Greek yogurt · 1 scoop whey · 1 tbsp honey · 1 tbsp peanut butter · banana</div><div class="mpills"><span class="pill pill-p">P: 52g</span><span class="pill pill-c">C: 76g</span><span class="pill pill-f">F: 14g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Mid-morning</div><div class="card-kcal">~220 kcal</div></div><div class="card-body">200g cottage cheese · 1 tbsp honey · 1 apple</div><div class="mpills"><span class="pill pill-p">P: 24g</span><span class="pill pill-c">C: 22g</span><span class="pill pill-f">F: 4g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-l">Lunch</span>Double chicken wrap</div><div class="card-kcal">~640 kcal</div></div><div class="card-body">3 large wholemeal wraps · 220g grilled chicken · 1 tsp honey mustard · lettuce + sweetcorn + grated carrot · ½ avocado</div><div class="mpills"><span class="pill pill-p">P: 62g</span><span class="pill pill-c">C: 66g</span><span class="pill pill-f">F: 18g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Pre-workout</div><div class="card-kcal">~260 kcal</div></div><div class="card-body">1 banana · 30g whey in 300ml milk · 5g creatine</div><div class="mpills"><span class="pill pill-p">P: 30g</span><span class="pill pill-c">C: 36g</span><span class="pill pill-f">F: 4g</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-d">Dinner</span>Big chicken fajitas</div><div class="card-kcal">~1,020 kcal</div></div><div class="card-body">280g chicken breast strips · 4 large flour tortillas · mixed peppers + red onion · fajita seasoning · 3 tbsp salsa · 2 tbsp 0% Greek yogurt · sweetcorn + shredded lettuce</div><div class="mpills"><span class="pill pill-p">P: 68g</span><span class="pill pill-c">C: 96g</span><span class="pill pill-f">F: 20g</span></div></div>
+      <div class="tip2">Phase 2 — everything is bigger. Same meals you enjoy, just scaled up to hit 2,700 calories and fuel muscle growth.</div>
+    </div>
+    <div class="dc" id="mp2-tue"><div class="totals-grid"><div class="tbox"><div class="tbox-label">Calories</div><div class="tbox-val">2,690</div></div><div class="tbox"><div class="tbox-label">Protein</div><div class="tbox-val">170g</div></div><div class="tbox"><div class="tbox-label">Carbs</div><div class="tbox-val">240g</div></div><div class="tbox"><div class="tbox-label">Fats</div><div class="tbox-val">65g</div></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-b">Breakfast</span>Protein pancakes — bigger stack</div><div class="card-kcal">~580 kcal</div></div><div class="card-body">3 whole eggs · 1.5 scoops whey · 80g oats · milk · baking powder · Greek yogurt + honey + berries on top</div><div class="mpills"><span class="pill pill-p">P: 52g</span><span class="pill pill-c">C: 60g</span><span class="pill pill-f">F: 16g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Mid-morning</div><div class="card-kcal">~200 kcal</div></div><div class="card-body">30g mixed nuts · 1 banana</div><div class="mpills"><span class="pill pill-p">P: 7g</span><span class="pill pill-c">C: 34g</span><span class="pill pill-f">F: 14g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-l">Lunch</span>Big chicken + sweet potato wrap</div><div class="card-kcal">~660 kcal</div></div><div class="card-body">3 wholemeal wraps · 220g grilled chicken · 200g roasted sweet potato · carrots + sweetcorn · 1 tbsp light mayo</div><div class="mpills"><span class="pill pill-p">P: 60g</span><span class="pill pill-c">C: 76g</span><span class="pill pill-f">F: 12g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Pre-workout</div><div class="card-kcal">~260 kcal</div></div><div class="card-body">1 banana · 30g whey in milk · 5g creatine</div><div class="mpills"><span class="pill pill-p">P: 30g</span><span class="pill pill-c">C: 36g</span><span class="pill pill-f">F: 4g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-d">Dinner</span>Big salmon + new potatoes</div><div class="card-kcal">~990 kcal</div></div><div class="card-body">250g salmon fillet · 400g new potatoes · peas + sweetcorn + carrots · 1 tsp butter · lemon + dill</div><div class="mpills"><span class="pill pill-p">P: 54g</span><span class="pill pill-c">C: 80g</span><span class="pill pill-f">F: 32g</span></div></div></div>
+    <div class="dc" id="mp2-wed"><div class="totals-grid"><div class="tbox"><div class="tbox-label">Calories</div><div class="tbox-val">2,710</div></div><div class="tbox"><div class="tbox-label">Protein</div><div class="tbox-val">171g</div></div><div class="tbox"><div class="tbox-label">Carbs</div><div class="tbox-val">244g</div></div><div class="tbox"><div class="tbox-label">Fats</div><div class="tbox-val">66g</div></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-b">Breakfast</span>Overnight weetabix</div><div class="card-kcal">~560 kcal</div></div><div class="card-body">4 weetabix · 250ml milk · 200g Greek yogurt · 1 scoop whey · 1 tbsp honey · 1 tbsp almond butter · blueberries</div><div class="mpills"><span class="pill pill-p">P: 52g</span><span class="pill pill-c">C: 74g</span><span class="pill pill-f">F: 16g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Mid-morning</div><div class="card-kcal">~200 kcal</div></div><div class="card-body">2 boiled eggs · 1 orange · rice cake</div><div class="mpills"><span class="pill pill-p">P: 14g</span><span class="pill pill-c">C: 22g</span><span class="pill pill-f">F: 10g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-l">Lunch</span>Turkey wrap</div><div class="card-kcal">~640 kcal</div></div><div class="card-body">3 wholemeal wraps · 220g turkey breast · 1 tbsp light mayo · lettuce + sweetcorn + grated carrot · ½ avocado</div><div class="mpills"><span class="pill pill-p">P: 60g</span><span class="pill pill-c">C: 64g</span><span class="pill pill-f">F: 18g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Pre-workout</div><div class="card-kcal">~260 kcal</div></div><div class="card-body">1 banana · 30g whey in milk · 5g creatine</div><div class="mpills"><span class="pill pill-p">P: 30g</span><span class="pill pill-c">C: 36g</span><span class="pill pill-f">F: 4g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-d">Dinner</span>Big chicken pasta bake</div><div class="card-kcal">~1,050 kcal</div></div><div class="card-body">250g chicken breast · 110g penne · passata · sweetcorn + peas · garlic + Italian herbs · 30g cheddar on top</div><div class="mpills"><span class="pill pill-p">P: 70g</span><span class="pill pill-c">C: 88g</span><span class="pill pill-f">F: 18g</span></div></div></div>
+    <div class="dc" id="mp2-thu"><div class="totals-grid"><div class="tbox"><div class="tbox-label">Calories</div><div class="tbox-val">2,650</div></div><div class="tbox"><div class="tbox-label">Protein</div><div class="tbox-val">168g</div></div><div class="tbox"><div class="tbox-label">Carbs</div><div class="tbox-val">228g</div></div><div class="tbox"><div class="tbox-label">Fats</div><div class="tbox-val">68g</div></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-b">Breakfast</span>Overnight weetabix</div><div class="card-kcal">~560 kcal</div></div><div class="card-body">4 weetabix · 250ml milk · 200g Greek yogurt · 1 scoop whey · 1 tbsp honey · banana</div><div class="mpills"><span class="pill pill-p">P: 52g</span><span class="pill pill-c">C: 74g</span><span class="pill pill-f">F: 14g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Mid-morning</div><div class="card-kcal">~200 kcal</div></div><div class="card-body">2 boiled eggs · 1 orange · 5g creatine in water</div><div class="mpills"><span class="pill pill-p">P: 14g</span><span class="pill pill-c">C: 16g</span><span class="pill pill-f">F: 10g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-l">Lunch</span>Chicken + sweet potato wrap</div><div class="card-kcal">~640 kcal</div></div><div class="card-body">3 wholemeal wraps · 220g chicken · 200g roasted sweet potato · sweetcorn · 1 tbsp mayo</div><div class="mpills"><span class="pill pill-p">P: 60g</span><span class="pill pill-c">C: 76g</span><span class="pill pill-f">F: 12g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Afternoon</div><div class="card-kcal">~200 kcal</div></div><div class="card-body">30g mixed nuts · 1 banana</div><div class="mpills"><span class="pill pill-p">P: 7g</span><span class="pill pill-c">C: 32g</span><span class="pill pill-f">F: 14g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-d">Dinner</span>Big steak + sweet potato chips</div><div class="card-kcal">~1,050 kcal</div></div><div class="card-body">250g sirloin steak · 350g sweet potato fries (oven baked) · peas + sweetcorn + carrots · garlic butter (8g) · salt + pepper</div><div class="mpills"><span class="pill pill-p">P: 66g</span><span class="pill pill-c">C: 82g</span><span class="pill pill-f">F: 26g</span></div></div><div class="tip2">Active rest day — go for your swim at Knutsford pool, eat your big steak dinner and recover well for Friday's push session.</div></div>
+    <div class="dc" id="mp2-fri"><div class="totals-grid"><div class="tbox"><div class="tbox-label">Calories</div><div class="tbox-val">2,710</div></div><div class="tbox"><div class="tbox-label">Protein</div><div class="tbox-val">171g</div></div><div class="tbox"><div class="tbox-label">Carbs</div><div class="tbox-val">244g</div></div><div class="tbox"><div class="tbox-label">Fats</div><div class="tbox-val">66g</div></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-b">Breakfast</span>Protein pancakes</div><div class="card-kcal">~580 kcal</div></div><div class="card-body">3 whole eggs · 1.5 scoops whey · 80g oats · milk · Greek yogurt + berries + honey</div><div class="mpills"><span class="pill pill-p">P: 52g</span><span class="pill pill-c">C: 60g</span><span class="pill pill-f">F: 16g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Mid-morning</div><div class="card-kcal">~220 kcal</div></div><div class="card-body">200g cottage cheese · 1 tbsp honey · sliced apple</div><div class="mpills"><span class="pill pill-p">P: 24g</span><span class="pill pill-c">C: 22g</span><span class="pill pill-f">F: 4g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-l">Lunch</span>Double chicken honey wrap</div><div class="card-kcal">~640 kcal</div></div><div class="card-body">3 wholemeal wraps · 220g grilled chicken · 1 tsp honey mustard · lettuce + carrot + sweetcorn · ½ avocado</div><div class="mpills"><span class="pill pill-p">P: 62g</span><span class="pill pill-c">C: 66g</span><span class="pill pill-f">F: 18g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Pre-workout</div><div class="card-kcal">~260 kcal</div></div><div class="card-body">1 banana · 30g whey in milk · 5g creatine</div><div class="mpills"><span class="pill pill-p">P: 30g</span><span class="pill pill-c">C: 36g</span><span class="pill pill-f">F: 4g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-d">Dinner</span>Chicken burrito — proper</div><div class="card-kcal">~1,010 kcal</div></div><div class="card-body">280g grilled chicken · 3 large flour tortillas · roasted sweet potato (200g) · sweetcorn + peas · salsa + 0% Greek yogurt + shredded lettuce · paprika + lime</div><div class="mpills"><span class="pill pill-p">P: 72g</span><span class="pill pill-c">C: 98g</span><span class="pill pill-f">F: 16g</span></div></div></div>
+    <div class="dc" id="mp2-sat"><div class="totals-grid"><div class="tbox"><div class="tbox-label">Calories</div><div class="tbox-val">2,680</div></div><div class="tbox"><div class="tbox-label">Protein</div><div class="tbox-val">169g</div></div><div class="tbox"><div class="tbox-label">Carbs</div><div class="tbox-val">238g</div></div><div class="tbox"><div class="tbox-label">Fats</div><div class="tbox-val">65g</div></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-b">Breakfast</span>Protein pancakes</div><div class="card-kcal">~580 kcal</div></div><div class="card-body">3 whole eggs · 1.5 scoops whey · 80g oats · milk · honey + berries + Greek yogurt</div><div class="mpills"><span class="pill pill-p">P: 52g</span><span class="pill pill-c">C: 60g</span><span class="pill pill-f">F: 16g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Mid-morning</div><div class="card-kcal">~200 kcal</div></div><div class="card-body">30g mixed nuts · 1 apple · 5g creatine in water</div><div class="mpills"><span class="pill pill-p">P: 7g</span><span class="pill pill-c">C: 20g</span><span class="pill pill-f">F: 14g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-l">Lunch</span>Big steak wrap</div><div class="card-kcal">~680 kcal</div></div><div class="card-body">200g rump steak (sliced) · 3 flour tortillas · sweetcorn + lettuce + peas · 1 tbsp salsa · ½ avocado · lime</div><div class="mpills"><span class="pill pill-p">P: 58g</span><span class="pill pill-c">C: 66g</span><span class="pill pill-f">F: 22g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Pre-workout</div><div class="card-kcal">~260 kcal</div></div><div class="card-body">1 banana · 30g whey in milk · 5g creatine</div><div class="mpills"><span class="pill pill-p">P: 30g</span><span class="pill pill-c">C: 36g</span><span class="pill pill-f">F: 4g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-d">Dinner</span>Proper roast chicken</div><div class="card-kcal">~960 kcal</div></div><div class="card-body">3 large chicken thighs or 2 breasts · 350g roast potatoes · peas + carrots + sweetcorn · proper chicken gravy · 1 tbsp olive oil</div><div class="card-note">Batch cook extra chicken and potatoes for Sunday and Monday</div><div class="mpills"><span class="pill pill-p">P: 66g</span><span class="pill pill-c">C: 82g</span><span class="pill pill-f">F: 22g</span></div></div></div>
+    <div class="dc" id="mp2-sun"><div class="totals-grid"><div class="tbox"><div class="tbox-label">Calories</div><div class="tbox-val">2,680</div></div><div class="tbox"><div class="tbox-label">Protein</div><div class="tbox-val">169g</div></div><div class="tbox"><div class="tbox-label">Carbs</div><div class="tbox-val">236g</div></div><div class="tbox"><div class="tbox-label">Fats</div><div class="tbox-val">67g</div></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-b">Breakfast</span>Overnight weetabix</div><div class="card-kcal">~560 kcal</div></div><div class="card-body">4 weetabix · 250ml milk · 200g Greek yogurt · 1 scoop whey · 1 tbsp honey · 1 tbsp peanut butter · banana</div><div class="mpills"><span class="pill pill-p">P: 52g</span><span class="pill pill-c">C: 76g</span><span class="pill pill-f">F: 14g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Mid-morning</div><div class="card-kcal">~200 kcal</div></div><div class="card-body">200g cottage cheese · 1 tbsp honey · 5g creatine in water</div><div class="mpills"><span class="pill pill-p">P: 24g</span><span class="pill pill-c">C: 18g</span><span class="pill pill-f">F: 4g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-l">Lunch</span>Leftover chicken wrap</div><div class="card-kcal">~620 kcal</div></div><div class="card-body">Leftover roast chicken (shredded, 220g) · 3 wholemeal wraps · light mayo · sweetcorn + lettuce + grated carrot</div><div class="card-note">Saturday's batch cook doing the work again</div><div class="mpills"><span class="pill pill-p">P: 56g</span><span class="pill pill-c">C: 64g</span><span class="pill pill-f">F: 12g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-s">Snack</span>Afternoon</div><div class="card-kcal">~250 kcal</div></div><div class="card-body">2 rice cakes · 2 tbsp peanut butter · 1 banana</div><div class="mpills"><span class="pill pill-p">P: 10g</span><span class="pill pill-c">C: 38g</span><span class="pill pill-f">F: 14g</span></div></div><div class="card"><div class="card-header"><div class="card-title"><span class="tag tag-d">Dinner</span>Salmon + sweet potato mash</div><div class="card-kcal">~1,050 kcal</div></div><div class="card-body">250g salmon · 400g sweet potato mash (with butter + milk) · peas + sweetcorn + carrots · lemon + dill</div><div class="mpills"><span class="pill pill-p">P: 52g</span><span class="pill pill-c">C: 84g</span><span class="pill pill-f">F: 30g</span></div></div><div class="tip2">Sunday prep — cook batch chicken, boil eggs, prep weetabix jars for Mon and Tue. 30 mins Sunday = easy week ahead.</div></div>
+  </div>
+</div>
+
+<!-- ==================== SHOPPING LIST ==================== -->
+<div class="section" id="sec-shopping">
+  <div class="page-header">
+    <h1>Shopping List</h1>
+    <p>Tap items to check them off · switch between phases at the top</p>
+  </div>
+
+  <div class="phase-toggle">
+    <button class="ptoggle on" onclick="switchShopPhase('sp1',this)">Phase 1 — fat loss</button>
+    <button class="ptoggle" onclick="switchShopPhase('sp2',this)">Phase 2 — muscle build</button>
+  </div>
+
+  <!-- SHOP PHASE 1 -->
+  <div id="sp1" style="display:block">
+    <div class="progress-row">
+      <div class="progress-bg"><div class="progress-fill" id="sp1-bar" style="width:0%"></div></div>
+      <span class="progress-label" id="sp1-count">0 / 0</span>
+      <button class="reset-btn" onclick="resetShop('sp1')"><i class="fa-regular fa-arrow-rotate-left"></i> Reset</button>
+    </div>
+    <div class="cat-tabs">
+      <div class="ctab on" onclick="switchShopCat('sp1','protein',this)"><i class="fa-regular fa-drumstick-bite"></i> Protein</div>
+      <div class="ctab" onclick="switchShopCat('sp1','dairy',this)"><i class="fa-regular fa-bottle-water"></i> Dairy</div>
+      <div class="ctab" onclick="switchShopCat('sp1','carbs',this)"><i class="fa-regular fa-bread-slice"></i> Carbs</div>
+      <div class="ctab" onclick="switchShopCat('sp1','veg',this)"><i class="fa-regular fa-leaf"></i> Veg + fruit</div>
+      <div class="ctab" onclick="switchShopCat('sp1','supps',this)"><i class="fa-regular fa-pills"></i> Supplements</div>
+      <div class="ctab" onclick="switchShopCat('sp1','pantry',this)"><i class="fa-regular fa-basket-shopping"></i> Pantry</div>
+    </div>
+    <div class="cc show" id="sp1-protein"><div class="card"><div class="cat-header-row"><i class="fa-regular fa-drumstick-bite cat-icon"></i><span class="cat-title">Meat + fish</span></div><div class="item-grid">
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Chicken breast</div><div class="item-qty">~1.2kg for the week</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Sirloin / rump steak</div><div class="item-qty">~400g (Thu + Sat)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Salmon fillets</div><div class="item-qty">~400g (Tue + Sun)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Turkey breast slices</div><div class="item-qty">~180g (Wed)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Eggs (free range)</div><div class="item-qty">12 pack</div></div></div>
+    </div></div><div class="tip">Buy chicken in bulk — a 1.2kg pack is cheapest per kg. Cook a big batch Sunday and portion into containers for Mon–Wed.</div></div>
+    <div class="cc" id="sp1-dairy"><div class="card"><div class="cat-header-row"><i class="fa-regular fa-bottle-water cat-icon"></i><span class="cat-title">Dairy + fridge</span></div><div class="item-grid">
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Greek yogurt 0% fat</div><div class="item-qty">1kg tub (Lidl/Aldi cheapest)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Semi-skimmed milk</div><div class="item-qty">2L</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Cottage cheese</div><div class="item-qty">500g tub</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Light mayo</div><div class="item-qty">1 jar</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Salsa (jar)</div><div class="item-qty">1 jar</div></div></div>
+    </div></div></div>
+    <div class="cc" id="sp1-carbs"><div class="card"><div class="cat-header-row"><i class="fa-regular fa-bread-slice cat-icon"></i><span class="cat-title">Carbs + wraps</span></div><div class="item-grid">
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Wholemeal wraps (large)</div><div class="item-qty">2 packs of 6</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Flour tortillas (fajita size)</div><div class="item-qty">1 pack of 8</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Weetabix</div><div class="item-qty">24 pack</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Rolled oats</div><div class="item-qty">500g (pancakes)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Sweet potatoes</div><div class="item-qty">~1.5kg</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">New / baby potatoes</div><div class="item-qty">500g (Tue dinner)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">White potatoes (roasties)</div><div class="item-qty">1kg (Sat dinner)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Penne pasta</div><div class="item-qty">500g bag</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Rice cakes (plain)</div><div class="item-qty">1 pack</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Bananas</div><div class="item-qty">7 (one per pre-workout)</div></div></div>
+    </div></div></div>
+    <div class="cc" id="sp1-veg"><div class="card"><div class="cat-header-row"><i class="fa-regular fa-leaf cat-icon"></i><span class="cat-title">Veg + fruit</span></div><div class="item-grid">
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Mixed peppers</div><div class="item-qty">6 peppers</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Red onion</div><div class="item-qty">3 bulbs</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Frozen peas</div><div class="item-qty">1kg bag</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Frozen sweetcorn</div><div class="item-qty">1kg bag</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Carrots</div><div class="item-qty">500g bag</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Lettuce (iceberg/romaine)</div><div class="item-qty">1 head</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Cucumber</div><div class="item-qty">1</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Mixed berries (frozen ok)</div><div class="item-qty">400g</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Apples</div><div class="item-qty">4–5</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Oranges</div><div class="item-qty">3</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Lemons / limes</div><div class="item-qty">3</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Garlic</div><div class="item-qty">1 bulb or jar</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Passata</div><div class="item-qty">2 jars</div></div></div>
+    </div></div></div>
+    <div class="cc" id="sp1-supps"><div class="card"><div class="cat-header-row"><i class="fa-regular fa-pills cat-icon"></i><span class="cat-title">Supplements — order online</span></div><div class="item-grid">
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Whey protein powder</div><div class="item-qty">1kg — MyProtein or Bulk</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Creatine monohydrate</div><div class="item-qty">250–500g unflavoured</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Mixed nuts</div><div class="item-qty">500g bag</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Peanut butter (no added sugar)</div><div class="item-qty">1 jar</div></div></div>
+    </div></div><div class="tip">Order from MyProtein — search for a discount code, you can usually get 30–40% off. Way cheaper than Holland & Barrett.</div></div>
+    <div class="cc" id="sp1-pantry"><div class="card"><div class="cat-header-row"><i class="fa-regular fa-basket-shopping cat-icon"></i><span class="cat-title">Pantry — buy once, lasts weeks</span></div><div class="item-grid">
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Olive oil</div><div class="item-qty">1 bottle</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Fajita seasoning</div><div class="item-qty">1 packet or jar</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Smoked paprika</div><div class="item-qty">1 jar</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Italian mixed herbs</div><div class="item-qty">1 jar</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Low-sodium soy sauce</div><div class="item-qty">1 bottle</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Honey</div><div class="item-qty">1 jar (breakfasts daily)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Honey mustard</div><div class="item-qty">1 jar (wraps)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Baking powder</div><div class="item-qty">1 tub (pancakes)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Dill (dried)</div><div class="item-qty">1 jar (salmon)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Salt + black pepper</div><div class="item-qty">If not already in</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Reduced fat cheddar</div><div class="item-qty">200g block (pasta bake)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp1')"><div class="item-check"></div><div><div class="item-name">Chicken gravy granules</div><div class="item-qty">1 tub (Sat roast)</div></div></div>
+    </div></div><div class="tip">Get all pantry items the week before June 1st so you're fully stocked from day one. They'll last across both phases.</div></div>
+  </div>
+
+  <!-- SHOP PHASE 2 -->
+  <div id="sp2" style="display:none">
+    <div class="progress-row">
+      <div class="progress-bg"><div class="progress-fill" id="sp2-bar" style="width:0%"></div></div>
+      <span class="progress-label" id="sp2-count">0 / 0</span>
+      <button class="reset-btn" onclick="resetShop('sp2')"><i class="fa-regular fa-arrow-rotate-left"></i> Reset</button>
+    </div>
+    <div class="cat-tabs">
+      <div class="ctab on" onclick="switchShopCat('sp2','protein',this)"><i class="fa-regular fa-drumstick-bite"></i> Protein</div>
+      <div class="ctab" onclick="switchShopCat('sp2','dairy',this)"><i class="fa-regular fa-bottle-water"></i> Dairy</div>
+      <div class="ctab" onclick="switchShopCat('sp2','carbs',this)"><i class="fa-regular fa-bread-slice"></i> Carbs</div>
+      <div class="ctab" onclick="switchShopCat('sp2','veg',this)"><i class="fa-regular fa-leaf"></i> Veg + fruit</div>
+      <div class="ctab" onclick="switchShopCat('sp2','supps',this)"><i class="fa-regular fa-pills"></i> Supplements</div>
+      <div class="ctab" onclick="switchShopCat('sp2','pantry',this)"><i class="fa-regular fa-basket-shopping"></i> Pantry</div>
+    </div>
+    <div class="cc show" id="sp2-protein"><div class="card"><div class="cat-header-row"><i class="fa-regular fa-drumstick-bite cat-icon"></i><span class="cat-title">Meat + fish</span></div><div class="item-grid">
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Chicken breast</div><div class="item-qty">~1.5kg (bigger portions)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Sirloin / rump steak</div><div class="item-qty">~500g (Thu + Sat)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Salmon fillets</div><div class="item-qty">~500g (Tue + Sun)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Turkey breast slices</div><div class="item-qty">~220g (Wed)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Chicken thighs</div><div class="item-qty">6 thighs (Sat roast)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Eggs (free range)</div><div class="item-qty">12 pack</div></div></div>
+    </div></div><div class="tip2">Phase 2 portions are bigger — buy meat in family packs which are cheaper per 100g. Freeze what you won't use in the first few days.</div></div>
+    <div class="cc" id="sp2-dairy"><div class="card"><div class="cat-header-row"><i class="fa-regular fa-bottle-water cat-icon"></i><span class="cat-title">Dairy + fridge</span></div><div class="item-grid">
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Greek yogurt 0% fat</div><div class="item-qty">1kg tub</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Semi-skimmed milk</div><div class="item-qty">3L (bigger shakes)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Cottage cheese</div><div class="item-qty">500g tub</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Reduced fat cheddar</div><div class="item-qty">200g (pasta bake)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Butter (small)</div><div class="item-qty">1 pack (potatoes + salmon)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Light mayo</div><div class="item-qty">1 jar</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Salsa (jar)</div><div class="item-qty">1 jar</div></div></div>
+    </div></div></div>
+    <div class="cc" id="sp2-carbs"><div class="card"><div class="cat-header-row"><i class="fa-regular fa-bread-slice cat-icon"></i><span class="cat-title">Carbs + wraps</span></div><div class="item-grid">
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Wholemeal wraps (large)</div><div class="item-qty">3 packs of 6 (3 per day)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Flour tortillas (fajita size)</div><div class="item-qty">2 packs of 8</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Weetabix</div><div class="item-qty">24 pack</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Rolled oats</div><div class="item-qty">750g (bigger batches)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Sweet potatoes</div><div class="item-qty">~2kg (bigger portions)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">New / baby potatoes</div><div class="item-qty">800g (Tue dinner)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">White potatoes (roasties)</div><div class="item-qty">1.5kg (Sat dinner)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Penne pasta</div><div class="item-qty">500g bag</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Rice cakes (plain)</div><div class="item-qty">1 pack</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Bananas</div><div class="item-qty">10 (pre-workout + snacks)</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Avocados</div><div class="item-qty">3–4 (lunches)</div></div></div>
+    </div></div></div>
+    <div class="cc" id="sp2-veg"><div class="card"><div class="cat-header-row"><i class="fa-regular fa-leaf cat-icon"></i><span class="cat-title">Veg + fruit</span></div><div class="item-grid">
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Mixed peppers</div><div class="item-qty">8 peppers</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Red onion</div><div class="item-qty">3 bulbs</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Frozen peas</div><div class="item-qty">1kg bag</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Frozen sweetcorn</div><div class="item-qty">1kg bag</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Carrots</div><div class="item-qty">500g bag</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Lettuce (iceberg/romaine)</div><div class="item-qty">1 head</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Cucumber</div><div class="item-qty">1</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Mixed berries (frozen ok)</div><div class="item-qty">500g</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Apples</div><div class="item-qty">4–5</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Oranges</div><div class="item-qty">3</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Lemons / limes</div><div class="item-qty">3</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Garlic</div><div class="item-qty">1 bulb or jar</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Passata</div><div class="item-qty">2 jars</div></div></div>
+    </div></div></div>
+    <div class="cc" id="sp2-supps"><div class="card"><div class="cat-header-row"><i class="fa-regular fa-pills cat-icon"></i><span class="cat-title">Supplements — order online</span></div><div class="item-grid">
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Whey protein powder</div><div class="item-qty">2.5kg bag — MyProtein or Bulk</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Creatine monohydrate</div><div class="item-qty">500g unflavoured</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Mixed nuts</div><div class="item-qty">500g bag</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Peanut butter (no added sugar)</div><div class="item-qty">1 large jar</div></div></div>
+    </div></div><div class="tip2">Buy a bigger whey bag in phase 2 — you're using 1.5 scoops most days. MyProtein often has 2.5kg bags on sale for around £35–40.</div></div>
+    <div class="cc" id="sp2-pantry"><div class="card"><div class="cat-header-row"><i class="fa-regular fa-basket-shopping cat-icon"></i><span class="cat-title">Pantry — top-ups only</span></div><div class="item-grid">
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Olive oil</div><div class="item-qty">Top up if needed</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Fajita seasoning</div><div class="item-qty">Top up — using more now</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Honey</div><div class="item-qty">New jar — goes quickly</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Honey mustard</div><div class="item-qty">Top up if needed</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Chicken gravy granules</div><div class="item-qty">Top up for roasts</div></div></div>
+      <div class="shop-item" onclick="toggleShop(this,'sp2')"><div class="item-check"></div><div><div class="item-name">Baking powder</div><div class="item-qty">Top up for pancakes</div></div></div>
+    </div></div><div class="tip2">Most pantry items from phase 1 carry over — just check what's running low at the end of week 5.</div></div>
+  </div>
+</div>
+
+<!-- ==================== PROGRESS ==================== -->
+<div class="section" id="sec-progress">
+  <div class="page-header">
+    <h1>Progress</h1>
+    <p>Track your weight and workouts across 10 weeks</p>
+  </div>
+
+  <div class="tracker-grid">
+    <!-- WEIGHT TRACKER -->
+    <div class="tracker-card">
+      <div class="tracker-label">Current weight</div>
+      <div class="tracker-val" id="current-weight">69.0 <span style="font-size:16px;font-family:'DM Sans';color:var(--text-secondary)">kg</span></div>
+      <div class="tracker-sub" id="weight-change">Starting weight · goal: lose 2–3kg fat</div>
+      <div class="tracker-input-row">
+        <input type="number" class="tracker-input" id="weight-input" placeholder="Enter weight (kg)" step="0.1" min="50" max="120">
+        <button class="tracker-btn" onclick="logWeight()">Log</button>
+      </div>
+      <ul class="log-list" id="weight-log"></ul>
+    </div>
+
+    <!-- WORKOUT STATS -->
+    <div class="tracker-card">
+      <div class="tracker-label">This week's workouts</div>
+      <div class="tracker-val" id="week-workout-count">0 <span style="font-size:16px;font-family:'DM Sans';color:var(--text-secondary)">done</span></div>
+      <div class="tracker-sub" id="week-workout-sub">Tap a day below to mark it done</div>
+      <div class="stat-row" style="margin-top:12px">
+        <div class="stat-box"><div class="stat-num" id="total-workouts">0</div><div class="stat-label">Total sessions</div></div>
+        <div class="stat-box"><div class="stat-num" id="streak-count">0</div><div class="stat-label">Day streak</div></div>
+        <div class="stat-box"><div class="stat-num" id="weeks-done">0</div><div class="stat-label">Weeks logged</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOG SESSION BUTTON -->
+  <button class="log-session-btn" onclick="openSessionLogger()" id="log-session-btn">
+    <div class="log-btn-icon"><i class="fa-solid fa-dumbbell"></i></div>
+    <div class="log-btn-text">
+      <div class="log-btn-title" id="log-btn-title">Log today's session</div>
+      <div class="log-btn-sub" id="log-btn-sub">Tap to log what you did in the gym</div>
+    </div>
+    <i class="fa-regular fa-chevron-right" style="color:var(--text-tertiary);font-size:13px"></i>
+  </button>
+
+  <!-- WORKOUT LOG -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="cat-header-row" style="margin-bottom:12px">
+      <span style="font-size:14px;font-weight:600;color:var(--text-primary)">Workout log</span>
+      <div class="week-nav" style="margin:0 0 0 auto">
+        <button class="week-btn" onclick="changeWeek(-1)"><i class="fa-regular fa-chevron-left"></i></button>
+        <span class="week-label" id="week-label">Week 1</span>
+        <button class="week-btn" onclick="changeWeek(1)"><i class="fa-regular fa-chevron-right"></i></button>
+      </div>
+    </div>
+    <div class="workout-log-grid" id="workout-grid"></div>
+    <div style="display:flex;gap:14px;margin-top:10px;font-size:11px;color:var(--text-tertiary)">
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--green-50);border:1px solid var(--green-100);margin-right:4px;vertical-align:middle"></span>Done</span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--gray-50);border:1px solid var(--border);margin-right:4px;vertical-align:middle"></span>Training day</span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--gray-100);border:1px solid var(--border);margin-right:4px;vertical-align:middle"></span>Rest day</span>
+    </div>
+  </div>
+
+  <!-- SESSION HISTORY -->
+  <div class="card" style="margin-bottom:14px;display:none" id="session-history-card">
+    <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:12px">Session history</div>
+    <div id="session-history-list"></div>
+  </div>
+
+  <!-- WEIGHT CHART -->
+  <div class="card">
+    <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:14px">Weight over time</div>
+    <canvas id="weightChart" height="180"></canvas>
+    <div id="no-data-msg" style="text-align:center;padding:40px 0;font-size:13px;color:var(--text-tertiary)">Log your weight above to see your progress chart</div>
+  </div>
+</div>
+
+<!-- ==================== SESSION LOGGER MODAL ==================== -->
+<div id="session-modal" style="display:none;position:fixed;inset:0;z-index:200;">
+  <div class="modal-overlay" onclick="closeSessionModal()"></div>
+  <div class="modal-panel">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-title">Log Workout</div>
+        <div class="modal-sub" id="modal-sub"></div>
+      </div>
+      <button class="modal-close" onclick="closeSessionModal()"><i class="fa-regular fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// ==================== NAV ====================
+function showSection(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.bnav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('[data-bnav]').forEach(n => { if(n.onclick.toString().includes("'" + id + "'")) n.classList.add('active'); });
+  el.classList.add('active');
+  if(id === 'shopping') { updateShopProgress('sp1'); updateShopProgress('sp2'); }
+  if(id === 'progress') { renderWorkoutGrid(); renderWeightChart(); renderSessionHistory(); updateLogSessionButton(); }
+}
+
+// Date
+const d = new Date();
+document.getElementById('nav-date').textContent = d.toLocaleDateString('en-GB', {weekday:'short',day:'numeric',month:'short'});
+
+// ==================== MEALS ====================
+function switchMealPhase(id, el) {
+  document.querySelectorAll('.meal-phase').forEach(p => p.style.display = 'none');
+  document.getElementById(id).style.display = 'block';
+  el.parentElement.querySelectorAll('.ptoggle').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+}
+function switchMealDay(phase, day, el) {
+  document.querySelectorAll('#' + phase + ' .dc').forEach(d => d.classList.remove('show'));
+  document.getElementById(phase + '-' + day).classList.add('show');
+  document.querySelectorAll('#' + phase + ' .dtab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+}
+
+// ==================== SHOPPING ====================
+function switchShopPhase(id, el) {
+  document.getElementById('sp1').style.display = 'none';
+  document.getElementById('sp2').style.display = 'none';
+  document.getElementById(id).style.display = 'block';
+  el.parentElement.querySelectorAll('.ptoggle').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+}
+function switchShopCat(phase, cat, el) {
+  document.querySelectorAll('#' + phase + ' .cc').forEach(c => c.classList.remove('show'));
+  document.getElementById(phase + '-' + cat).classList.add('show');
+  document.querySelectorAll('#' + phase + ' .ctab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+}
+function toggleShop(el, phase) {
+  el.classList.toggle('done');
+  const check = el.querySelector('.item-check');
+  if(el.classList.contains('done')) {
+    check.innerHTML = '<i class="fa-solid fa-check" style="font-size:10px;color:white"></i>';
+    check.style.background = 'var(--green-500)';
+    check.style.borderColor = 'var(--green-500)';
+  } else {
+    check.innerHTML = '';
+    check.style.background = '';
+    check.style.borderColor = '';
+  }
+  updateShopProgress(phase);
+}
+function updateShopProgress(phase) {
+  const all = document.querySelectorAll('#' + phase + ' .shop-item');
+  const done = document.querySelectorAll('#' + phase + ' .shop-item.done');
+  const total = all.length;
+  const checked = done.length;
+  const pct = total ? Math.round((checked / total) * 100) : 0;
+  const bar = document.getElementById(phase + '-bar');
+  const count = document.getElementById(phase + '-count');
+  if(bar) bar.style.width = pct + '%';
+  if(count) count.textContent = checked + ' / ' + total + ' items';
+}
+function resetShop(phase) {
+  document.querySelectorAll('#' + phase + ' .shop-item').forEach(el => {
+    el.classList.remove('done');
+    const check = el.querySelector('.item-check');
+    check.innerHTML = '';
+    check.style.background = '';
+    check.style.borderColor = '';
+  });
+  updateShopProgress(phase);
+}
+
+// ==================== PROGRESS ====================
+let weightLog = JSON.parse(localStorage.getItem('sbp-weight') || '[]');
+let workoutLog = JSON.parse(localStorage.getItem('sbp-workouts') || '{}');
+let currentWeek = 1;
+let weightChart = null;
+
+// Training days per week (0=Sun,1=Mon,...,6=Sat)
+const trainingDays = {
+  p1a: [1,2,3,4,5], // Mon-Fri (Thu=football)
+  p1b: [1,2,3,4,5,6],
+  p2:  [1,2,3,5,6]
+};
+
+function getPhaseForWeek(week) {
+  if(week <= 3) return 'p1a';
+  if(week <= 5) return 'p1b';
+  return 'p2';
+}
+
+function getWeekDays(week) {
+  const start = new Date('2025-06-01');
+  start.setDate(start.getDate() + (week-1)*7);
+  const days = [];
+  for(let i=0;i<7;i++) {
+    const d = new Date(start);
+    d.setDate(d.getDate() + i);
+    days.push(d);
+  }
+  return days;
+}
+
+function renderWorkoutGrid() {
+  const grid = document.getElementById('workout-grid');
+  const days = getWeekDays(currentWeek);
+  const phase = getPhaseForWeek(currentWeek);
+  const tdays = trainingDays[phase];
+  document.getElementById('week-label').textContent = 'Week ' + currentWeek;
+  grid.innerHTML = '';
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let weekDone = 0;
+  days.forEach(d => {
+    const dow = d.getDay();
+    const key = d.toISOString().split('T')[0];
+    const isTraining = tdays.includes(dow);
+    const isDone = workoutLog[key];
+    if(isDone) weekDone++;
+    const el = document.createElement('div');
+    const hasLog = sessionLogs.find(l => l.date === key);
+    el.className = 'wday' + (isDone ? ' done' : '') + (!isTraining ? ' rest-day' : '');
+    el.innerHTML = `<div class="wday-name">${dayNames[dow]}</div><div class="wday-date">${d.getDate()}</div>${hasLog ? '<div class="wday-score">' + hasLog.feedback.score + '</div>' : '<div class="wday-dot"></div>'}`;
+    if(isTraining) {
+      el.onclick = () => { openSessionLogger(key); };
+    }
+    grid.appendChild(el);
+  });
+  document.getElementById('week-workout-count').innerHTML = weekDone + ' <span style="font-size:16px;font-family:\'DM Sans\';color:var(--text-secondary)">done</span>';
+  document.getElementById('week-workout-sub').textContent = weekDone === 0 ? 'Tap a training day to mark it done' : weekDone === 1 ? '1 session logged this week' : weekDone + ' sessions logged this week';
+}
+
+function updateWorkoutStats() {
+  const total = Object.values(workoutLog).filter(Boolean).length;
+  document.getElementById('total-workouts').textContent = total;
+  const weeksWithData = new Set(Object.keys(workoutLog).map(k => {
+    const start = new Date('2025-06-01');
+    const d = new Date(k);
+    return Math.floor((d - start) / (7*24*60*60*1000));
+  })).size;
+  document.getElementById('weeks-done').textContent = weeksWithData;
+  // streak
+  let streak = 0;
+  const today = new Date();
+  for(let i=0;i<60;i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().split('T')[0];
+    if(workoutLog[key]) streak++;
+    else if(i > 0) break;
+  }
+  document.getElementById('streak-count').textContent = streak;
+  renderWorkoutGrid();
+}
+
+function changeWeek(dir) {
+  currentWeek = Math.max(1, Math.min(10, currentWeek + dir));
+  renderWorkoutGrid();
+}
+
+function logWeight() {
+  const val = parseFloat(document.getElementById('weight-input').value);
+  if(isNaN(val) || val < 40 || val > 200) return;
+  const entry = { date: new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short'}), weight: val, ts: Date.now() };
+  weightLog.unshift(entry);
+  if(weightLog.length > 20) weightLog.pop();
+  localStorage.setItem('sbp-weight', JSON.stringify(weightLog));
+  document.getElementById('weight-input').value = '';
+  renderWeightLog();
+  renderWeightChart();
+}
+
+function deleteWeight(i) {
+  weightLog.splice(i, 1);
+  localStorage.setItem('sbp-weight', JSON.stringify(weightLog));
+  renderWeightLog();
+  renderWeightChart();
+}
+
+function renderWeightLog() {
+  const list = document.getElementById('weight-log');
+  if(!weightLog.length) { list.innerHTML = ''; return; }
+  const latest = weightLog[0].weight;
+  const start = weightLog[weightLog.length-1].weight;
+  const diff = latest - start;
+  document.getElementById('current-weight').innerHTML = latest.toFixed(1) + ' <span style="font-size:16px;font-family:\'DM Sans\';color:var(--text-secondary)">kg</span>';
+  const changeEl = document.getElementById('weight-change');
+  if(weightLog.length > 1) {
+    const sign = diff > 0 ? '+' : '';
+    changeEl.textContent = sign + diff.toFixed(1) + 'kg since start · goal: lose 2–3kg fat';
+    changeEl.style.color = diff <= 0 ? 'var(--green-700)' : 'var(--text-tertiary)';
+  }
+  list.innerHTML = weightLog.slice(0,5).map((e,i) => `<li class="log-item"><span class="log-date">${e.date}</span><span class="log-val">${e.weight.toFixed(1)} kg</span><button class="log-del" onclick="deleteWeight(${i})"><i class="fa-regular fa-xmark"></i></button></li>`).join('');
+}
+
+function renderWeightChart() {
+  const canvas = document.getElementById('weightChart');
+  const noData = document.getElementById('no-data-msg');
+  if(!weightLog.length) { canvas.style.display='none'; noData.style.display='block'; return; }
+  canvas.style.display='block'; noData.style.display='none';
+  const sorted = [...weightLog].sort((a,b) => a.ts - b.ts);
+  const labels = sorted.map(e => e.date);
+  const data = sorted.map(e => e.weight);
+  if(weightChart) weightChart.destroy();
+  weightChart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        borderColor: '#1D9E75',
+        backgroundColor: 'rgba(29,158,117,0.08)',
+        borderWidth: 2,
+        pointBackgroundColor: '#1D9E75',
+        pointRadius: 5,
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { family: 'DM Sans', size: 11 }, color: '#888780' } },
+        x: { grid: { display: false }, ticks: { font: { family: 'DM Sans', size: 11 }, color: '#888780' } }
+      },
+      responsive: true,
+      maintainAspectRatio: true
+    }
+  });
+}
+
+// ==================== SESSION LOGGER ====================
+
+// Exercise library for each session type
+const SESSION_DATA = {
+  upper: {
+    label: 'Upper Body',
+    exercises: [
+      { name: 'Bench Press',          type: 'strength', key: true,  muscle: 'Chest' },
+      { name: 'Shoulder Press',       type: 'strength', key: true,  muscle: 'Shoulders' },
+      { name: 'Cable Rows',           type: 'strength', key: false, muscle: 'Back' },
+      { name: 'Tricep Pushdowns',     type: 'strength', key: false, muscle: 'Triceps' },
+      { name: 'Bicep Curls',          type: 'strength', key: false, muscle: 'Biceps' },
+      { name: 'E-gym Chest Press',    type: 'strength', key: false, muscle: 'Chest' },
+      { name: 'E-gym Seated Row',     type: 'strength', key: false, muscle: 'Back' },
+    ]
+  },
+  cardio: {
+    label: 'Cardio + Core',
+    exercises: [
+      { name: 'HIIT Treadmill',       type: 'cardio',   key: true,  muscle: 'Full Body' },
+      { name: 'Incline Walk',         type: 'cardio',   key: false, muscle: 'Full Body' },
+      { name: 'Planks',               type: 'core',     key: false, muscle: 'Core' },
+      { name: 'Leg Raises',           type: 'core',     key: false, muscle: 'Core' },
+      { name: 'Cable Crunches',       type: 'core',     key: false, muscle: 'Core' },
+    ]
+  },
+  lower: {
+    label: 'Lower Body + Core',
+    exercises: [
+      { name: 'E-gym Leg Press',      type: 'strength', key: true,  muscle: 'Legs' },
+      { name: 'Leg Extension',        type: 'strength', key: false, muscle: 'Quads' },
+      { name: 'Leg Curl',             type: 'strength', key: false, muscle: 'Hamstrings' },
+      { name: 'Barbell Squats',       type: 'strength', key: true,  muscle: 'Legs' },
+      { name: 'Planks',               type: 'core',     key: false, muscle: 'Core' },
+      { name: 'Leg Raises',           type: 'core',     key: false, muscle: 'Core' },
+    ]
+  },
+  fullbody: {
+    label: 'Full Body Compound',
+    exercises: [
+      { name: 'Deadlifts',                type: 'strength', key: true,  muscle: 'Back + Legs' },
+      { name: 'Pull-ups / Lat Pulldown',  type: 'strength', key: true,  muscle: 'Back' },
+      { name: 'Overhead Press',           type: 'strength', key: true,  muscle: 'Shoulders' },
+      { name: 'Cable Flies',              type: 'strength', key: false, muscle: 'Chest' },
+      { name: 'Farmer Carries',           type: 'strength', key: false, muscle: 'Full Body' },
+    ]
+  },
+  push: {
+    label: 'Push — Chest, Shoulders, Triceps',
+    exercises: [
+      { name: 'Incline Bench Press',      type: 'strength', key: true,  muscle: 'Upper Chest' },
+      { name: 'Flat Bench Press',         type: 'strength', key: true,  muscle: 'Chest' },
+      { name: 'E-gym Chest Press',        type: 'strength', key: false, muscle: 'Chest' },
+      { name: 'Shoulder Press',           type: 'strength', key: true,  muscle: 'Shoulders' },
+      { name: 'E-gym Shoulder Press',     type: 'strength', key: false, muscle: 'Shoulders' },
+      { name: 'Lateral Raises',           type: 'strength', key: false, muscle: 'Side Delts' },
+      { name: 'Tricep Pushdowns',         type: 'strength', key: false, muscle: 'Triceps' },
+      { name: 'Cable Flies',              type: 'strength', key: false, muscle: 'Chest' },
+    ]
+  },
+  pull: {
+    label: 'Pull — Back + Biceps',
+    exercises: [
+      { name: 'Pull-ups / Lat Pulldown',  type: 'strength', key: true,  muscle: 'Back Width' },
+      { name: 'E-gym Lat Pulldown',       type: 'strength', key: false, muscle: 'Back' },
+      { name: 'Bent-Over Rows',           type: 'strength', key: true,  muscle: 'Back Thickness' },
+      { name: 'E-gym Seated Row',         type: 'strength', key: false, muscle: 'Back' },
+      { name: 'Face Pulls',               type: 'strength', key: false, muscle: 'Rear Delts' },
+      { name: 'Bicep Curls',              type: 'strength', key: false, muscle: 'Biceps' },
+      { name: 'Hammer Curls',             type: 'strength', key: false, muscle: 'Biceps' },
+    ]
+  },
+  legs: {
+    label: 'Legs + Abs',
+    exercises: [
+      { name: 'E-gym Leg Press',          type: 'strength', key: true,  muscle: 'Quads + Glutes' },
+      { name: 'Leg Extension',            type: 'strength', key: false, muscle: 'Quads' },
+      { name: 'Leg Curl',                 type: 'strength', key: false, muscle: 'Hamstrings' },
+      { name: 'Squats',                   type: 'strength', key: true,  muscle: 'Legs' },
+      { name: 'Romanian Deadlifts',       type: 'strength', key: true,  muscle: 'Hamstrings + Glutes' },
+      { name: 'Cable Crunches',           type: 'core',     key: false, muscle: 'Core' },
+      { name: 'Leg Raises',               type: 'core',     key: false, muscle: 'Core' },
+      { name: 'Planks',                   type: 'core',     key: false, muscle: 'Core' },
+    ]
+  }
+};
+
+let sessionLogs = JSON.parse(localStorage.getItem('sbp-session-logs') || '[]');
+let currentLogDate = null;
+
+// Work out what session type a given date falls on
+function getSessionForDate(date) {
+  const planStart = new Date('2025-06-01');
+  const planEnd   = new Date('2025-08-09');
+  if(date < planStart || date > planEnd) return null;
+  const daysDiff = Math.floor((date - planStart) / 86400000);
+  const week = Math.floor(daysDiff / 7) + 1;
+  const phase = week <= 3 ? '1a' : week <= 5 ? '1b' : '2';
+  const dow = date.getDay();
+  let sessionType;
+  if(phase === '1a') {
+    const m = {1:'upper',2:'cardio',3:'lower',4:'football',5:'fullbody',6:'rest',0:'rest'};
+    sessionType = m[dow];
+  } else if(phase === '1b') {
+    const m = {1:'upper',2:'cardio',3:'lower',4:'fullbody',5:'upper',6:'cardio',0:'rest'};
+    sessionType = m[dow];
+  } else {
+    const m = {1:'push',2:'pull',3:'legs',4:'active',5:'push',6:'pull',0:'rest'};
+    sessionType = m[dow];
+  }
+  return { week, phase, sessionType, dateStr: date.toISOString().split('T')[0] };
+}
+
+function fmtDateFull(date) {
+  return date.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'});
+}
+
+// Open the session logger modal for a given date (defaults to today)
+function openSessionLogger(dateStr) {
+  const date = dateStr ? new Date(dateStr + 'T12:00:00') : new Date();
+  currentLogDate = date.toISOString().split('T')[0];
+  const session = getSessionForDate(date);
+
+  document.getElementById('session-modal').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+
+  const body = document.getElementById('modal-body');
+
+  // Rest day
+  if(!session || session.sessionType === 'rest') {
+    document.getElementById('modal-title').textContent = 'Rest Day';
+    document.getElementById('modal-sub').textContent = fmtDateFull(date);
+    body.innerHTML = `<div style="text-align:center;padding:48px 20px">
+      <i class="fa-solid fa-moon" style="font-size:36px;color:var(--text-tertiary);margin-bottom:14px;display:block"></i>
+      <div style="font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:8px">Rest day — you earned it</div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.7">Saturday and Sunday are full rest days.<br>Sleep well, eat your protein, and come back stronger.</div>
+    </div>`;
+    return;
+  }
+
+  // Football
+  if(session.sessionType === 'football') {
+    document.getElementById('modal-title').textContent = 'Football Training';
+    document.getElementById('modal-sub').textContent = fmtDateFull(date) + ' · Phase 1a · Week ' + session.week;
+    body.innerHTML = `<div style="text-align:center;padding:40px 20px">
+      <i class="fa-solid fa-futbol" style="font-size:36px;color:var(--amber-500);margin-bottom:14px;display:block"></i>
+      <div style="font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:8px">Football counts as cardio today</div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.7;margin-bottom:24px">No gym needed. Play well, recover well, and hit your 160g protein today.</div>
+      <button class="btn-primary-modal" style="max-width:200px;margin:0 auto;display:block" onclick="markDayDone('${currentLogDate}');closeSessionModal()">Mark as done</button>
+    </div>`;
+    return;
+  }
+
+  // Active rest (Phase 2 Thursday)
+  if(session.sessionType === 'active') {
+    document.getElementById('modal-title').textContent = 'Active Rest';
+    document.getElementById('modal-sub').textContent = fmtDateFull(date) + ' · Phase 2 · Week ' + session.week;
+    body.innerHTML = `<div style="text-align:center;padding:40px 20px">
+      <i class="fa-solid fa-person-swimming" style="font-size:36px;color:var(--blue-500);margin-bottom:14px;display:block"></i>
+      <div style="font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:8px">Easy swim, walk or stretch</div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.7;margin-bottom:24px">20-minute easy swim at Everybody Gym Knutsford, a walk, or light mobility at home. Don't push it — tomorrow is Push day.</div>
+      <button class="btn-primary-modal" style="max-width:200px;margin:0 auto;display:block" onclick="markDayDone('${currentLogDate}');closeSessionModal()">Mark as done</button>
+    </div>`;
+    return;
+  }
+
+  // Gym session
+  const sessionData = SESSION_DATA[session.sessionType];
+  if(!sessionData) return;
+
+  document.getElementById('modal-title').textContent = sessionData.label;
+  document.getElementById('modal-sub').textContent = fmtDateFull(date) + ' · Phase ' + session.phase + ' · Week ' + session.week;
+
+  const existingLog = sessionLogs.find(l => l.date === currentLogDate);
+  body.innerHTML = buildLoggerHTML(session, existingLog);
+
+  // Attach toggle click handlers to all exercise rows
+  body.querySelectorAll('.ex-toggle').forEach(t => attachExToggle(t));
+
+  if(existingLog) restoreLogValues(existingLog);
+}
+
+function attachExToggle(toggle) {
+  toggle.addEventListener('click', function() {
+    const row = this.closest('.ex-row');
+    const inputs = row.querySelector('.ex-inputs');
+    const check = row.querySelector('.ex-check');
+    row.classList.toggle('checked');
+    const on = row.classList.contains('checked');
+    check.innerHTML = on ? '<i class="fa-solid fa-check" style="font-size:11px;color:white"></i>' : '';
+    inputs.style.display = on ? 'grid' : 'none';
+  });
+}
+
+function buildExRow(ex, isExtra) {
+  let inputsHTML;
+  if(ex.type === 'cardio') {
+    inputsHTML = `<div class="ex-inputs two-col" style="display:none">
+      <div class="ex-input-group"><label>Duration (min)</label><input type="number" class="ex-input-num" data-field="sets" placeholder="25" min="1" max="180"></div>
+      <div class="ex-input-group"><label>Intensity</label><input type="text" class="ex-input-num" data-field="reps" placeholder="High / Med"></div>
+    </div>`;
+  } else if(ex.type === 'core') {
+    inputsHTML = `<div class="ex-inputs two-col" style="display:none">
+      <div class="ex-input-group"><label>Sets</label><input type="number" class="ex-input-num" data-field="sets" placeholder="3" min="1" max="10"></div>
+      <div class="ex-input-group"><label>Reps / secs</label><input type="number" class="ex-input-num" data-field="reps" placeholder="30" min="1" max="300"></div>
+    </div>`;
+  } else {
+    inputsHTML = `<div class="ex-inputs" style="display:none">
+      <div class="ex-input-group"><label>Sets</label><input type="number" class="ex-input-num" data-field="sets" placeholder="3" min="1" max="10"></div>
+      <div class="ex-input-group"><label>Reps</label><input type="number" class="ex-input-num" data-field="reps" placeholder="10" min="1" max="50"></div>
+      <div class="ex-input-group"><label>Weight (kg)</label><input type="number" class="ex-input-num" data-field="weight" placeholder="0" min="0" max="300" step="2.5"></div>
+    </div>`;
+  }
+  const badge = (ex.key && !isExtra) ? '<span class="ex-key-badge">Key lift</span>' : '';
+  return `<div class="ex-row" data-name="${ex.name}" data-type="${ex.type}" data-key="${ex.key?'1':'0'}" data-planned="${isExtra?'0':'1'}">
+    <div class="ex-toggle">
+      <div class="ex-check"></div>
+      <div class="ex-info"><span class="ex-name">${ex.name}</span><span class="ex-muscle">${ex.muscle}</span></div>
+      ${badge}
+    </div>
+    ${inputsHTML}
+  </div>`;
+}
+
+function buildLoggerHTML(session, existingLog) {
+  const sd = SESSION_DATA[session.sessionType];
+  const strength = sd.exercises.filter(e => e.type === 'strength');
+  const cardio   = sd.exercises.filter(e => e.type === 'cardio');
+  const core     = sd.exercises.filter(e => e.type === 'core');
+
+  let html = '';
+  if(strength.length) {
+    html += '<div class="ex-section-label">Strength exercises</div>';
+    strength.forEach(e => html += buildExRow(e, false));
+  }
+  if(cardio.length) {
+    html += '<div class="ex-section-label">Cardio</div>';
+    cardio.forEach(e => html += buildExRow(e, false));
+  }
+  if(core.length) {
+    html += '<div class="ex-section-label">Core</div>';
+    core.forEach(e => html += buildExRow(e, false));
+  }
+
+  html += `<div class="ex-section-label">Add an extra exercise</div>
+  <div class="add-ex-row">
+    <input type="text" class="add-ex-input" id="extra-ex-input" placeholder="e.g. Incline dumbbell press" />
+    <button class="add-ex-btn" onclick="addExtraExercise()"><i class="fa-regular fa-plus"></i> Add</button>
+  </div>
+  <div id="extra-exercises"></div>`;
+
+  html += `<div class="modal-actions">
+    <button class="btn-feedback-modal" onclick="runFeedback('${session.sessionType}','${session.phase}')"><i class="fa-regular fa-chart-bar"></i> Get feedback</button>
+    <button class="btn-primary-modal" onclick="saveSession('${session.sessionType}','${session.phase}',${session.week})">Save session</button>
+  </div>
+  <div id="feedback-area"></div>`;
+
+  return html;
+}
+
+function addExtraExercise() {
+  const input = document.getElementById('extra-ex-input');
+  const name = input.value.trim();
+  if(!name) return;
+  const container = document.getElementById('extra-exercises');
+  container.insertAdjacentHTML('beforeend', buildExRow({name, type:'strength', key:false, muscle:'Custom'}, true));
+  attachExToggle(container.lastElementChild.querySelector('.ex-toggle'));
+  input.value = '';
+}
+
+function collectExercises() {
+  const exercises = [];
+  document.querySelectorAll('.ex-row').forEach(row => {
+    const name    = row.dataset.name;
+    const type    = row.dataset.type;
+    const key     = row.dataset.key === '1';
+    const planned = row.dataset.planned === '1';
+    const done    = row.classList.contains('checked');
+    let sets=0, reps=0, weight=0, duration=0, intensity='';
+    if(done) {
+      const sF = row.querySelector('[data-field="sets"]');
+      const rF = row.querySelector('[data-field="reps"]');
+      const wF = row.querySelector('[data-field="weight"]');
+      if(type === 'cardio') {
+        duration  = parseFloat(sF?.value) || 0;
+        intensity = rF?.value || '';
+      } else {
+        sets   = parseInt(sF?.value) || 0;
+        reps   = parseInt(rF?.value) || 0;
+        weight = parseFloat(wF?.value) || 0;
+      }
+    }
+    exercises.push({name, type, key, planned, done, sets, reps, weight, duration, intensity});
+  });
+  return exercises;
+}
+
+function runFeedback(sessionType, phase) {
+  const exercises = collectExercises();
+  const feedback = generateFeedback(sessionType, phase, exercises);
+  renderFeedback(feedback, exercises, sessionType);
+  setTimeout(() => {
+    const fb = document.getElementById('feedback-area');
+    if(fb) fb.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 100);
+}
+
+function generateFeedback(sessionType, phase, exercises) {
+  const sd = SESSION_DATA[sessionType];
+  const good = [], improve = [], tips = [];
+  let score = 100;
+
+  const doneAny = exercises.some(e => e.done);
+  if(!doneAny) return {score:0, summary:'Nothing logged yet', good:[], improve:['Tap at least one exercise to mark it done, then get your feedback.'], tips:[]};
+
+  // Check each planned exercise
+  sd.exercises.forEach(p => {
+    const logged = exercises.find(e => e.name === p.name && e.done);
+    if(!logged) {
+      if(p.key) { score -= 15; improve.push(`Skipped ${p.name} — this is a key compound lift for ${p.muscle.toLowerCase()}. It should be in every ${sd.label.split('—')[0].trim()} session.`); }
+      else       { score -= 7;  improve.push(`Skipped ${p.name} — worth including for ${p.muscle.toLowerCase()} development.`); }
+    } else {
+      if(p.type === 'strength') {
+        if(logged.sets >= 3 && logged.reps >= 8) {
+          good.push(`${p.name}: ${logged.sets}×${logged.reps}${logged.weight > 0 ? ' @ ' + logged.weight + 'kg' : ''} — solid volume.${p.key ? ' Key compound hit.' : ''}`);
+        } else if(logged.sets < 2) {
+          score -= 8; improve.push(`${p.name}: only ${logged.sets} set — aim for 3–4 sets to properly stimulate the muscle.`);
+        } else if(logged.reps < 6 && logged.reps > 0) {
+          score -= 5; improve.push(`${p.name}: ${logged.reps} reps is quite low — the 8–12 rep range builds the most muscle for your goals.`);
+        } else {
+          good.push(`${p.name}: ${logged.sets}×${logged.reps}${logged.weight > 0 ? ' @ ' + logged.weight + 'kg' : ''} — done.`);
+        }
+      } else if(p.type === 'cardio') {
+        if(logged.duration >= 20) { good.push(`${p.name}: ${logged.duration} min — great cardio for fat loss.`); }
+        else if(logged.duration > 0) { score -= 5; improve.push(`${p.name}: ${logged.duration} min — aim for at least 20 minutes to maximise the fat-burn effect.`); }
+        else { good.push(`${p.name} completed — great fat-burning session.`); }
+      } else if(p.type === 'core') {
+        good.push(`${p.name} done — core consistency adds up week by week.`);
+      }
+    }
+  });
+
+  // Progressive overload check (vs previous sessions of same type)
+  const prevSessions = sessionLogs.filter(l => l.sessionType === sessionType && l.date !== currentLogDate);
+  if(prevSessions.length > 0) {
+    const last = prevSessions[prevSessions.length - 1];
+    let progressFound = false;
+    exercises.filter(e => e.done && e.type === 'strength' && e.weight > 0).forEach(ex => {
+      const prev = last.exercises.find(pe => pe.name === ex.name && pe.done && pe.weight > 0);
+      if(prev) {
+        if(ex.weight > prev.weight) {
+          progressFound = true;
+          good.push(`Progressive overload on ${ex.name}: up to ${ex.weight}kg from ${prev.weight}kg last time — this is exactly how muscle is built.`);
+        } else if(ex.weight < prev.weight) {
+          improve.push(`${ex.name}: dropped to ${ex.weight}kg from ${prev.weight}kg last session — try to hold or increase weight each week.`);
+        }
+      }
+    });
+    if(!progressFound && exercises.filter(e => e.done && e.type === 'strength' && e.weight > 0).length > 0 && prevSessions.length > 0) {
+      tips.push('Try to increase weight on at least one lift next session — even 1.25–2.5kg counts as progressive overload.');
+    }
+  }
+
+  // Extra exercises bonus
+  const extras = exercises.filter(e => e.done && !e.planned);
+  if(extras.length > 0) {
+    score = Math.min(100, score + extras.length * 3);
+    good.push(`Added ${extras.length} extra exercise${extras.length > 1 ? 's' : ''} outside the plan — great effort.`);
+  }
+
+  // Phase-specific tips
+  if(phase === '1a' || phase === '1b') {
+    if(sessionType !== 'cardio') tips.push('Phase 1: keep rest periods to 60–90 seconds — shorter rest keeps your heart rate elevated and burns more calories.');
+    tips.push('Hit your 160g protein target today — it protects your muscle while you\'re in a calorie deficit.');
+    if(sessionType === 'cardio') tips.push('HIIT is more effective than steady-state cardio for fat loss. Push hard on the "on" intervals — 30 seconds all-out.');
+  } else {
+    tips.push('Phase 2: aim to add weight or reps to at least one exercise each session — progressive overload is what forces your muscles to grow.');
+    tips.push('Make sure you\'re eating 2,700 calories today. You can\'t build muscle in a sustained deficit.');
+    if(sessionType === 'push') tips.push('Incline bench is the most important push exercise for upper chest definition. Always do it first when you\'re freshest.');
+    else if(sessionType === 'pull') tips.push('Pull-ups / lat pulldown + bent-over rows together build a wide, thick back. Don\'t skip either.');
+    else if(sessionType === 'legs') tips.push('Don\'t skip legs — more muscle mass means higher resting metabolism, which burns more fat even on rest days.');
+  }
+
+  score = Math.max(0, Math.min(100, score));
+
+  let summary;
+  if(score >= 90) summary = 'Excellent session — you nailed it';
+  else if(score >= 75) summary = 'Good session — a few things to tighten up';
+  else if(score >= 55) summary = 'Decent session — some key exercises missed';
+  else summary = 'Incomplete session — room to improve';
+
+  return {score, summary, good, improve, tips};
+}
+
+function renderFeedback(feedback, exercises, sessionType) {
+  const area = document.getElementById('feedback-area');
+  const scoreClass = feedback.score >= 85 ? 'score-great' : feedback.score >= 60 ? 'score-good' : 'score-ok';
+  const plannedCount = exercises.filter(e => e.planned).length;
+  const doneCount    = exercises.filter(e => e.done && e.planned).length;
+
+  let html = `<div class="divider"></div>
+  <div class="feedback-panel">
+    <div class="fb-score-row">
+      <div class="score-circle ${scoreClass}">
+        <span class="score-num">${feedback.score}</span>
+        <span class="score-label">/ 100</span>
+      </div>
+      <div>
+        <div class="score-summary">${feedback.summary}</div>
+        <div class="score-sub">${doneCount} of ${plannedCount} planned exercises completed</div>
+      </div>
+    </div>`;
+
+  if(feedback.good.length) html += `<div class="fb-section">
+    <div class="fb-section-title" style="color:var(--green-700)"><i class="fa-regular fa-circle-check"></i> What went well</div>
+    ${feedback.good.map(g => `<div class="fb-item fb-good">${g}</div>`).join('')}
+  </div>`;
+
+  if(feedback.improve.length) html += `<div class="fb-section">
+    <div class="fb-section-title" style="color:var(--amber-500)"><i class="fa-regular fa-triangle-exclamation"></i> What to improve</div>
+    ${feedback.improve.map(i => `<div class="fb-item fb-improve">${i}</div>`).join('')}
+  </div>`;
+
+  if(feedback.tips.length) html += `<div class="fb-section">
+    <div class="fb-section-title" style="color:var(--blue-700)"><i class="fa-regular fa-lightbulb"></i> Tips for next session</div>
+    ${feedback.tips.map(t => `<div class="fb-item fb-tip">${t}</div>`).join('')}
+  </div>`;
+
+  html += '</div>';
+  area.innerHTML = html;
+}
+
+function saveSession(sessionType, phase, week) {
+  const exercises = collectExercises();
+  const feedback = generateFeedback(sessionType, phase, exercises);
+
+  sessionLogs = sessionLogs.filter(l => l.date !== currentLogDate);
+  sessionLogs.push({date: currentLogDate, sessionType, phase, week, exercises, feedback:{score:feedback.score, summary:feedback.summary}, ts: Date.now()});
+  localStorage.setItem('sbp-session-logs', JSON.stringify(sessionLogs));
+
+  markDayDone(currentLogDate);
+  closeSessionModal();
+  renderSessionHistory();
+}
+
+function markDayDone(dateStr) {
+  workoutLog[dateStr] = true;
+  localStorage.setItem('sbp-workouts', JSON.stringify(workoutLog));
+  updateWorkoutStats();
+}
+
+function closeSessionModal() {
+  document.getElementById('session-modal').style.display = 'none';
+  document.body.style.overflow = '';
+  currentLogDate = null;
+}
+
+function restoreLogValues(log) {
+  log.exercises.forEach(ex => {
+    if(!ex.done) return;
+    const row = document.querySelector(`.ex-row[data-name="${ex.name}"]`);
+    if(!row) return;
+    row.classList.add('checked');
+    row.querySelector('.ex-check').innerHTML = '<i class="fa-solid fa-check" style="font-size:11px;color:white"></i>';
+    const inputs = row.querySelector('.ex-inputs');
+    inputs.style.display = 'grid';
+    if(ex.type === 'cardio') {
+      const sF = row.querySelector('[data-field="sets"]'); if(sF) sF.value = ex.duration || '';
+      const rF = row.querySelector('[data-field="reps"]'); if(rF) rF.value = ex.intensity || '';
+    } else {
+      const sF = row.querySelector('[data-field="sets"]');   if(sF) sF.value = ex.sets || '';
+      const rF = row.querySelector('[data-field="reps"]');   if(rF) rF.value = ex.reps || '';
+      const wF = row.querySelector('[data-field="weight"]'); if(wF) wF.value = ex.weight || '';
+    }
+  });
+}
+
+function renderSessionHistory() {
+  const card = document.getElementById('session-history-card');
+  const list = document.getElementById('session-history-list');
+  if(!sessionLogs.length) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  const sorted = [...sessionLogs].sort((a,b) => b.ts - a.ts).slice(0, 6);
+  list.innerHTML = sorted.map(log => {
+    const date = new Date(log.date + 'T12:00:00');
+    const dateStr = date.toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short'});
+    const sd = SESSION_DATA[log.sessionType];
+    const label = sd ? sd.label : log.sessionType;
+    const scoreColor = log.feedback.score >= 85 ? 'var(--green-700)' : log.feedback.score >= 60 ? 'var(--amber-500)' : 'var(--text-tertiary)';
+    const doneExs = log.exercises.filter(e => e.done);
+    const exNames = doneExs.slice(0,3).map(e => e.name).join(', ') + (doneExs.length > 3 ? ` +${doneExs.length-3} more` : '');
+    return `<div class="session-hist-item" onclick="openSessionLogger('${log.date}')">
+      <div class="sh-top">
+        <div><div class="sh-type">${label}</div><div class="sh-meta">${dateStr} · Week ${log.week} · Phase ${log.phase}</div></div>
+        <div class="sh-score" style="color:${scoreColor}">${log.feedback.score}/100</div>
+      </div>
+      <div class="sh-exs">${exNames || 'No exercises logged'}</div>
+    </div>`;
+  }).join('');
+}
+
+function updateLogSessionButton() {
+  const today = new Date();
+  const session = getSessionForDate(today);
+  const titleEl = document.getElementById('log-btn-title');
+  const subEl   = document.getElementById('log-btn-sub');
+  if(!titleEl) return;
+
+  const todayStr = today.toISOString().split('T')[0];
+  const hasLog = sessionLogs.find(l => l.date === todayStr);
+
+  if(!session || session.sessionType === 'rest') {
+    titleEl.textContent = 'Rest day today';
+    subEl.textContent = 'No gym — rest and recover';
+  } else if(session.sessionType === 'football') {
+    titleEl.textContent = 'Football training today';
+    subEl.textContent = 'Phase 1a · Week ' + session.week + ' · Counts as cardio';
+  } else if(session.sessionType === 'active') {
+    titleEl.textContent = 'Active rest today';
+    subEl.textContent = 'Phase 2 · Week ' + session.week + ' · Easy swim or walk';
+  } else {
+    const sd = SESSION_DATA[session.sessionType];
+    titleEl.textContent = hasLog ? 'View today\'s session' : 'Log today\'s session';
+    subEl.textContent = (sd ? sd.label : session.sessionType) + ' · Phase ' + session.phase + ' · Week ' + session.week + (hasLog ? ' · Score: ' + hasLog.feedback.score + '/100' : '');
+  }
+}
+
+// Init
+renderWeightLog();
+updateWorkoutStats();
+updateShopProgress('sp1');
+updateShopProgress('sp2');
+renderSessionHistory();
+updateLogSessionButton();
+</script>
+</body>
+</html>
