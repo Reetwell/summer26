@@ -1076,7 +1076,7 @@ function getPhaseForWeek(week) {
 }
 
 function getWeekDays(week) {
-  const start = new Date('2025-06-01');
+  const start = new Date('2026-06-01');
   start.setDate(start.getDate() + (week-1)*7);
   const days = [];
   for(let i=0;i<7;i++) {
@@ -1119,7 +1119,7 @@ function updateWorkoutStats() {
   const total = Object.values(workoutLog).filter(Boolean).length;
   document.getElementById('total-workouts').textContent = total;
   const weeksWithData = new Set(Object.keys(workoutLog).map(k => {
-    const start = new Date('2025-06-01');
+    const start = new Date('2026-06-01');
     const d = new Date(k);
     return Math.floor((d - start) / (7*24*60*60*1000));
   })).size;
@@ -1306,8 +1306,8 @@ let currentLogDate = null;
 
 // Work out what session type a given date falls on
 function getSessionForDate(date) {
-  const planStart = new Date('2025-06-01');
-  const planEnd   = new Date('2025-08-09');
+  const planStart = new Date('2026-06-01');
+  const planEnd   = new Date('2026-08-09');
   if(date < planStart || date > planEnd) return null;
   const daysDiff = Math.floor((date - planStart) / 86400000);
   const week = Math.floor(daysDiff / 7) + 1;
