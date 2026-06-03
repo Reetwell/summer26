@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SummerBody — Logo Concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green-50:#E1F5EE; --green-100:#9FE1CB; --green-500:#1D9E75; --green-700:#0F6E56; --green-900:#085041;
+  --bg:#F7F6F3; --surface:#FFFFFF; --border:rgba(0,0,0,0.08);
+  --text-primary:#1A1A18; --text-secondary:#5F5E5A; --text-tertiary:#888780;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text-primary);padding:40px 24px 80px;}
+.wrap{max-width:1000px;margin:0 auto;}
+header{margin-bottom:36px;}
+header h1{font-family:'DM Serif Display',serif;font-size:30px;margin-bottom:6px;}
+header h1 span{color:var(--green-500);}
+header p{color:var(--text-secondary);font-size:14px;max-width:560px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:18px;}
+.tag{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--green-900);background:var(--green-50);padding:4px 10px;border-radius:20px;width:fit-content;}
+.cname{font-size:15px;font-weight:600;}
+.cdesc{font-size:13px;color:var(--text-secondary);line-height:1.5;}
+.stage{background:var(--bg);border:1px solid var(--border);border-radius:12px;min-height:140px;display:flex;align-items:center;justify-content:center;padding:24px;}
+.stage.dark{background:var(--green-900);border-color:transparent;}
+.row{display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center;}
+.mini{display:flex;align-items:center;gap:14px;}
+.mini-label{font-size:11px;color:var(--text-tertiary);}
+.lockup{display:flex;align-items:center;gap:10px;}
+.wordmark{font-family:'DM Serif Display',serif;font-size:26px;line-height:1;color:var(--text-primary);}
+.wordmark .g{color:var(--green-500);}
+.wordmark.onlight-dark{color:#FFFFFF;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Summer<span>Body</span> — Logo Concepts</h1>
+  <p>Six directions, all built on the app's design language: warm off-white, teal-green primary, DM Serif Display, thin 2px strokes, flat — no gradients or shadows. Each shows a large mark plus a 32px favicon-size version to check how it holds up small.</p>
+</header>
+
+<div class="grid">
+
+  <!-- 1. Monogram tile -->
+  <div class="card">
+    <span class="tag">01 · App icon</span>
+    <div class="cname">Serif monogram tile</div>
+    <div class="cdesc">A solid green tile with an off-white serif “S”. Reads instantly as an app icon on a home screen. Confident and premium.</div>
+    <div class="stage">
+      <div class="row">
+        <!-- large -->
+        <svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="SummerBody icon">
+          <rect width="96" height="96" rx="22" fill="#0F6E56"/>
+          <text x="48" y="68" text-anchor="middle" font-family="'DM Serif Display',serif" font-size="58" fill="#F7F6F3">S</text>
+        </svg>
+        <div class="mini">
+          <div class="mini-label">32px</div>
+          <svg width="32" height="32" viewBox="0 0 96 96" fill="none">
+            <rect width="96" height="96" rx="22" fill="#0F6E56"/>
+            <text x="48" y="68" text-anchor="middle" font-family="'DM Serif Display',serif" font-size="58" fill="#F7F6F3">S</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Sunrise mark -->
+  <div class="card">
+    <span class="tag">02 · Symbol</span>
+    <div class="cname">Sunrise over horizon</div>
+    <div class="cdesc">A rising sun on a horizon line — “summer” plus the idea of progress / building up over 10 weeks. Thin-stroke, calm, distinctive.</div>
+    <div class="stage">
+      <div class="row">
+        <svg width="84" height="84" viewBox="0 0 48 48" fill="none" stroke="#1D9E75" stroke-width="2" stroke-linecap="round">
+          <line x1="7" y1="34" x2="41" y2="34"/>
+          <path d="M14 34 a10 10 0 0 1 20 0"/>
+          <line x1="24" y1="11" x2="24" y2="15"/>
+          <line x1="11" y1="18" x2="13.5" y2="20.5"/>
+          <line x1="37" y1="18" x2="34.5" y2="20.5"/>
+        </svg>
+        <div class="mini">
+          <div class="mini-label">32px</div>
+          <svg width="32" height="32" viewBox="0 0 48 48" fill="none" stroke="#1D9E75" stroke-width="2" stroke-linecap="round">
+            <line x1="7" y1="34" x2="41" y2="34"/>
+            <path d="M14 34 a10 10 0 0 1 20 0"/>
+            <line x1="24" y1="11" x2="24" y2="15"/>
+            <line x1="11" y1="18" x2="13.5" y2="20.5"/>
+            <line x1="37" y1="18" x2="34.5" y2="20.5"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Sun monogram hybrid -->
+  <div class="card">
+    <span class="tag">03 · Symbol</span>
+    <div class="cname">Sun-disc “S”</div>
+    <div class="cdesc">A filled green disc with a cut-out serif “S” and a few short rays. Playful nod to summer while staying on-brand. Great as a circular icon.</div>
+    <div class="stage">
+      <div class="row">
+        <svg width="92" height="92" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <g stroke="#1D9E75" stroke-width="2" stroke-linecap="round">
+            <line x1="24" y1="3" x2="24" y2="7"/>
+            <line x1="24" y1="41" x2="24" y2="45"/>
+            <line x1="3" y1="24" x2="7" y2="24"/>
+            <line x1="41" y1="24" x2="45" y2="24"/>
+            <line x1="9" y1="9" x2="12" y2="12"/>
+            <line x1="36" y1="36" x2="39" y2="39"/>
+            <line x1="39" y1="9" x2="36" y2="12"/>
+            <line x1="12" y1="36" x2="9" y2="39"/>
+          </g>
+          <circle cx="24" cy="24" r="13" fill="#1D9E75"/>
+          <text x="24" y="31" text-anchor="middle" font-family="'DM Serif Display',serif" font-size="18" fill="#F7F6F3">S</text>
+        </svg>
+        <div class="mini">
+          <div class="mini-label">32px</div>
+          <svg width="32" height="32" viewBox="0 0 48 48">
+            <g stroke="#1D9E75" stroke-width="2" stroke-linecap="round">
+              <line x1="24" y1="3" x2="24" y2="7"/><line x1="24" y1="41" x2="24" y2="45"/>
+              <line x1="3" y1="24" x2="7" y2="24"/><line x1="41" y1="24" x2="45" y2="24"/>
+              <line x1="9" y1="9" x2="12" y2="12"/><line x1="36" y1="36" x2="39" y2="39"/>
+              <line x1="39" y1="9" x2="36" y2="12"/><line x1="12" y1="36" x2="9" y2="39"/>
+            </g>
+            <circle cx="24" cy="24" r="13" fill="#1D9E75"/>
+            <text x="24" y="31" text-anchor="middle" font-family="'DM Serif Display',serif" font-size="18" fill="#F7F6F3">S</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Horizontal lockup -->
+  <div class="card">
+    <span class="tag">04 · Lockup</span>
+    <div class="cname">Sunrise + wordmark</div>
+    <div class="cdesc">The symbol paired with the wordmark for nav bars and headers — exactly how it would sit at the top of the app.</div>
+    <div class="stage">
+      <div class="lockup">
+        <svg width="40" height="40" viewBox="0 0 48 48" fill="none" stroke="#1D9E75" stroke-width="2.4" stroke-linecap="round">
+          <line x1="7" y1="34" x2="41" y2="34"/>
+          <path d="M14 34 a10 10 0 0 1 20 0"/>
+          <line x1="24" y1="11" x2="24" y2="15"/>
+          <line x1="11" y1="18" x2="13.5" y2="20.5"/>
+          <line x1="37" y1="18" x2="34.5" y2="20.5"/>
+        </svg>
+        <div class="wordmark">Summer<span class="g">Body</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Stacked wordmark -->
+  <div class="card">
+    <span class="tag">05 · Wordmark</span>
+    <div class="cname">Type-only mark</div>
+    <div class="cdesc">No symbol — just the name in DM Serif Display with “Body” in green. Clean, editorial, works anywhere. The safest, most premium-feeling option.</div>
+    <div class="stage">
+      <div style="text-align:center;line-height:1.05;">
+        <div class="wordmark" style="font-size:34px;">Summer</div>
+        <div class="wordmark g" style="font-size:34px;color:var(--green-500);">Body</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Dark / reversed -->
+  <div class="card">
+    <span class="tag">06 · Reversed</span>
+    <div class="cname">On dark green</div>
+    <div class="cdesc">How the lockup reverses out for splash screens or a dark mode header — off-white type and a light-green mark on the deep green-900.</div>
+    <div class="stage dark">
+      <div class="lockup">
+        <svg width="40" height="40" viewBox="0 0 48 48" fill="none" stroke="#9FE1CB" stroke-width="2.4" stroke-linecap="round">
+          <line x1="7" y1="34" x2="41" y2="34"/>
+          <path d="M14 34 a10 10 0 0 1 20 0"/>
+          <line x1="24" y1="11" x2="24" y2="15"/>
+          <line x1="11" y1="18" x2="13.5" y2="20.5"/>
+          <line x1="37" y1="18" x2="34.5" y2="20.5"/>
+        </svg>
+        <div class="wordmark onlight-dark">Summer<span style="color:#9FE1CB;">Body</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+</body>
+</html>
