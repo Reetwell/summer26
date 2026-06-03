@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SummerBody — App Icon Concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green-50:#E1F5EE; --green-100:#9FE1CB; --green-500:#1D9E75; --green-700:#0F6E56; --green-900:#085041;
+  --bg:#F7F6F3; --surface:#FFFFFF; --border:rgba(0,0,0,0.08);
+  --text-primary:#1A1A18; --text-secondary:#5F5E5A; --text-tertiary:#888780;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text-primary);padding:40px 24px 80px;}
+.wrap{max-width:1040px;margin:0 auto;}
+header{margin-bottom:36px;}
+header h1{font-family:'DM Serif Display',serif;font-size:30px;margin-bottom:6px;}
+header h1 span{color:var(--green-500);}
+header p{color:var(--text-secondary);font-size:14px;max-width:600px;line-height:1.55;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:20px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:14px;}
+.tag{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--green-900);background:var(--green-50);padding:4px 10px;border-radius:20px;width:fit-content;}
+.cname{font-size:15px;font-weight:600;}
+.cdesc{font-size:12.5px;color:var(--text-secondary);line-height:1.5;flex:1;}
+.stage{background:var(--bg);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;gap:28px;padding:22px 16px;}
+/* home-screen mini */
+.home{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.home .label{font-size:11px;color:var(--text-secondary);font-weight:500;}
+.icon-tile{display:block;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Summer<span>Body</span> — App Icon Concepts</h1>
+  <p>Eight icon directions for the home-screen tile (wordmark stays in-app). All flat, no gradients or shadows, drawn only from your green ramp. Each shows a large tile plus a realistic ~52px home-screen version with label, so you can see how it actually reads on a phone.</p>
+</header>
+
+<div class="grid">
+
+  <!-- 1 -->
+  <div class="card">
+    <span class="tag">01 · Letterform</span>
+    <div class="cname">Serif “S” — green tile</div>
+    <div class="cdesc">Off-white serif S on solid green. The classic, confident default. Pairs perfectly with the text wordmark.</div>
+    <div class="stage">
+      <svg width="92" height="92" viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="#0F6E56"/><text x="50" y="73" text-anchor="middle" font-family="'DM Serif Display',serif" font-size="64" fill="#F7F6F3">S</text></svg>
+      <div class="home">
+        <svg width="52" height="52" viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="#0F6E56"/><text x="50" y="73" text-anchor="middle" font-family="'DM Serif Display',serif" font-size="64" fill="#F7F6F3">S</text></svg>
+        <span class="label">SummerBody</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card">
+    <span class="tag">02 · Letterform</span>
+    <div class="cname">Serif “S” — light tile</div>
+    <div class="cdesc">Inverted: green S on warm off-white with a hairline border. Softer, lighter, very “premium wellness app”.</div>
+    <div class="stage">
+      <svg width="92" height="92" viewBox="0 0 100 100"><rect x="0.5" y="0.5" width="99" height="99" rx="24" fill="#F7F6F3" stroke="rgba(0,0,0,0.08)"/><text x="50" y="73" text-anchor="middle" font-family="'DM Serif Display',serif" font-size="64" fill="#0F6E56">S</text></svg>
+      <div class="home">
+        <svg width="52" height="52" viewBox="0 0 100 100"><rect x="0.5" y="0.5" width="99" height="99" rx="24" fill="#F7F6F3" stroke="rgba(0,0,0,0.08)"/><text x="50" y="73" text-anchor="middle" font-family="'DM Serif Display',serif" font-size="64" fill="#0F6E56">S</text></svg>
+        <span class="label">SummerBody</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card">
+    <span class="tag">03 · Symbol</span>
+    <div class="cname">Sunrise — green tile</div>
+    <div class="cdesc">The rising-sun mark in off-white stroke. Summer + progress. Recognisable as a shape even when tiny.</div>
+    <div class="stage">
+      <svg width="92" height="92" viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="#0F6E56"/><g stroke="#F7F6F3" stroke-width="4.5" stroke-linecap="round" fill="none"><line x1="22" y1="68" x2="78" y2="68"/><path d="M33 68 a17 17 0 0 1 34 0"/><line x1="50" y1="26" x2="50" y2="33"/><line x1="28" y1="38" x2="33" y2="43"/><line x1="72" y1="38" x2="67" y2="43"/></g></svg>
+      <div class="home">
+        <svg width="52" height="52" viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="#0F6E56"/><g stroke="#F7F6F3" stroke-width="4.5" stroke-linecap="round" fill="none"><line x1="22" y1="68" x2="78" y2="68"/><path d="M33 68 a17 17 0 0 1 34 0"/><line x1="50" y1="26" x2="50" y2="33"/><line x1="28" y1="38" x2="33" y2="43"/><line x1="72" y1="38" x2="67" y2="43"/></g></svg>
+        <span class="label">SummerBody</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card">
+    <span class="tag">04 · Symbol</span>
+    <div class="cname">Sunrise — light tile</div>
+    <div class="cdesc">Same mark, green stroke on off-white. Airy and clean — feels calm and healthy.</div>
+    <div class="stage">
+      <svg width="92" height="92" viewBox="0 0 100 100"><rect x="0.5" y="0.5" width="99" height="99" rx="24" fill="#F7F6F3" stroke="rgba(0,0,0,0.08)"/><g stroke="#1D9E75" stroke-width="4.5" stroke-linecap="round" fill="none"><line x1="22" y1="68" x2="78" y2="68"/><path d="M33 68 a17 17 0 0 1 34 0"/><line x1="50" y1="26" x2="50" y2="33"/><line x1="28" y1="38" x2="33" y2="43"/><line x1="72" y1="38" x2="67" y2="43"/></g></svg>
+      <div class="home">
+        <svg width="52" height="52" viewBox="0 0 100 100"><rect x="0.5" y="0.5" width="99" height="99" rx="24" fill="#F7F6F3" stroke="rgba(0,0,0,0.08)"/><g stroke="#1D9E75" stroke-width="4.5" stroke-linecap="round" fill="none"><line x1="22" y1="68" x2="78" y2="68"/><path d="M33 68 a17 17 0 0 1 34 0"/><line x1="50" y1="26" x2="50" y2="33"/><line x1="28" y1="38" x2="33" y2="43"/><line x1="72" y1="38" x2="67" y2="43"/></g></svg>
+        <span class="label">SummerBody</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card">
+    <span class="tag">05 · Symbol</span>
+    <div class="cname">Full sun</div>
+    <div class="cdesc">A simple sun — disc plus eight rays. The most “summer”, the most universally readable shape at any size.</div>
+    <div class="stage">
+      <svg width="92" height="92" viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="#0F6E56"/><circle cx="50" cy="50" r="16" fill="#F7F6F3"/><g stroke="#F7F6F3" stroke-width="4.5" stroke-linecap="round"><line x1="50" y1="20" x2="50" y2="27"/><line x1="50" y1="73" x2="50" y2="80"/><line x1="20" y1="50" x2="27" y2="50"/><line x1="73" y1="50" x2="80" y2="50"/><line x1="29" y1="29" x2="34" y2="34"/><line x1="66" y1="66" x2="71" y2="71"/><line x1="71" y1="29" x2="66" y2="34"/><line x1="34" y1="66" x2="29" y2="71"/></g></svg>
+      <div class="home">
+        <svg width="52" height="52" viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="#0F6E56"/><circle cx="50" cy="50" r="16" fill="#F7F6F3"/><g stroke="#F7F6F3" stroke-width="4.5" stroke-linecap="round"><line x1="50" y1="20" x2="50" y2="27"/><line x1="50" y1="73" x2="50" y2="80"/><line x1="20" y1="50" x2="27" y2="50"/><line x1="73" y1="50" x2="80" y2="50"/><line x1="29" y1="29" x2="34" y2="34"/><line x1="66" y1="66" x2="71" y2="71"/><line x1="71" y1="29" x2="66" y2="34"/><line x1="34" y1="66" x2="29" y2="71"/></g></svg>
+        <span class="label">SummerBody</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card">
+    <span class="tag">06 · Abstract</span>
+    <div class="cname">Motion “S” stroke</div>
+    <div class="cdesc">The S abstracted into a single bold curved stroke — suggests energy and movement. Modern and dynamic.</div>
+    <div class="stage">
+      <svg width="92" height="92" viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="#0F6E56"/><path d="M68 33 C 68 23 34 24 34 41 C 34 55 66 51 66 65 C 66 81 32 79 32 68" fill="none" stroke="#F7F6F3" stroke-width="9" stroke-linecap="round"/></svg>
+      <div class="home">
+        <svg width="52" height="52" viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="#0F6E56"/><path d="M68 33 C 68 23 34 24 34 41 C 34 55 66 51 66 65 C 66 81 32 79 32 68" fill="none" stroke="#F7F6F3" stroke-width="9" stroke-linecap="round"/></svg>
+        <span class="label">SummerBody</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card">
+    <span class="tag">07 · Symbol</span>
+    <div class="cname">Sun + horizon (geometric)</div>
+    <div class="cdesc">A bold filled half-sun sitting on a horizon line. Heavier and more graphic than the stroke version — strong at small sizes.</div>
+    <div class="stage">
+      <svg width="92" height="92" viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="#F7F6F3" stroke="rgba(0,0,0,0.08)"/><path d="M28 62 a22 22 0 0 1 44 0 Z" fill="#1D9E75"/><rect x="22" y="68" width="56" height="5" rx="2.5" fill="#0F6E56"/></svg>
+      <div class="home">
+        <svg width="52" height="52" viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="#F7F6F3" stroke="rgba(0,0,0,0.08)"/><path d="M28 62 a22 22 0 0 1 44 0 Z" fill="#1D9E75"/><rect x="22" y="68" width="56" height="5" rx="2.5" fill="#0F6E56"/></svg>
+        <span class="label">SummerBody</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card">
+    <span class="tag">08 · Letterform</span>
+    <div class="cname">“SB” monogram</div>
+    <div class="cdesc">Both initials in serif, off-white on green. More explicit branding, though the two letters get tighter at very small sizes.</div>
+    <div class="stage">
+      <svg width="92" height="92" viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="#0F6E56"/><text x="50" y="68" text-anchor="middle" font-family="'DM Serif Display',serif" font-size="46" fill="#F7F6F3">SB</text></svg>
+      <div class="home">
+        <svg width="52" height="52" viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="#0F6E56"/><text x="50" y="68" text-anchor="middle" font-family="'DM Serif Display',serif" font-size="46" fill="#F7F6F3">SB</text></svg>
+        <span class="label">SummerBody</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+</body>
+</html>
