@@ -1044,6 +1044,28 @@ function toggleShop(el, phase) {
     check.style.borderColor = '';
   }
   updateShopProgress(phase);
+  persistShop(phase);
+}
+// Save which items are ticked (by position) so the list survives a refresh
+function persistShop(phase) {
+  const items = document.querySelectorAll('#' + phase + ' .shop-item');
+  shopState[phase] = Array.from(items).map(el => el.classList.contains('done'));
+  localStorage.setItem('sbp-shop', JSON.stringify(shopState));
+}
+// Re-apply ticked items on load
+function applyShopState(phase) {
+  const saved = shopState[phase];
+  if(!Array.isArray(saved)) return;
+  const items = document.querySelectorAll('#' + phase + ' .shop-item');
+  if(saved.length !== items.length) return; // list changed between versions — skip
+  items.forEach((el, i) => {
+    if(!saved[i]) return;
+    el.classList.add('done');
+    const check = el.querySelector('.item-check');
+    check.innerHTML = '<i class="fa-solid fa-check" style="font-size:10px;color:white"></i>';
+    check.style.background = 'var(--green-500)';
+    check.style.borderColor = 'var(--green-500)';
+  });
 }
 function updateShopProgress(phase) {
   const all = document.querySelectorAll('#' + phase + ' .shop-item');
@@ -1065,19 +1087,35 @@ function resetShop(phase) {
     check.style.borderColor = '';
   });
   updateShopProgress(phase);
+  persistShop(phase);
 }
 
 // ==================== PROGRESS ====================
-let weightLog = JSON.parse(localStorage.getItem('sbp-weight') || '[]');
-let workoutLog = JSON.parse(localStorage.getItem('sbp-workouts') || '{}');
+// Safe loader — corrupt localStorage must never crash the whole app
+function loadStore(key, fallback) {
+  try {
+    const v = JSON.parse(localStorage.getItem(key));
+    return (v === null || v === undefined) ? fallback : v;
+  } catch(e) {
+    console.warn('Could not read saved data for "' + key + '" — starting fresh.', e);
+    return fallback;
+  }
+}
+// Escape any user-supplied text before inserting it into HTML
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+let weightLog = loadStore('sbp-weight', []);
+let workoutLog = loadStore('sbp-workouts', {});
+let shopState = loadStore('sbp-shop', {});
 let currentWeek = 1;
 let weightChart = null;
 
 // Training days per week (0=Sun,1=Mon,...,6=Sat)
 const trainingDays = {
-  p1a: [1,2,3,4,5], // Mon-Fri (Thu=football)
-  p1b: [1,2,3,4,5,6],
-  p2:  [1,2,3,5,6]
+  p1a: [1,2,3,4,5],     // Mon-Fri (Thu = football)
+  p1b: [1,2,3,4,5,6],   // Mon-Sat
+  p2:  [1,2,3,4,5,6]    // Mon-Sat (Thu = active rest, still tappable)
 };
 
 function getPhaseForWeek(week) {
@@ -1312,7 +1350,7 @@ const SESSION_DATA = {
   }
 };
 
-let sessionLogs = JSON.parse(localStorage.getItem('sbp-session-logs') || '[]');
+let sessionLogs = loadStore('sbp-session-logs', []);
 let currentLogDate = null;
 
 // Work out what session type a given date falls on
@@ -1439,10 +1477,10 @@ function buildExRow(ex, isExtra) {
     </div>`;
   }
   const badge = (ex.key && !isExtra) ? '<span class="ex-key-badge">Key lift</span>' : '';
-  return `<div class="ex-row" data-name="${ex.name}" data-type="${ex.type}" data-key="${ex.key?'1':'0'}" data-planned="${isExtra?'0':'1'}">
+  return `<div class="ex-row" data-name="${esc(ex.name)}" data-type="${esc(ex.type)}" data-key="${ex.key?'1':'0'}" data-planned="${isExtra?'0':'1'}">
     <div class="ex-toggle">
       <div class="ex-check"></div>
-      <div class="ex-info"><span class="ex-name">${ex.name}</span><span class="ex-muscle">${ex.muscle}</span></div>
+      <div class="ex-info"><span class="ex-name">${esc(ex.name)}</span><span class="ex-muscle">${esc(ex.muscle)}</span></div>
       ${badge}
     </div>
     ${inputsHTML}
@@ -1568,9 +1606,11 @@ function generateFeedback(sessionType, phase, exercises) {
   });
 
   // Progressive overload check (vs previous sessions of same type)
-  const prevSessions = sessionLogs.filter(l => l.sessionType === sessionType && l.date !== currentLogDate);
+  const prevSessions = sessionLogs
+    .filter(l => l.sessionType === sessionType && l.date < currentLogDate)
+    .sort((a, b) => a.date < b.date ? -1 : 1);
   if(prevSessions.length > 0) {
-    const last = prevSessions[prevSessions.length - 1];
+    const last = prevSessions[prevSessions.length - 1]; // most recent session before this one
     let progressFound = false;
     exercises.filter(e => e.done && e.type === 'strength' && e.weight > 0).forEach(ex => {
       const prev = last.exercises.find(pe => pe.name === ex.name && pe.done && pe.weight > 0);
@@ -1684,9 +1724,19 @@ function closeSessionModal() {
 
 function restoreLogValues(log) {
   log.exercises.forEach(ex => {
-    if(!ex.done) return;
-    const row = document.querySelector(`.ex-row[data-name="${ex.name}"]`);
+    // Find the matching row by name (safe — no selector string injection)
+    let row = Array.from(document.querySelectorAll('.ex-row')).find(r => r.dataset.name === ex.name);
+    // Rebuild any custom (unplanned) exercise that isn't in the default list
+    if(!row && ex.planned === false) {
+      const container = document.getElementById('extra-exercises');
+      if(container) {
+        container.insertAdjacentHTML('beforeend', buildExRow({name: ex.name, type: ex.type || 'strength', key: false, muscle: 'Custom'}, true));
+        row = container.lastElementChild;
+        attachExToggle(row.querySelector('.ex-toggle'));
+      }
+    }
     if(!row) return;
+    if(!ex.done) return;
     row.classList.add('checked');
     row.querySelector('.ex-check').innerHTML = '<i class="fa-solid fa-check" style="font-size:11px;color:white"></i>';
     const inputs = row.querySelector('.ex-inputs');
@@ -1755,6 +1805,8 @@ function updateLogSessionButton() {
 // Init
 renderWeightLog();
 updateWorkoutStats();
+applyShopState('sp1');
+applyShopState('sp2');
 updateShopProgress('sp1');
 updateShopProgress('sp2');
 renderSessionHistory();
