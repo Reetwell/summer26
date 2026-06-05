@@ -2708,6 +2708,16 @@ function playSplash(){
         it.el.style.transform = 'translateY(0)';
         it.el.style.opacity = '1';
         it.el.style.filter = 'blur(0px)';
+        // Once the blur-in finishes, drop the filter entirely. An *active* filter
+        // (even blur(0px)) clips the glyph to its filter region, which shaved off
+        // the italic "y" descender. blur(0px) -> none is visually identical, so
+        // clearing it removes the clip with no visible jump. transitionend can be
+        // flaky on iOS PWAs, so a timeout fallback guarantees the cleanup.
+        const clearFilter = () => { it.el.style.filter = 'none'; };
+        it.el.addEventListener('transitionend', function te(e){
+          if(e.propertyName === 'filter'){ it.el.removeEventListener('transitionend', te); clearFilter(); }
+        });
+        setTimeout(clearFilter, delay + 560);
       });
     }, SPLASH_BEAT);
 
