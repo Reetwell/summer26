@@ -502,6 +502,16 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .junk-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
 .junk-item:last-child { border-bottom: none; }
 
+/* Reminders */
+.rem-status { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.5; }
+.rem-status.on { color: var(--green-900); }
+.rem-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.rem-row:last-child { border-bottom: none; }
+.rem-label { font-size: 14px; color: var(--text-primary); }
+.rem-time { font-family: 'DM Sans', sans-serif; font-size: 15px; padding: 7px 10px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--text-primary); }
+.rem-actions { margin-top: 12px; display: flex; gap: 8px; }
+.rem-actions .pp-cancel { white-space: nowrap; }
+
 @media (max-width: 480px) {
   .today-summary { grid-template-columns: 1fr; }
 }
@@ -610,6 +620,28 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
         <div class="ct-sub">5g daily — take it even on rest days</div>
       </div>
       <button class="toggle-pill" id="creatine-toggle" onclick="toggleCreatine()"><span class="toggle-knob"></span></button>
+    </div>
+  </div>
+
+  <!-- Reminders -->
+  <div class="today-block">
+    <div class="tblock-title"><svg class="tb-icon" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>Reminders</div>
+    <div id="reminders-body">
+      <div class="rem-status" id="rem-status">Get a buzz when it's time for your protein &amp; creatine.</div>
+      <div id="rem-times" style="display:none">
+        <div class="rem-row">
+          <label class="rem-label">Protein shake</label>
+          <input type="time" class="rem-time" id="rem-protein" value="09:00">
+        </div>
+        <div class="rem-row">
+          <label class="rem-label">Creatine</label>
+          <input type="time" class="rem-time" id="rem-creatine" value="20:00">
+        </div>
+      </div>
+      <div class="rem-actions">
+        <button class="food-add-btn" id="rem-enable-btn" onclick="enableReminders()" style="width:100%">Enable reminders</button>
+      </div>
+      <div class="food-hint" id="rem-hint" style="margin-top:10px">On iPhone, add this app to your Home Screen first, then enable.</div>
     </div>
   </div>
 
@@ -2358,6 +2390,114 @@ function renderTodayChart() {
   });
 }
 
+// ==================== REMINDERS (Web Push) ====================
+const VAPID_PUBLIC_KEY = "BJeO4EGkQZRdMrAP9f8cTc98lNWPXGLeq0jkjJOWybAlmvmfHBIlIQpmV-z9VvwjGL32YjOc3p1Q6ZMq0PiJQJY";
+const REMINDER_BACKEND = ""; // set to your Cloudflare Worker URL after deploy
+
+let remState = loadStore('sbp-reminders', { enabled:false, protein:'09:00', creatine:'20:00' });
+
+function pushSupported(){ return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; }
+function isiOS(){ return /iphone|ipad|ipod/i.test(navigator.userAgent); }
+function isStandalone(){ return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true; }
+function p2(n){ return String(n).padStart(2,'0'); }
+function localToUtc(hhmm){ const [h,m]=hhmm.split(':').map(Number); const d=new Date(); d.setHours(h,m,0,0); return p2(d.getUTCHours())+':'+p2(d.getUTCMinutes()); }
+function urlB64ToUint8(base64){
+  const pad='='.repeat((4-base64.length%4)%4);
+  const b64=(base64+pad).replace(/-/g,'+').replace(/_/g,'/');
+  const raw=atob(b64); const arr=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++) arr[i]=raw.charCodeAt(i);
+  return arr;
+}
+function saveRemState(){ localStorage.setItem('sbp-reminders', JSON.stringify(remState)); }
+
+function initReminders(){
+  const proteinEl=document.getElementById('rem-protein'), creatineEl=document.getElementById('rem-creatine');
+  if(!proteinEl) return;
+  proteinEl.value=remState.protein||'09:00';
+  creatineEl.value=remState.creatine||'20:00';
+  proteinEl.onchange=creatineEl.onchange=onRemTimeChange;
+  reflectReminders();
+}
+
+function reflectReminders(){
+  const status=document.getElementById('rem-status');
+  const times=document.getElementById('rem-times');
+  const btn=document.getElementById('rem-enable-btn');
+  const hint=document.getElementById('rem-hint');
+  if(!status) return;
+  if(!pushSupported()){
+    status.textContent='Reminders aren’t supported in this browser.'; btn.style.display='none'; times.style.display='none'; hint.style.display='none'; return;
+  }
+  if(isiOS() && !isStandalone()){
+    status.textContent='To get reminders on iPhone: tap Share → Add to Home Screen, open the app from there, then enable.';
+    btn.style.display='none'; times.style.display='none'; hint.style.display='none'; return;
+  }
+  if(!REMINDER_BACKEND){ hint.textContent='Reminder delivery is being connected — enabling works once that’s live.'; }
+  const on = remState.enabled && Notification.permission==='granted';
+  status.className = on ? 'rem-status on' : 'rem-status';
+  status.textContent = on
+    ? 'Reminders are on — protein at '+remState.protein+', creatine at '+remState.creatine+'.'
+    : 'Get a buzz when it’s time for your protein & creatine.';
+  times.style.display='block';
+  btn.style.display='block';
+  btn.textContent = on ? 'Turn off reminders' : 'Enable reminders';
+  btn.onclick = on ? disableReminders : enableReminders;
+}
+
+async function enableReminders(){
+  try{
+    if(!pushSupported()) return;
+    if(!REMINDER_BACKEND){ alert('The reminders server is being connected — this is the final wiring step and will be live shortly.'); return; }
+    const perm=await Notification.requestPermission();
+    if(perm!=='granted'){ alert('Notifications weren’t allowed. You can turn them on in your phone settings, then try again.'); return; }
+    const reg=await navigator.serviceWorker.register('sw.js');
+    await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub){ sub=await reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey:urlB64ToUint8(VAPID_PUBLIC_KEY) }); }
+    remState.enabled=true; saveRemState();
+    await syncSubscription(sub);
+    reflectReminders();
+    alert('Reminders enabled 🎉');
+  }catch(e){ console.error(e); alert('Could not enable reminders: '+(e&&e.message||e)); }
+}
+
+async function syncSubscription(sub){
+  if(!REMINDER_BACKEND) return;
+  const schedule={ protein:localToUtc(remState.protein), creatine:localToUtc(remState.creatine) };
+  await fetch(REMINDER_BACKEND.replace(/\/$/,'')+'/subscribe',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ subscription: sub.toJSON?sub.toJSON():sub, schedule })
+  });
+}
+
+async function onRemTimeChange(){
+  remState.protein=document.getElementById('rem-protein').value;
+  remState.creatine=document.getElementById('rem-creatine').value;
+  saveRemState();
+  if(remState.enabled){
+    try{
+      const reg=await navigator.serviceWorker.getRegistration();
+      const sub=reg && await reg.pushManager.getSubscription();
+      if(sub) await syncSubscription(sub);
+    }catch(_){}
+  }
+  reflectReminders();
+}
+
+async function disableReminders(){
+  try{
+    const reg=await navigator.serviceWorker.getRegistration();
+    if(reg){
+      const sub=await reg.pushManager.getSubscription();
+      if(sub){
+        if(REMINDER_BACKEND){ try{ await fetch(REMINDER_BACKEND.replace(/\/$/,'')+'/unsubscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({endpoint:sub.endpoint})}); }catch(_){} }
+        await sub.unsubscribe();
+      }
+    }
+  }catch(_){}
+  remState.enabled=false; saveRemState(); reflectReminders();
+}
+
 // Enter-key support
 document.getElementById('food-input').addEventListener('keydown', e=>{ if(e.key==='Enter') parseFood(); });
 document.getElementById('junk-input').addEventListener('keydown', e=>{ if(e.key==='Enter') addJunk(); });
@@ -2372,6 +2512,7 @@ updateShopProgress('sp2');
 renderSessionHistory();
 updateLogSessionButton();
 renderToday();
+initReminders();
 </script>
 </body>
 </html>
