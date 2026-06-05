@@ -553,18 +553,20 @@ html.show-splash .splash.splash-done {
   position: relative;
   display: inline-block;       /* letters flow naturally; JS measures + transforms them */
   white-space: nowrap;
-  padding: 0.14em 0.12em;
+  padding: 0.30em 0.22em;      /* room for italic overhang + descenders so glyphs never clip */
   color: #fff;
   font-family: "DM Serif Display", Georgia, serif;
-  line-height: 1.1;
+  line-height: 1.32;           /* taller line-box so descenders (y) aren't cut off */
   font-size: clamp(46px, 15vw, 68px);
   letter-spacing: .5px;
+  overflow: visible;
   opacity: 0;                  /* hidden until JS has measured + positioned the letters */
   transform: translateZ(0);    /* own compositor layer for buttery transforms */
   will-change: transform, opacity;
 }
 .spl {
   display: inline-block;
+  overflow: visible;           /* let italic ink + descenders spill past the inline box */
   will-change: transform, opacity, filter;
   -webkit-backface-visibility: hidden;
           backface-visibility: hidden;
