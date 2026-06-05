@@ -550,73 +550,29 @@ html.show-splash .splash.splash-done {
   pointer-events: none;
 }
 .splash-mark {
-  display: inline-flex;
-  align-items: baseline;
+  position: relative;
+  display: inline-block;       /* letters flow naturally; JS measures + transforms them */
   white-space: nowrap;
-  padding: 0.12em 0.1em; /* breathing room so italic glyphs never clip */
+  padding: 0.14em 0.12em;
   color: #fff;
   font-family: "DM Serif Display", Georgia, serif;
   line-height: 1.1;
-  font-size: clamp(44px, 15vw, 66px);
+  font-size: clamp(46px, 15vw, 68px);
   letter-spacing: .5px;
-  /* starts as just "SB", holds a beat, then expands into the wordmark */
-  transform: scale(1.12);
-  opacity: 0;
+  opacity: 0;                  /* hidden until JS has measured + positioned the letters */
+  transform: translateZ(0);    /* own compositor layer for buttery transforms */
   will-change: transform, opacity;
-  animation: splashMark 1.8s cubic-bezier(.4,0,.2,1) forwards;
-  animation-play-state: paused; /* hold until fonts are ready (no glyph-swap jank) */
 }
-/* the two anchor letters stay put; the words grow out from between them */
-.sp-s, .sp-b { display: inline-block; }
-.sp-b, .sp-fill-b { color: #8FE3C5; font-style: italic; }
-/* "ummer" and "ody" are collapsed at first so only "SB" shows. A soft mask on
-   the leading edge lets letters fade in as they're revealed instead of being
-   hard-clipped through (which looked choppy). */
-.sp-fill {
+.spl {
   display: inline-block;
-  box-sizing: border-box;
-  overflow: hidden;
-  padding-right: .06em; /* room for the italic overhang on "Body" */
-  max-width: 0;
-  opacity: 0;
-  will-change: max-width, opacity;
-  -webkit-mask-image: linear-gradient(to right, #000 80%, transparent 100%);
-          mask-image: linear-gradient(to right, #000 80%, transparent 100%);
-  animation-duration: 1.8s;
-  animation-timing-function: cubic-bezier(.4,0,.2,1);
-  animation-fill-mode: forwards;
-  animation-play-state: paused;
+  will-change: transform, opacity;
+  -webkit-backface-visibility: hidden;
+          backface-visibility: hidden;
 }
-.sp-fill-a { animation-name: splashFillA; padding-right: .16em; } /* gap before italic "Body" so "r" and "B" don't crowd */
-.sp-fill-b { animation-name: splashFillB; }
-/* once the reveal finishes, drop the clip + mask so nothing looks cut off */
-.splash-mark.sp-done .sp-fill {
-  overflow: visible;
-  -webkit-mask-image: none;
-          mask-image: none;
-}
-html.fonts-ready .splash-mark,
-html.fonts-ready .sp-fill { animation-play-state: running; }
-@keyframes splashMark {
-  0%   { opacity: 0; transform: scale(1.12); }
-  12%  { opacity: 1; transform: scale(1.12); }
-  32%  { opacity: 1; transform: scale(1.12); } /* hold "SB" only */
-  100% { opacity: 1; transform: scale(1); }
-}
-@keyframes splashFillA {
-  0%, 32% { max-width: 0;   opacity: 0; } /* stay hidden during the "SB" beat */
-  40%     { opacity: 1; }
-  94%     { max-width: 9ch; opacity: 1; }
-  100%    { max-width: 9ch; opacity: 1; }
-}
-@keyframes splashFillB {
-  0%, 36% { max-width: 0;   opacity: 0; }
-  44%     { opacity: 1; }
-  96%     { max-width: 7ch; opacity: 1; }
-  100%    { max-width: 7ch; opacity: 1; }
-}
+.spl.bd { color: #8FE3C5; font-style: italic; }
 @media (prefers-reduced-motion: reduce) {
-  .splash-mark, .sp-fill { animation-duration: .01s; }
+  .splash-mark { opacity: 1 !important; transform: none !important; }
+  .spl { transition: none !important; transform: none !important; opacity: 1 !important; }
 }
 
 /* ---- Deep-link pulse highlight ---- */
@@ -638,9 +594,7 @@ html.fonts-ready .sp-fill { animation-play-state: running; }
      don't get a green flash. The guard runs inline (before paint) to add the
      class that reveals it. -->
 <div class="splash" id="splash" aria-hidden="true">
-  <div class="splash-mark">
-    <span class="sp-s">S</span><span class="sp-fill sp-fill-a">ummer</span><span class="sp-b">B</span><span class="sp-fill sp-fill-b">ody</span>
-  </div>
+  <div class="splash-mark" id="splash-mark" aria-label="SummerBody"><span class="spl" data-g="s">S</span><span class="spl" data-g="m">u</span><span class="spl" data-g="m">m</span><span class="spl" data-g="m">m</span><span class="spl" data-g="m">e</span><span class="spl" data-g="m">r</span><span class="spl bd" data-g="b">B</span><span class="spl bd" data-g="o">o</span><span class="spl bd" data-g="o">d</span><span class="spl bd" data-g="o">y</span></div>
 </div>
 <script>
   (function () {
@@ -2660,30 +2614,99 @@ async function disableReminders(){
 }
 
 // ==================== SPLASH ====================
+/* The splash is driven entirely by transform + opacity (the only two
+   properties the GPU can animate without layout/paint), using a measured
+   FLIP approach:
+     1. Lay out "SummerBody" naturally and measure each letter's real spot.
+     2. Collapse the letters into a centred "SB" with translateX (Summer's
+        middle letters stack at the S|B seam, Body's at B's far edge), and
+        hide everything except S and B.
+     3. Hold that "SB" for a beat.
+     4. Play every letter back to translateX(0) + opacity 1 with a gentle
+        ease + slight outward stagger, so SB blossoms into the wordmark.
+     5. Hold the finished wordmark, then fade the whole layer out. */
+const SPLASH_BEAT = 480;   // how long "SB" sits alone first
+const SPLASH_SPREAD = 1150; // letters travel to their places
+const SPLASH_HOLD = 3000;  // finished wordmark dwell time
 function playSplash(){
   const el = document.getElementById('splash');
   if(!el || !document.documentElement.classList.contains('show-splash')) return;
-  // tap to skip
   el.addEventListener('click', dismissSplash, { once:true });
-  const start = () => {
-    // start the animation only once the webfont is ready, so glyphs don't
-    // swap mid-flight (which reads as "laggy")
-    document.documentElement.classList.add('fonts-ready');
-    const mark = document.querySelector('.splash-mark');
-    const REVEAL = 1800; // matches the CSS animation duration
-    const HOLD = 3000;   // crisp wordmark sits on screen this long before exiting
-    const finish = () => { if(mark) mark.classList.add('sp-done'); }; // drops mask/clip → crisp wordmark
-    if(mark) mark.addEventListener('animationend', finish, { once:true });
-    setTimeout(finish, REVEAL + 60);            // fallback: iOS PWAs don't always fire animationend
-    setTimeout(dismissSplash, REVEAL + HOLD);   // expand → solidify → hold 3s → smooth fade out
+
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const run = () => {
+    const mark = document.getElementById('splash-mark');
+    if(!mark){ setTimeout(dismissSplash, 800); return; }
+    if(reduce){
+      mark.style.opacity = '1';
+      setTimeout(dismissSplash, 1600);
+      return;
+    }
+    const letters = Array.prototype.slice.call(mark.querySelectorAll('.spl'));
+    const markBox = mark.getBoundingClientRect();
+    const items = letters.map((l) => {
+      const r = l.getBoundingClientRect();
+      return { el: l, left: r.left - markBox.left, w: r.width, g: l.dataset.g };
+    });
+    const S = items.find(i => i.g === 's');
+    const B = items.find(i => i.g === 'b');
+    if(!S || !B){ mark.style.opacity = '1'; setTimeout(dismissSplash, SPLASH_HOLD); return; }
+
+    // Where the centred "SB" pair sits inside the (final-width) mark box.
+    const total = Math.max.apply(null, items.map(i => i.left + i.w));
+    const centreX = total / 2;
+    const colS = centreX - (S.w + B.w) / 2; // left edge of S when collapsed
+    const colB = colS + S.w;                // left edge of B (right after S)
+    const seam = colB;                      // S|B seam — "ummer" stacks here
+    const afterB = colB + B.w;              // right of B — "ody" stacks here
+
+    // 2) Collapse: set start transforms with no transition.
+    items.forEach((it) => {
+      let target;
+      if(it.g === 's') target = colS;
+      else if(it.g === 'b') target = colB;
+      else if(it.g === 'm') target = seam;
+      else target = afterB;
+      it.dx = target - it.left;
+      it.anchor = (it.g === 's' || it.g === 'b');
+      it.el.style.transition = 'none';
+      it.el.style.transform = 'translateX(' + it.dx.toFixed(2) + 'px)';
+      it.el.style.opacity = it.anchor ? '1' : '0';
+    });
+    mark.style.opacity = '1';        // reveal — now it reads as "SB"
+    mark.style.transform = 'scale(1.05)';
+    void mark.offsetWidth;           // commit the collapsed frame before animating
+
+    // 3 + 4) After the beat, blossom into the wordmark.
+    setTimeout(() => {
+      const ease = 'cubic-bezier(.16,1,.3,1)'; // smooth, slightly springy settle
+      mark.style.transition = 'transform ' + SPLASH_SPREAD + 'ms ' + ease;
+      mark.style.transform = 'scale(1)';
+      const maxDist = Math.max.apply(null, items.map(i => Math.abs(i.dx))) || 1;
+      items.forEach((it) => {
+        // letters that travel further start a touch sooner → cohesive fan-out
+        const delay = Math.round(60 + (1 - Math.abs(it.dx) / maxDist) * 90);
+        it.el.style.transition =
+          'transform ' + SPLASH_SPREAD + 'ms ' + ease + ' ' + delay + 'ms, ' +
+          'opacity ' + Math.round(SPLASH_SPREAD * 0.55) + 'ms ease ' + delay + 'ms';
+        it.el.style.transform = 'translateX(0)';
+        it.el.style.opacity = '1';
+      });
+    }, SPLASH_BEAT);
+
+    // 5) Hold the finished wordmark, then fade out.
+    setTimeout(dismissSplash, SPLASH_BEAT + SPLASH_SPREAD + SPLASH_HOLD);
   };
+
+  // Measure only once the webfont is ready, otherwise positions are wrong.
   if(document.fonts && document.fonts.ready){
     let done = false;
-    document.fonts.ready.then(() => { if(!done){ done = true; start(); } });
-    // safety: don't wait forever if the font promise stalls
-    setTimeout(() => { if(!done){ done = true; start(); } }, 600);
+    const go = () => { if(!done){ done = true; run(); } };
+    document.fonts.ready.then(go);
+    setTimeout(go, 700); // safety if the font promise stalls
   } else {
-    start();
+    run();
   }
 }
 function dismissSplash(){
