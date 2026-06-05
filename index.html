@@ -2721,8 +2721,28 @@ function playSplash(){
       });
     }, SPLASH_BEAT);
 
-    // 5) Hold the finished wordmark, then fade out.
+    // 5) Settle: once everything has reached its resting position, DE-PROMOTE the
+    //    letters. While a glyph is on its own compositing layer (will-change /
+    //    transform), WebKit sizes that layer's texture to the element's border box
+    //    and clips any ink that overflows it — which shaved the italic "B" flourish
+    //    (its ink sticks ~8px past its box). All letters are at identity here, so
+    //    clearing transform/will-change is visually seamless but lets the
+    //    overhanging ink paint on the normal layer, uncut.
     const fillEnd = 180 + (fillers.length - 1) * 55 + 620;
+    const settleAt = SPLASH_BEAT + Math.max(SPLASH_GLIDE, fillEnd) + 80;
+    setTimeout(() => {
+      letters.forEach((l) => {
+        l.style.transition = 'none';
+        l.style.transform = 'none';
+        l.style.filter = 'none';
+        l.style.willChange = 'auto';
+      });
+      mark.style.transition = 'none';
+      mark.style.transform = 'none';
+      mark.style.willChange = 'auto';
+    }, settleAt);
+
+    // 6) Hold the finished wordmark, then fade out.
     setTimeout(dismissSplash, SPLASH_BEAT + Math.max(SPLASH_GLIDE, fillEnd) + SPLASH_HOLD);
   };
 
