@@ -549,45 +549,50 @@ html.show-splash .splash.splash-done {
   pointer-events: none;
 }
 .splash-mark {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-flex;
+  align-items: baseline;
+  white-space: nowrap;
   color: #fff;
   font-family: "DM Serif Display", Georgia, serif;
   line-height: 1;
-}
-.splash-sb {
-  font-size: 88px;
-  letter-spacing: 1px;
-  /* monogram starts large, then shrinks/fades as the wordmark takes over */
-  animation: splashSB 1.9s ease forwards;
-}
-.splash-word {
-  position: absolute;
-  white-space: nowrap;
-  font-size: 34px;
+  font-size: 46px;
   letter-spacing: .5px;
+  /* whole monogram starts big, then settles to wordmark size */
+  transform: scale(1.55);
   opacity: 0;
-  transform: scale(.7);
-  animation: splashWord 1.9s ease forwards;
+  animation: splashMark 2s ease forwards;
 }
-.splash-word span { color: #8FE3C5; font-style: italic; }
-@keyframes splashSB {
-  0%   { opacity: 0; transform: scale(.6); }
-  18%  { opacity: 1; transform: scale(1); }
-  46%  { opacity: 1; transform: scale(1); }
-  64%  { opacity: 0; transform: scale(1.25); }
-  100% { opacity: 0; transform: scale(1.25); }
+/* the two anchor letters stay put; the words grow out from between them */
+.sp-s, .sp-b { display: inline-block; }
+.sp-b, .sp-fill-b { color: #8FE3C5; font-style: italic; }
+/* "ummer" and "ody" are collapsed at first so only "SB" shows */
+.sp-fill {
+  display: inline-block;
+  overflow: hidden;
+  max-width: 0;
+  opacity: 0;
+  animation: splashFill 2s ease forwards;
 }
-@keyframes splashWord {
-  0%, 52% { opacity: 0; transform: scale(.7); }
-  72%     { opacity: 1; transform: scale(1.04); }
-  82%     { opacity: 1; transform: scale(1); }
-  100%    { opacity: 1; transform: scale(1); }
+.sp-fill-a { animation-name: splashFillA; }
+.sp-fill-b { animation-name: splashFillB; }
+@keyframes splashMark {
+  0%   { opacity: 0; transform: scale(1.55); }
+  16%  { opacity: 1; transform: scale(1.55); }
+  40%  { opacity: 1; transform: scale(1.55); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes splashFillA {
+  0%, 40% { max-width: 0;   opacity: 0; }
+  85%     { max-width: 6ch; opacity: 1; }
+  100%    { max-width: 6ch; opacity: 1; }
+}
+@keyframes splashFillB {
+  0%, 44% { max-width: 0;   opacity: 0; }
+  88%     { max-width: 4ch; opacity: 1; }
+  100%    { max-width: 4ch; opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .splash-sb, .splash-word { animation-duration: .01s; }
+  .splash-mark, .sp-fill { animation-duration: .01s; }
 }
 
 /* ---- Deep-link pulse highlight ---- */
@@ -610,8 +615,7 @@ html.show-splash .splash.splash-done {
      class that reveals it. -->
 <div class="splash" id="splash" aria-hidden="true">
   <div class="splash-mark">
-    <span class="splash-sb">SB</span>
-    <span class="splash-word">Summer<span>Body</span></span>
+    <span class="sp-s">S</span><span class="sp-fill sp-fill-a">ummer</span><span class="sp-b">B</span><span class="sp-fill sp-fill-b">ody</span>
   </div>
 </div>
 <script>
