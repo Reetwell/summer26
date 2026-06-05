@@ -634,8 +634,13 @@ html.fonts-ready .sp-fill { animation-play-state: running; }
 <script>
   (function () {
     try {
+      // Installed PWA (mobile + desktop) always plays it.
       var standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
-      if (standalone) document.documentElement.classList.add("show-splash");
+      // Desktop browsers play it on every load/refresh too. We detect "has a
+      // mouse" (hover + fine pointer) so mobile/tablet browser tabs — which are
+      // coarse/touch — don't get a green flash.
+      var desktop = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+      if (standalone || desktop) document.documentElement.classList.add("show-splash");
     } catch (_) {}
   })();
 </script>
