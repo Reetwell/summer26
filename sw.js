@@ -4,7 +4,7 @@
    backend isn't configured yet, we still show a useful generic reminder — iOS
    requires every push to produce a visible notification. */
 
-const BACKEND_URL = ""; // set to your Cloudflare Worker URL after deploy, e.g. https://summerbody-reminders.<you>.workers.dev
+const BACKEND_URL = "https://summerbody.me-e29.workers.dev"; // Cloudflare Worker
 
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));

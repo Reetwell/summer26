@@ -2392,7 +2392,7 @@ function renderTodayChart() {
 
 // ==================== REMINDERS (Web Push) ====================
 const VAPID_PUBLIC_KEY = "BJeO4EGkQZRdMrAP9f8cTc98lNWPXGLeq0jkjJOWybAlmvmfHBIlIQpmV-z9VvwjGL32YjOc3p1Q6ZMq0PiJQJY";
-const REMINDER_BACKEND = ""; // set to your Cloudflare Worker URL after deploy
+const REMINDER_BACKEND = "https://summerbody.me-e29.workers.dev"; // Cloudflare Worker
 
 let remState = loadStore('sbp-reminders', { enabled:false, protein:'09:00', creatine:'20:00' });
 
