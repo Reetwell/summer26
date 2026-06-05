@@ -45,23 +45,34 @@ async function showReminder(event) {
     } catch (_) {}
   }
 
+  // Work out which supplement this is from the title, so tapping the
+  // notification can take you straight to the right spot in the app.
+  let type = "";
+  if (/protein/i.test(title)) type = "protein";
+  else if (/creatine/i.test(title)) type = "creatine";
+  const url = type ? "./?log=" + type : "./";
+
   return self.registration.showNotification(title, {
     body,
     icon: "icon-192.png",
     badge: "icon-192.png",
     tag: "summerbody-reminder",
     renotify: true,
-    data: { url: "./" },
+    data: { url },
   });
 }
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const url = (event.notification.data && event.notification.data.url) || "./";
+  const log = (url.split("log=")[1] || "").split("&")[0];
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
       for (const c of clients) {
-        if ("focus" in c) return c.focus();
+        if ("focus" in c) {
+          if (log) c.postMessage({ type: "open-log", log });
+          return c.focus();
+        }
       }
       if (self.clients.openWindow) return self.clients.openWindow(url);
     })

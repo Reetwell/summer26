@@ -529,9 +529,99 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 @media (min-width: 681px) {
   .modal-panel { top: 6vh; left: 50%; right: auto; transform: translateX(-50%); width: 640px; max-height: 86vh; border-radius: var(--radius-lg); }
 }
+
+/* ---- Launch splash ---- */
+.splash { display: none; }
+html.show-splash .splash {
+  display: flex;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  background: #0F6E56;
+  /* default state: visible. .splash-done fades the whole layer out. */
+  opacity: 1;
+  transition: opacity .45s ease;
+}
+html.show-splash .splash.splash-done {
+  opacity: 0;
+  pointer-events: none;
+}
+.splash-mark {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: "DM Serif Display", Georgia, serif;
+  line-height: 1;
+}
+.splash-sb {
+  font-size: 88px;
+  letter-spacing: 1px;
+  /* monogram starts large, then shrinks/fades as the wordmark takes over */
+  animation: splashSB 1.9s ease forwards;
+}
+.splash-word {
+  position: absolute;
+  white-space: nowrap;
+  font-size: 34px;
+  letter-spacing: .5px;
+  opacity: 0;
+  transform: scale(.7);
+  animation: splashWord 1.9s ease forwards;
+}
+.splash-word span { color: #8FE3C5; font-style: italic; }
+@keyframes splashSB {
+  0%   { opacity: 0; transform: scale(.6); }
+  18%  { opacity: 1; transform: scale(1); }
+  46%  { opacity: 1; transform: scale(1); }
+  64%  { opacity: 0; transform: scale(1.25); }
+  100% { opacity: 0; transform: scale(1.25); }
+}
+@keyframes splashWord {
+  0%, 52% { opacity: 0; transform: scale(.7); }
+  72%     { opacity: 1; transform: scale(1.04); }
+  82%     { opacity: 1; transform: scale(1); }
+  100%    { opacity: 1; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .splash-sb, .splash-word { animation-duration: .01s; }
+}
+
+/* ---- Deep-link pulse highlight ---- */
+@keyframes logPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(29,158,117,0); }
+  20%  { box-shadow: 0 0 0 4px rgba(29,158,117,0.35); }
+  100% { box-shadow: 0 0 0 0 rgba(29,158,117,0); }
+}
+.log-pulse {
+  animation: logPulse 1.8s ease 2;
+  border-radius: var(--radius-md);
+}
 </style>
 </head>
 <body>
+
+<!-- Launch splash: SB monogram expands into the SummerBody wordmark.
+     Only shown when running as an installed/standalone PWA so browser tabs
+     don't get a green flash. The guard runs inline (before paint) to add the
+     class that reveals it. -->
+<div class="splash" id="splash" aria-hidden="true">
+  <div class="splash-mark">
+    <span class="splash-sb">SB</span>
+    <span class="splash-word">Summer<span>Body</span></span>
+  </div>
+</div>
+<script>
+  (function () {
+    try {
+      var standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+      if (standalone) document.documentElement.classList.add("show-splash");
+    } catch (_) {}
+  })();
+</script>
 
 <nav class="top-nav">
   <div class="nav-brand">Summer<span>Body</span></div>
@@ -593,7 +683,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
   </div>
 
   <!-- Food log -->
-  <div class="today-block">
+  <div class="today-block" id="block-food">
     <div class="tblock-title"><svg class="tb-icon" viewBox="0 0 24 24"><path d="M4 3h12l-1 7H5z"/><path d="M5 10v10"/><path d="M15 10v10"/><path d="M19 3v18"/><path d="M19 3a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2"/></svg>What I ate</div>
     <div class="food-input-row">
       <input type="text" class="food-input" id="food-input" placeholder="e.g. chicken with peri peri sauce and chips" autocomplete="off">
@@ -623,7 +713,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
   </div>
 
   <!-- Creatine -->
-  <div class="today-block">
+  <div class="today-block" id="block-creatine">
     <div class="creatine-toggle">
       <div>
         <div class="ct-label">Creatine</div>
@@ -2532,6 +2622,68 @@ async function disableReminders(){
   showToast('Reminders turned off', 'info');
 }
 
+// ==================== SPLASH ====================
+function playSplash(){
+  const el = document.getElementById('splash');
+  if(!el || !document.documentElement.classList.contains('show-splash')) return;
+  // tap to skip
+  el.addEventListener('click', dismissSplash, { once:true });
+  // auto-dismiss after the animation finishes
+  setTimeout(dismissSplash, 2050);
+}
+function dismissSplash(){
+  const el = document.getElementById('splash');
+  if(!el) return;
+  el.classList.add('splash-done');
+  setTimeout(()=>{ document.documentElement.classList.remove('show-splash'); }, 500);
+}
+
+// ==================== NOTIFICATION DEEP-LINK ====================
+// When opened via ?log=protein / ?log=creatine (from a tapped reminder),
+// jump to the Today tab and gently highlight the right block to log it.
+function goToLog(which){
+  if(which !== 'protein' && which !== 'creatine') return;
+  const todayBtn = document.querySelector('.nav-link, .bnav-item');
+  // activate the Today section
+  const todayNav = document.querySelector('.nav-link');
+  if(todayNav) showSection('today', todayNav);
+  const targetId = which === 'protein' ? 'block-food' : 'block-creatine';
+  const prompt = which === 'protein'
+    ? 'Log your protein shake below 🥤'
+    : 'Tick off your creatine below 💊';
+  // wait a tick for the section to render, then scroll + pulse
+  setTimeout(()=>{
+    const target = document.getElementById(targetId);
+    if(target){
+      target.scrollIntoView({ behavior:'smooth', block:'center' });
+      target.classList.remove('log-pulse');
+      void target.offsetWidth; // restart animation
+      target.classList.add('log-pulse');
+      setTimeout(()=> target.classList.remove('log-pulse'), 3800);
+    }
+    showToast(prompt, 'info');
+  }, 120);
+}
+function handleLaunchParam(){
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const log = params.get('log');
+    if(log){
+      goToLog(log);
+      // tidy the URL so a refresh doesn't re-trigger
+      history.replaceState(null, '', window.location.pathname);
+    }
+  } catch(_){}
+}
+// App already open: service worker tells us which reminder was tapped.
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.addEventListener('message', (e)=>{
+    if(e.data && e.data.type === 'open-log' && e.data.log){
+      goToLog(e.data.log);
+    }
+  });
+}
+
 // Enter-key support
 document.getElementById('food-input').addEventListener('keydown', e=>{ if(e.key==='Enter') parseFood(); });
 document.getElementById('junk-input').addEventListener('keydown', e=>{ if(e.key==='Enter') addJunk(); });
@@ -2547,6 +2699,8 @@ renderSessionHistory();
 updateLogSessionButton();
 renderToday();
 initReminders();
+playSplash();
+handleLaunchParam();
 </script>
 </body>
 </html>

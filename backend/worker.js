@@ -54,7 +54,7 @@ export default {
         if (!raw) return cors(json(MESSAGES.protein)); // sensible fallback
         const rec = JSON.parse(raw);
         const due = whichDue(rec.schedule, new Date(), 15); // wider window for receipt
-        return cors(json(due ? MESSAGES[due] : { title: "SummerBody", body: "Supplement reminder 💪" }));
+        return cors(json(due ? { ...MESSAGES[due], type: due } : { title: "SummerBody", body: "Supplement reminder 💪" }));
       }
 
       if (url.pathname === "/" ) return cors(json({ ok: true, service: "summerbody-reminders" }));
