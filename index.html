@@ -413,6 +413,99 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 
 .wday-score { font-size: 9px; font-weight: 700; color: var(--green-700); margin-top: 1px; }
 
+/* ==================== TODAY TAB ==================== */
+.today-nudge { display: flex; align-items: center; gap: 10px; background: var(--amber-50); border: 1px solid rgba(186,117,23,0.2); color: var(--amber-900); border-radius: var(--radius-md); padding: 11px 14px; font-size: 13px; margin-bottom: 16px; }
+.today-nudge svg { width: 18px; height: 18px; flex-shrink: 0; stroke: var(--amber-500); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Summary rings / headline stats */
+.today-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.tsum-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; }
+.tsum-top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+.tsum-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.tsum-val { font-size: 13px; color: var(--text-tertiary); }
+.tsum-val b { font-size: 20px; font-weight: 600; color: var(--text-primary); }
+.tsum-bg { height: 8px; background: var(--gray-100); border-radius: 4px; overflow: hidden; }
+.tsum-fill { height: 100%; border-radius: 4px; transition: width .3s; }
+.tsum-fill.kcal { background: var(--green-500); }
+.tsum-fill.prot { background: var(--blue-500); }
+.tsum-fill.over { background: var(--pink-500); }
+
+/* Macro mini-grid */
+.today-macros { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 18px; }
+.tmac { background: var(--gray-50); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; text-align: center; }
+.tmac-num { font-size: 17px; font-weight: 600; }
+.tmac-num.p { color: var(--blue-900); }
+.tmac-num.c { color: var(--purple-900); }
+.tmac-num.f { color: var(--green-900); }
+.tmac-label { font-size: 10px; color: var(--text-tertiary); margin-top: 1px; text-transform: uppercase; letter-spacing: .03em; }
+
+.today-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; margin-bottom: 14px; }
+.tblock-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.tblock-title .tb-icon { width: 17px; height: 17px; stroke: var(--green-700); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Food input */
+.food-input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.food-input { flex: 1; padding: 11px 14px; border: 1px solid var(--border-strong); border-radius: var(--radius-md); font-size: 14px; font-family: 'DM Sans', sans-serif; background: var(--surface); color: var(--text-primary); }
+.food-input:focus { outline: none; border-color: var(--green-500); }
+.food-add-btn { padding: 11px 18px; border: none; border-radius: var(--radius-md); background: var(--green-500); color: #fff; font-size: 14px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; white-space: nowrap; }
+.food-add-btn:hover { background: var(--green-700); }
+.food-hint { font-size: 11px; color: var(--text-tertiary); margin-bottom: 12px; }
+
+/* Quick add chips */
+.quick-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+.quick-chip { padding: 7px 13px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); color: var(--text-secondary); font-size: 12px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all .15s; }
+.quick-chip:hover { border-color: var(--green-100); background: var(--green-50); color: var(--green-900); }
+.quick-label { font-size: 11px; color: var(--text-tertiary); margin: 10px 0 7px; font-weight: 500; }
+
+/* Parse preview */
+.parse-preview { border: 1px dashed var(--green-100); background: var(--green-50); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 10px; }
+.pp-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+.pp-cal { font-size: 18px; font-weight: 600; color: var(--green-900); }
+.pp-items { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+.pp-item-unknown { color: var(--pink-900); }
+.pp-actions { display: flex; gap: 8px; margin-top: 10px; }
+.pp-confirm { flex: 1; padding: 9px; border: none; border-radius: var(--radius-sm); background: var(--green-500); color: #fff; font-size: 13px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; }
+.pp-cancel { padding: 9px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text-secondary); font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; }
+
+/* Logged food list */
+.food-log-item { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.food-log-item:last-child { border-bottom: none; }
+.fl-name { color: var(--text-primary); flex: 1; }
+.fl-macros { font-size: 11px; color: var(--text-tertiary); margin-top: 1px; }
+.fl-cal { font-weight: 600; color: var(--text-primary); margin: 0 12px; white-space: nowrap; }
+.fl-del { background: none; border: none; color: var(--gray-400); cursor: pointer; font-size: 15px; padding: 2px 4px; line-height: 1; }
+.fl-del:hover { color: var(--pink-500); }
+.food-log-empty { font-size: 13px; color: var(--text-tertiary); padding: 6px 0; }
+
+/* Stepper (water / generic) */
+.stepper { display: flex; align-items: center; gap: 16px; }
+.step-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text-primary); font-size: 22px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: 'DM Sans', sans-serif; }
+.step-btn:hover { background: var(--gray-100); }
+.step-val { font-size: 26px; font-weight: 600; min-width: 44px; text-align: center; }
+.step-unit { font-size: 13px; color: var(--text-secondary); }
+.water-glasses { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 12px; }
+.glass { width: 18px; height: 24px; border-radius: 3px 3px 6px 6px; border: 1.5px solid var(--blue-500); background: transparent; transition: background .15s; }
+.glass.full { background: var(--blue-500); }
+
+/* Creatine toggle */
+.creatine-toggle { display: flex; align-items: center; justify-content: space-between; }
+.ct-label { font-size: 14px; color: var(--text-primary); }
+.ct-sub { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+.toggle-pill { width: 56px; height: 32px; border-radius: 16px; background: var(--gray-200); border: none; cursor: pointer; position: relative; transition: background .2s; flex-shrink: 0; }
+.toggle-pill.on { background: var(--green-500); }
+.toggle-knob { position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff; transition: left .2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.toggle-pill.on .toggle-knob { left: 27px; }
+
+/* Junk */
+.junk-count { font-size: 13px; color: var(--text-secondary); }
+.junk-count b { color: var(--pink-900); }
+.junk-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.junk-item:last-child { border-bottom: none; }
+
+@media (max-width: 480px) {
+  .today-summary { grid-template-columns: 1fr; }
+}
+
 @media (min-width: 681px) {
   .modal-panel { top: 6vh; left: 50%; right: auto; transform: translateX(-50%); width: 640px; max-height: 86vh; border-radius: var(--radius-lg); }
 }
@@ -423,7 +516,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 <nav class="top-nav">
   <div class="nav-brand">Summer<span>Body</span></div>
   <div class="nav-links">
-    <button class="nav-link active" onclick="showSection('plan',this)"><svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="3" x2="8" y2="6"/><line x1="16" y1="3" x2="16" y2="6"/></svg> Training Plan</button>
+    <button class="nav-link active" onclick="showSection('today',this)"><svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="5" y1="5" x2="7" y2="7"/><line x1="17" y1="17" x2="19" y2="19"/><line x1="19" y1="5" x2="17" y2="7"/><line x1="7" y1="17" x2="5" y2="19"/></svg> Today</button>
+    <button class="nav-link" onclick="showSection('plan',this)"><svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="3" x2="8" y2="6"/><line x1="16" y1="3" x2="16" y2="6"/></svg> Training Plan</button>
     <button class="nav-link" onclick="showSection('meals',this)"><svg class="nav-icon" viewBox="0 0 24 24"><line x1="3" y1="11" x2="21" y2="11"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M9 4c.7 1 .7 2 0 3"/><path d="M13 4c.7 1 .7 2 0 3"/></svg> Meal Plan</button>
     <button class="nav-link" onclick="showSection('shopping',this)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M6 8h12v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></svg> Shopping</button>
     <button class="nav-link" onclick="showSection('progress',this)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M4 4v16h16"/><path d="M7 15l3-3 3 2 4-5"/></svg> Progress</button>
@@ -432,7 +526,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 </nav>
 
 <nav class="bottom-nav">
-  <button class="bnav-item active" onclick="showSection('plan',this)" data-bnav>
+  <button class="bnav-item active" onclick="showSection('today',this)" data-bnav>
+    <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="5" y1="5" x2="7" y2="7"/><line x1="17" y1="17" x2="19" y2="19"/><line x1="19" y1="5" x2="17" y2="7"/><line x1="7" y1="17" x2="5" y2="19"/></svg><span>Today</span>
+  </button>
+  <button class="bnav-item" onclick="showSection('plan',this)" data-bnav>
     <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="3" x2="8" y2="6"/><line x1="16" y1="3" x2="16" y2="6"/></svg><span>Plan</span>
   </button>
   <button class="bnav-item" onclick="showSection('meals',this)" data-bnav>
@@ -448,8 +545,95 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 
 <main class="main">
 
+<!-- ==================== TODAY ==================== -->
+<div class="section active" id="sec-today">
+  <div class="page-header">
+    <h1>Today</h1>
+    <p id="today-sub">Track your fuel for the day</p>
+  </div>
+
+  <div id="today-nudges"></div>
+
+  <!-- Headline: calories + protein -->
+  <div class="today-summary">
+    <div class="tsum-card">
+      <div class="tsum-top"><span class="tsum-label">Calories</span><span class="tsum-val"><b id="t-kcal">0</b> / <span id="t-kcal-target">2100</span></span></div>
+      <div class="tsum-bg"><div class="tsum-fill kcal" id="t-kcal-bar" style="width:0%"></div></div>
+    </div>
+    <div class="tsum-card">
+      <div class="tsum-top"><span class="tsum-label">Protein</span><span class="tsum-val"><b id="t-prot">0</b> / <span id="t-prot-target">160</span>g</span></div>
+      <div class="tsum-bg"><div class="tsum-fill prot" id="t-prot-bar" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="today-macros">
+    <div class="tmac"><div class="tmac-num p" id="t-macp">0g</div><div class="tmac-label">Protein</div></div>
+    <div class="tmac"><div class="tmac-num c" id="t-macc">0g</div><div class="tmac-label">Carbs</div></div>
+    <div class="tmac"><div class="tmac-num f" id="t-macf">0g</div><div class="tmac-label">Fats</div></div>
+  </div>
+
+  <!-- Food log -->
+  <div class="today-block">
+    <div class="tblock-title"><svg class="tb-icon" viewBox="0 0 24 24"><path d="M4 3h12l-1 7H5z"/><path d="M5 10v10"/><path d="M15 10v10"/><path d="M19 3v18"/><path d="M19 3a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2"/></svg>What I ate</div>
+    <div class="food-input-row">
+      <input type="text" class="food-input" id="food-input" placeholder="e.g. chicken with peri peri sauce and chips" autocomplete="off">
+      <button class="food-add-btn" onclick="parseFood()">Add</button>
+    </div>
+    <div class="food-hint">Type what you ate in plain English — calories &amp; macros are worked out for you.</div>
+    <div id="parse-preview"></div>
+
+    <div class="quick-label">Quick add</div>
+    <div class="quick-row" id="quick-row"></div>
+
+    <div class="quick-label">From your meal plan</div>
+    <div class="quick-row" id="mealplan-row"></div>
+
+    <div style="margin-top:16px" id="food-log-list"></div>
+  </div>
+
+  <!-- Water -->
+  <div class="today-block">
+    <div class="tblock-title"><svg class="tb-icon" viewBox="0 0 24 24"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg>Water</div>
+    <div class="stepper">
+      <button class="step-btn" onclick="changeWater(-1)">−</button>
+      <div><span class="step-val" id="water-val">0</span> <span class="step-unit">/ 8 glasses</span></div>
+      <button class="step-btn" onclick="changeWater(1)">+</button>
+    </div>
+    <div class="water-glasses" id="water-glasses"></div>
+  </div>
+
+  <!-- Creatine -->
+  <div class="today-block">
+    <div class="creatine-toggle">
+      <div>
+        <div class="ct-label">Creatine</div>
+        <div class="ct-sub">5g daily — take it even on rest days</div>
+      </div>
+      <button class="toggle-pill" id="creatine-toggle" onclick="toggleCreatine()"><span class="toggle-knob"></span></button>
+    </div>
+  </div>
+
+  <!-- Junk -->
+  <div class="today-block">
+    <div class="tblock-title"><svg class="tb-icon" viewBox="0 0 24 24"><path d="M5 8h14l-1.5 12h-11z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Junk food <span class="junk-count" style="margin-left:auto;font-weight:400">(<b id="junk-count">0</b> today)</span></div>
+    <div class="food-input-row">
+      <input type="text" class="food-input" id="junk-input" placeholder="e.g. 2 biscoff biscuits" autocomplete="off">
+      <button class="food-add-btn" onclick="addJunk()">Log</button>
+    </div>
+    <div class="food-hint">Just being honest with yourself here — no calorie maths, just awareness.</div>
+    <div id="junk-list"></div>
+  </div>
+
+  <!-- 7-day history -->
+  <div class="today-block">
+    <div class="tblock-title"><svg class="tb-icon" viewBox="0 0 24 24"><path d="M4 4v16h16"/><path d="M8 16v-4"/><path d="M12 16V8"/><path d="M16 16v-7"/></svg>Last 7 days</div>
+    <canvas id="todayChart" height="150"></canvas>
+    <div id="today-history-empty" class="food-log-empty" style="display:none">Log a few days and your trend shows up here.</div>
+  </div>
+</div>
+
 <!-- ==================== TRAINING PLAN ==================== -->
-<div class="section active" id="sec-plan">
+<div class="section" id="sec-plan">
   <div class="page-header">
     <h1>Training Plan</h1>
     <p>10 weeks · June 1 → August 8 · Three phases</p>
@@ -1002,6 +1186,7 @@ function showSection(id, el) {
   el.classList.add('active');
   if(id === 'shopping') { updateShopProgress('sp1'); updateShopProgress('sp2'); }
   if(id === 'progress') { renderWorkoutGrid(); renderWeightChart(); renderSessionHistory(); updateLogSessionButton(); }
+  if(id === 'today') { renderToday(); }
 }
 
 // Date
@@ -1807,6 +1992,376 @@ function updateLogSessionButton() {
   }
 }
 
+// ==================== TODAY — INTAKE TRACKER ====================
+// Offline food database. Macros are per typical portion unless `per100` (per 100g)
+// or `each` (per single unit) is given. `portion` = default grams when no quantity typed.
+const FOOD_DB = [
+  // Proteins
+  { keys:['chicken breast','grilled chicken','chicken'], per100:{kcal:165,p:31,c:0,f:3.6}, portion:150 },
+  { keys:['turkey'], per100:{kcal:135,p:29,c:0,f:1.7}, portion:150 },
+  { keys:['sirloin','rump','steak','beef'], per100:{kcal:215,p:26,c:0,f:12}, portion:200 },
+  { keys:['salmon'], per100:{kcal:208,p:20,c:0,f:13}, portion:180 },
+  { keys:['tuna'], per100:{kcal:116,p:26,c:0,f:1}, portion:120 },
+  { keys:['cod','white fish'], per100:{kcal:82,p:18,c:0,f:0.7}, portion:180 },
+  { keys:['mince','beef mince'], per100:{kcal:215,p:26,c:0,f:12}, portion:150 },
+  { keys:['bacon'], each:{kcal:65,p:5,c:0,f:5}, defaultCount:2, unitWord:'rasher' },
+  { keys:['sausage','sausages'], each:{kcal:130,p:7,c:3,f:10}, defaultCount:2 },
+  { keys:['egg','eggs','boiled egg','fried egg'], each:{kcal:78,p:6,c:0.6,f:5}, defaultCount:2 },
+  { keys:['prawns','prawn'], per100:{kcal:99,p:24,c:0,f:0.3}, portion:120 },
+  // Dairy / protein supps
+  { keys:['whey','protein shake','protein powder','scoop of whey','whey protein'], each:{kcal:120,p:24,c:3,f:2}, defaultCount:1, unitWord:'scoop' },
+  { keys:['greek yogurt','greek yoghurt'], per100:{kcal:59,p:10,c:3.6,f:0.4}, portion:150 },
+  { keys:['cottage cheese'], per100:{kcal:98,p:11,c:3.4,f:4.3}, portion:150 },
+  { keys:['cheddar','cheese'], per100:{kcal:402,p:25,c:1.3,f:33}, portion:30 },
+  { keys:['milk','semi-skimmed milk','semi skimmed milk'], per100:{kcal:50,p:3.4,c:4.8,f:1.8}, portion:200, unitWord:'ml' },
+  // Carbs
+  { keys:['white rice','rice'], per100:{kcal:130,p:2.7,c:28,f:0.3}, portion:180 },
+  { keys:['pasta','penne','spaghetti'], per100:{kcal:158,p:6,c:31,f:1}, portion:180 },
+  { keys:['new potatoes','boiled potatoes','potato','potatoes'], per100:{kcal:77,p:2,c:17,f:0.1}, portion:200 },
+  { keys:['sweet potato','sweet potatoes'], per100:{kcal:86,p:1.6,c:20,f:0.1}, portion:200 },
+  { keys:['chips','fries','sweet potato fries','oven chips'], per100:{kcal:312,p:3.4,c:41,f:15}, portion:150 },
+  { keys:['mashed potato','mash'], per100:{kcal:108,p:2,c:16,f:4}, portion:200 },
+  { keys:['wrap','wraps','tortilla','tortillas','wholemeal wrap'], each:{kcal:150,p:5,c:26,f:3}, defaultCount:1 },
+  { keys:['bread','toast','slice of bread'], each:{kcal:80,p:3,c:15,f:1}, defaultCount:1, unitWord:'slice' },
+  { keys:['bagel'], each:{kcal:250,p:9,c:48,f:2}, defaultCount:1 },
+  { keys:['oats','porridge'], per100:{kcal:379,p:13,c:67,f:7}, portion:60 },
+  { keys:['weetabix'], each:{kcal:67,p:2.3,c:13,f:0.7}, defaultCount:3, unitWord:'biscuit' },
+  { keys:['rice cakes','rice cake'], each:{kcal:35,p:0.7,c:7,f:0.3}, defaultCount:2 },
+  { keys:['couscous'], per100:{kcal:112,p:3.8,c:23,f:0.2}, portion:150 },
+  { keys:['noodles'], per100:{kcal:138,p:5,c:25,f:2}, portion:180 },
+  // Veg / fruit
+  { keys:['banana'], each:{kcal:105,p:1.3,c:27,f:0.4}, defaultCount:1 },
+  { keys:['apple'], each:{kcal:78,p:0.4,c:21,f:0.2}, defaultCount:1 },
+  { keys:['orange'], each:{kcal:62,p:1.2,c:15,f:0.2}, defaultCount:1 },
+  { keys:['pear'], each:{kcal:101,p:0.6,c:27,f:0.2}, defaultCount:1 },
+  { keys:['blueberries','berries','raspberries','strawberries'], per100:{kcal:57,p:0.7,c:14,f:0.3}, portion:80 },
+  { keys:['peas'], per100:{kcal:81,p:5,c:14,f:0.4}, portion:80 },
+  { keys:['sweetcorn','corn'], per100:{kcal:86,p:3.2,c:19,f:1.2}, portion:80 },
+  { keys:['carrots','carrot'], per100:{kcal:41,p:0.9,c:10,f:0.2}, portion:80 },
+  { keys:['broccoli'], per100:{kcal:34,p:2.8,c:7,f:0.4}, portion:80 },
+  { keys:['peppers','pepper'], per100:{kcal:31,p:1,c:6,f:0.3}, portion:80 },
+  { keys:['salad','lettuce','spinach','cucumber'], per100:{kcal:18,p:1.2,c:3,f:0.2}, portion:60 },
+  { keys:['onion','red onion'], per100:{kcal:40,p:1.1,c:9,f:0.1}, portion:50 },
+  { keys:['avocado'], each:{kcal:240,p:3,c:12,f:22}, defaultCount:1 },
+  // Fats / extras / sauces
+  { keys:['peanut butter'], each:{kcal:90,p:4,c:3,f:8}, defaultCount:1, unitWord:'tbsp' },
+  { keys:['mixed nuts','nuts','almonds'], per100:{kcal:607,p:21,c:21,f:54}, portion:25 },
+  { keys:['olive oil','oil'], each:{kcal:120,p:0,c:0,f:14}, defaultCount:1, unitWord:'tbsp' },
+  { keys:['butter'], each:{kcal:74,p:0.1,c:0,f:8}, defaultCount:1, unitWord:'tsp' },
+  { keys:['mayo','mayonnaise','light mayo'], each:{kcal:90,p:0.1,c:0.5,f:10}, defaultCount:1, unitWord:'tbsp' },
+  { keys:['honey'], each:{kcal:64,p:0,c:17,f:0}, defaultCount:1, unitWord:'tbsp' },
+  { keys:['peri peri sauce','peri peri','hot sauce','chilli sauce'], each:{kcal:15,p:0.3,c:3,f:0.2}, defaultCount:1, unitWord:'serving' },
+  { keys:['ketchup','tomato sauce'], each:{kcal:20,p:0.2,c:5,f:0}, defaultCount:1, unitWord:'tbsp' },
+  { keys:['bbq sauce','barbecue sauce'], each:{kcal:29,p:0.2,c:7,f:0.1}, defaultCount:1, unitWord:'tbsp' },
+  { keys:['salsa'], each:{kcal:10,p:0.5,c:2,f:0.1}, defaultCount:1, unitWord:'tbsp' },
+  { keys:['passata','tomato'], per100:{kcal:35,p:1.6,c:6,f:0.2}, portion:100 },
+  { keys:['gravy'], each:{kcal:35,p:0.5,c:5,f:1.5}, defaultCount:1, unitWord:'serving' },
+  // Takeaways / treats (still log under Junk too, but these count toward calories if typed here)
+  { keys:['pizza'], each:{kcal:285,p:12,c:36,f:10}, defaultCount:2, unitWord:'slice' },
+  { keys:['burger','cheeseburger'], each:{kcal:500,p:25,c:40,f:27}, defaultCount:1 },
+  { keys:['kebab','doner'], each:{kcal:700,p:35,c:55,f:38}, defaultCount:1 },
+  { keys:['chocolate','chocolate bar'], each:{kcal:230,p:3,c:25,f:13}, defaultCount:1, unitWord:'bar' },
+  { keys:['biscoff','biscuit','biscuits','cookie'], each:{kcal:55,p:0.6,c:7,f:2.8}, defaultCount:2 },
+  { keys:['crisps','chips packet'], each:{kcal:130,p:1.5,c:13,f:8}, defaultCount:1, unitWord:'packet' },
+  { keys:['ice cream'], per100:{kcal:207,p:3.5,c:24,f:11}, portion:100 },
+  { keys:['doughnut','donut'], each:{kcal:250,p:4,c:30,f:12}, defaultCount:1 },
+  { keys:['chocolate bar','mars','snickers','kitkat'], each:{kcal:230,p:3,c:28,f:11}, defaultCount:1 },
+  { keys:['beer','lager','pint'], each:{kcal:180,p:1.6,c:13,f:0}, defaultCount:1, unitWord:'pint' },
+  { keys:['wine','glass of wine'], each:{kcal:160,p:0.1,c:4,f:0}, defaultCount:1, unitWord:'glass' },
+  { keys:['coke','cola','soft drink','lemonade','fizzy drink'], each:{kcal:139,p:0,c:35,f:0}, defaultCount:1, unitWord:'can' },
+  { keys:['chips and cheese'], each:{kcal:600,p:15,c:60,f:32}, defaultCount:1 },
+];
+
+// Quick-add buttons (label -> food string fed through the same parser)
+const QUICK_ADDS = [
+  { label:'Whey scoop', q:'1 scoop whey' },
+  { label:'Protein shake', q:'1 scoop whey' },
+  { label:'Banana', q:'1 banana' },
+  { label:'2 eggs', q:'2 eggs' },
+  { label:'Chicken 150g', q:'150g chicken' },
+  { label:'Greek yogurt', q:'150g greek yogurt' },
+  { label:'Handful nuts', q:'25g nuts' },
+];
+
+// Meal-plan shortcuts — representative meals from the plan with known macros
+const MEAL_PLAN_ADDS = [
+  { name:'Overnight weetabix', kcal:440, p:46, c:54, f:8 },
+  { name:'Chicken honey wrap', kcal:490, p:52, c:48, f:10 },
+  { name:'Pre-workout shake + banana', kcal:190, p:22, c:28, f:2 },
+  { name:'Chicken fajitas', kcal:790, p:54, c:78, f:18 },
+  { name:'Salmon + new potatoes', kcal:810, p:46, c:62, f:28 },
+  { name:'Steak + sweet potato chips', kcal:800, p:52, c:64, f:22 },
+];
+
+const NUM_WORDS = { one:1, two:2, three:3, four:4, five:5, six:6, half:0.5, a:1, an:1 };
+
+let todayData = loadStore('sbp-today', {});
+let todayChart = null;
+let pendingParse = null;
+
+function todayKey() { return new Date().toISOString().split('T')[0]; }
+
+function getDay(key) {
+  key = key || todayKey();
+  if(!todayData[key]) todayData[key] = { meals:[], water:0, creatine:false, junk:[] };
+  const d = todayData[key];
+  if(!Array.isArray(d.meals)) d.meals = [];
+  if(!Array.isArray(d.junk)) d.junk = [];
+  if(typeof d.water !== 'number') d.water = 0;
+  if(typeof d.creatine !== 'boolean') d.creatine = false;
+  return d;
+}
+function saveToday() { localStorage.setItem('sbp-today', JSON.stringify(todayData)); }
+
+// Phase-aware targets
+function todayTargets() {
+  const s = getSessionForDate(new Date());
+  const isPhase2 = s && s.phase === '2';
+  return isPhase2 ? { kcal:2700, protein:170 } : { kcal:2100, protein:160 };
+}
+
+// ---- Free-text food parser ----
+function round(n) { return Math.round(n); }
+
+function findFood(text) {
+  let best = null, bestLen = 0;
+  for(const f of FOOD_DB) {
+    for(const k of f.keys) {
+      if(text.includes(k) && k.length > bestLen) { best = f; bestLen = k.length; }
+    }
+  }
+  return best;
+}
+
+function parseSegment(seg) {
+  seg = seg.trim().toLowerCase().replace(/\b(of|some|a bit of|with|plus|and)\b/g,' ').replace(/\s+/g,' ').trim();
+  if(!seg) return null;
+  // quantity: number (incl decimals), or number word
+  let qty = null, grams = null;
+  const gMatch = seg.match(/(\d+(?:\.\d+)?)\s*(g|grams|gram|ml)\b/);
+  if(gMatch) { grams = parseFloat(gMatch[1]); }
+  else {
+    const nMatch = seg.match(/(?:^|\s)(\d+(?:\.\d+)?)\b/);
+    if(nMatch) qty = parseFloat(nMatch[1]);
+    else { for(const w in NUM_WORDS){ if(new RegExp('\\b'+w+'\\b').test(seg)){ qty = NUM_WORDS[w]; break; } } }
+  }
+  const food = findFood(seg);
+  if(!food) return { name: seg, unknown:true, kcal:0, p:0, c:0, f:0 };
+  let kcal, p, c, f, label;
+  const niceName = food.keys[0];
+  if(food.per100) {
+    const g = grams != null ? grams : (qty != null ? food.portion * qty : food.portion);
+    const m = g / 100;
+    kcal = food.per100.kcal*m; p = food.per100.p*m; c = food.per100.c*m; f = food.per100.f*m;
+    label = round(g) + 'g ' + niceName;
+  } else { // each
+    const count = grams != null ? Math.max(1, Math.round(grams/100)) : (qty != null ? qty : food.defaultCount);
+    kcal = food.each.kcal*count; p = food.each.p*count; c = food.each.c*count; f = food.each.f*count;
+    const unit = food.unitWord ? ' ' + food.unitWord + (count!==1?'s':'') : '';
+    let dispName = niceName;
+    if(!food.unitWord && count !== 1 && !/s$/.test(niceName)) dispName = niceName + 's';
+    label = count + (unit ? unit + ' ' + niceName : ' ' + dispName);
+  }
+  return { name: label, unknown:false, kcal:round(kcal), p:round(p), c:round(c), f:round(f) };
+}
+
+function parseMealText(text) {
+  const segs = text.toLowerCase().split(/,|&|\band\b|\bwith\b|\bplus\b|\+/).map(s=>s.trim()).filter(Boolean);
+  const items = segs.map(parseSegment).filter(Boolean);
+  const known = items.filter(i=>!i.unknown);
+  const totals = known.reduce((a,i)=>({kcal:a.kcal+i.kcal,p:a.p+i.p,c:a.c+i.c,f:a.f+i.f}),{kcal:0,p:0,c:0,f:0});
+  return { items, totals };
+}
+
+function parseFood() {
+  const input = document.getElementById('food-input');
+  const text = input.value.trim();
+  if(!text) return;
+  const res = parseMealText(text);
+  pendingParse = { text, ...res };
+  renderParsePreview();
+}
+
+function renderParsePreview() {
+  const box = document.getElementById('parse-preview');
+  if(!pendingParse) { box.innerHTML=''; return; }
+  const { items, totals } = pendingParse;
+  const lines = items.map(i => i.unknown
+    ? `<span class="pp-item-unknown">• ${esc(i.name)} — not recognised</span>`
+    : `• ${esc(i.name)} — ${i.kcal} kcal (P${i.p} C${i.c} F${i.f})`).join('<br>');
+  box.innerHTML = `<div class="parse-preview">
+    <div class="pp-head"><span style="font-size:13px;font-weight:600;color:var(--green-900)">Estimated</span><span class="pp-cal">${totals.kcal} kcal</span></div>
+    <div class="pp-items">${lines}</div>
+    <div class="pp-actions">
+      <button class="pp-confirm" onclick="confirmFood()">Add to today</button>
+      <button class="pp-cancel" onclick="cancelFood()">Cancel</button>
+    </div></div>`;
+}
+
+function confirmFood() {
+  if(!pendingParse) return;
+  const { text, totals } = pendingParse;
+  const day = getDay();
+  day.meals.push({ name: text, kcal:totals.kcal, p:totals.p, c:totals.c, f:totals.f, ts:Date.now() });
+  saveToday();
+  pendingParse = null;
+  document.getElementById('food-input').value = '';
+  renderParsePreview();
+  renderToday();
+}
+function cancelFood() { pendingParse = null; renderParsePreview(); }
+
+function quickAdd(q, label) {
+  const res = parseMealText(q);
+  const day = getDay();
+  day.meals.push({ name: label, kcal:res.totals.kcal, p:res.totals.p, c:res.totals.c, f:res.totals.f, ts:Date.now() });
+  saveToday();
+  renderToday();
+}
+function mealPlanAdd(idx) {
+  const m = MEAL_PLAN_ADDS[idx];
+  const day = getDay();
+  day.meals.push({ name:m.name, kcal:m.kcal, p:m.p, c:m.c, f:m.f, ts:Date.now() });
+  saveToday();
+  renderToday();
+}
+function removeMeal(ts) {
+  const day = getDay();
+  day.meals = day.meals.filter(m=>m.ts!==ts);
+  saveToday();
+  renderToday();
+}
+
+function changeWater(delta) {
+  const day = getDay();
+  day.water = Math.max(0, Math.min(16, day.water + delta));
+  saveToday();
+  renderToday();
+}
+function toggleCreatine() {
+  const day = getDay();
+  day.creatine = !day.creatine;
+  saveToday();
+  renderToday();
+}
+function addJunk() {
+  const input = document.getElementById('junk-input');
+  const t = input.value.trim();
+  if(!t) return;
+  const day = getDay();
+  day.junk.push({ name:t, ts:Date.now() });
+  saveToday();
+  input.value='';
+  renderToday();
+}
+function removeJunk(ts) {
+  const day = getDay();
+  day.junk = day.junk.filter(j=>j.ts!==ts);
+  saveToday();
+  renderToday();
+}
+
+function renderToday() {
+  const day = getDay();
+  const tgt = todayTargets();
+  // headline
+  const tot = day.meals.reduce((a,m)=>({kcal:a.kcal+m.kcal,p:a.p+m.p,c:a.c+m.c,f:a.f+m.f}),{kcal:0,p:0,c:0,f:0});
+  document.getElementById('t-kcal').textContent = tot.kcal;
+  document.getElementById('t-kcal-target').textContent = tgt.kcal;
+  document.getElementById('t-prot').textContent = tot.p;
+  document.getElementById('t-prot-target').textContent = tgt.protein;
+  const kbar = document.getElementById('t-kcal-bar');
+  kbar.style.width = Math.min(100, tot.kcal/tgt.kcal*100) + '%';
+  kbar.className = 'tsum-fill ' + (tot.kcal > tgt.kcal*1.08 ? 'over' : 'kcal');
+  document.getElementById('t-prot-bar').style.width = Math.min(100, tot.p/tgt.protein*100) + '%';
+  document.getElementById('t-macp').textContent = tot.p + 'g';
+  document.getElementById('t-macc').textContent = tot.c + 'g';
+  document.getElementById('t-macf').textContent = tot.f + 'g';
+
+  // sub line
+  const s = getSessionForDate(new Date());
+  document.getElementById('today-sub').textContent = s ? ('Week ' + s.week + ' · ' + (s.phase==='2'?'Phase 2 — muscle build':'Phase 1 — fat loss')) : 'Track your fuel for the day';
+
+  // quick add chips
+  document.getElementById('quick-row').innerHTML = QUICK_ADDS.map(q =>
+    `<button class="quick-chip" onclick="quickAdd('${esc(q.q)}','${esc(q.label)}')">+ ${esc(q.label)}</button>`).join('');
+  document.getElementById('mealplan-row').innerHTML = MEAL_PLAN_ADDS.map((m,i) =>
+    `<button class="quick-chip" onclick="mealPlanAdd(${i})">+ ${esc(m.name)}</button>`).join('');
+
+  // food log
+  const list = document.getElementById('food-log-list');
+  if(!day.meals.length) {
+    list.innerHTML = '<div class="food-log-empty">Nothing logged yet today.</div>';
+  } else {
+    list.innerHTML = [...day.meals].reverse().map(m =>
+      `<div class="food-log-item"><div><div class="fl-name">${esc(m.name)}</div><div class="fl-macros">P${m.p} · C${m.c} · F${m.f}</div></div><div class="fl-cal">${m.kcal} kcal</div><button class="fl-del" onclick="removeMeal(${m.ts})" aria-label="Remove">✕</button></div>`).join('');
+  }
+
+  // water
+  document.getElementById('water-val').textContent = day.water;
+  let glasses=''; for(let i=0;i<8;i++){ glasses += `<div class="glass${i<day.water?' full':''}"></div>`; }
+  document.getElementById('water-glasses').innerHTML = glasses;
+
+  // creatine
+  document.getElementById('creatine-toggle').classList.toggle('on', day.creatine);
+
+  // junk
+  document.getElementById('junk-count').textContent = day.junk.length;
+  const jl = document.getElementById('junk-list');
+  jl.innerHTML = day.junk.length
+    ? [...day.junk].reverse().map(j=>`<div class="junk-item"><span>${esc(j.name)}</span><button class="fl-del" onclick="removeJunk(${j.ts})" aria-label="Remove">✕</button></div>`).join('')
+    : '';
+
+  renderTodayNudges(day, tot, tgt);
+  renderTodayChart();
+}
+
+function renderTodayNudges(day, tot, tgt) {
+  const wrap = document.getElementById('today-nudges');
+  const nudges = [];
+  const hour = new Date().getHours();
+  if(!day.creatine && hour >= 12) nudges.push('Don\'t forget your 5g creatine today.');
+  if(day.water < 4 && hour >= 15) nudges.push('Only ' + day.water + ' glasses of water so far — top up.');
+  if(hour >= 19 && tot.p < tgt.protein*0.7) nudges.push('Protein is at ' + tot.p + 'g of ' + tgt.protein + 'g — a shake before bed helps.');
+  wrap.innerHTML = nudges.map(n =>
+    `<div class="today-nudge"><svg viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 4.3 2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0z"/></svg><span>${esc(n)}</span></div>`).join('');
+}
+
+function renderTodayChart() {
+  const canvas = document.getElementById('todayChart');
+  const empty = document.getElementById('today-history-empty');
+  // last 7 days
+  const days = [];
+  for(let i=6;i>=0;i--){ const dt=new Date(); dt.setDate(dt.getDate()-i); days.push(dt.toISOString().split('T')[0]); }
+  const hasAny = days.some(k => todayData[k] && Array.isArray(todayData[k].meals) && todayData[k].meals.length);
+  if(!hasAny) { canvas.style.display='none'; empty.style.display='block'; if(todayChart){todayChart.destroy();todayChart=null;} return; }
+  canvas.style.display='block'; empty.style.display='none';
+  const labels = days.map(k => new Date(k+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short'}));
+  const kcal = days.map(k => (todayData[k]&&todayData[k].meals?todayData[k].meals:[]).reduce((a,m)=>a+(m.kcal||0),0));
+  const prot = days.map(k => (todayData[k]&&todayData[k].meals?todayData[k].meals:[]).reduce((a,m)=>a+(m.p||0),0));
+  if(todayChart) todayChart.destroy();
+  todayChart = new Chart(canvas, {
+    type:'bar',
+    data:{ labels, datasets:[
+      { label:'Calories', data:kcal, backgroundColor:'rgba(29,158,117,0.85)', borderRadius:4, yAxisID:'y' },
+      { label:'Protein (g)', data:prot, backgroundColor:'rgba(55,138,221,0.85)', borderRadius:4, yAxisID:'y1' }
+    ]},
+    options:{
+      plugins:{ legend:{ display:true, labels:{ font:{family:'DM Sans',size:11}, color:'#5F5E5A', boxWidth:12 } } },
+      scales:{
+        y:{ position:'left', grid:{color:'rgba(0,0,0,0.05)'}, ticks:{font:{family:'DM Sans',size:10},color:'#888780'} },
+        y1:{ position:'right', grid:{display:false}, ticks:{font:{family:'DM Sans',size:10},color:'#888780'} },
+        x:{ grid:{display:false}, ticks:{font:{family:'DM Sans',size:11},color:'#888780'} }
+      },
+      responsive:true, maintainAspectRatio:true
+    }
+  });
+}
+
+// Enter-key support
+document.getElementById('food-input').addEventListener('keydown', e=>{ if(e.key==='Enter') parseFood(); });
+document.getElementById('junk-input').addEventListener('keydown', e=>{ if(e.key==='Enter') addJunk(); });
+
 // Init
 renderWeightLog();
 updateWorkoutStats();
@@ -1816,6 +2371,7 @@ updateShopProgress('sp1');
 updateShopProgress('sp2');
 renderSessionHistory();
 updateLogSessionButton();
+renderToday();
 </script>
 </body>
 </html>
