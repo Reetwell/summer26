@@ -539,6 +539,7 @@ html.show-splash .splash {
   z-index: 9999;
   align-items: center;
   justify-content: center;
+  padding-bottom: 18vh; /* nudge the wordmark above dead-centre */
   background: #0F6E56;
   /* default state: visible. .splash-done fades the whole layer out. */
   opacity: 1;
@@ -556,7 +557,7 @@ html.show-splash .splash.splash-done {
   color: #fff;
   font-family: "DM Serif Display", Georgia, serif;
   line-height: 1.1;
-  font-size: clamp(36px, 11vw, 48px);
+  font-size: clamp(44px, 15vw, 66px);
   letter-spacing: .5px;
   /* whole monogram starts slightly enlarged, then settles in one motion */
   transform: scale(1.22);
@@ -1339,7 +1340,9 @@ html.fonts-ready .sp-fill { animation-play-state: running; }
 
 <div class="toast-wrap" id="toast-wrap"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<!-- Chart.js is deferred so it never blocks first paint / the splash / app
+     init. Charts render as soon as it finishes loading in the background. -->
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" onload="window.__onChartReady && window.__onChartReady()"></script>
 <script>
 // ==================== NAV ====================
 function showSection(id, el) {
@@ -1583,6 +1586,7 @@ function renderWeightLog() {
 }
 
 function renderWeightChart() {
+  if(typeof Chart === 'undefined') return; // Chart.js still loading; re-runs on load
   const canvas = document.getElementById('weightChart');
   const noData = document.getElementById('no-data-msg');
   if(!weightLog.length) { canvas.style.display='none'; noData.style.display='block'; return; }
@@ -2493,6 +2497,7 @@ function renderTodayNudges(day, tot, tgt) {
 }
 
 function renderTodayChart() {
+  if(typeof Chart === 'undefined') return; // Chart.js still loading; re-runs on load
   const canvas = document.getElementById('todayChart');
   const empty = document.getElementById('today-history-empty');
   // last 7 days
@@ -2664,8 +2669,10 @@ function playSplash(){
     // swap mid-flight (which reads as "laggy")
     document.documentElement.classList.add('fonts-ready');
     const mark = document.querySelector('.splash-mark');
-    if(mark) mark.addEventListener('animationend', () => mark.classList.add('sp-done'), { once:true });
-    setTimeout(dismissSplash, 2200);
+    const finish = () => { if(mark) mark.classList.add('sp-done'); }; // drops mask/clip → crisp wordmark
+    if(mark) mark.addEventListener('animationend', finish, { once:true });
+    setTimeout(finish, 2050);        // fallback: iOS PWAs don't always fire animationend
+    setTimeout(dismissSplash, 2300);
   };
   if(document.fonts && document.fonts.ready){
     let done = false;
@@ -2746,6 +2753,16 @@ renderToday();
 initReminders();
 playSplash();
 handleLaunchParam();
+
+// When the deferred Chart.js finishes loading, draw whichever chart is visible.
+window.__onChartReady = function(){
+  try {
+    renderTodayChart();
+    if(document.getElementById('sec-progress').classList.contains('active')) renderWeightChart();
+  } catch(_){}
+};
+// In case Chart.js was already cached and fired before this handler existed.
+if(typeof Chart !== 'undefined') window.__onChartReady();
 </script>
 </body>
 </html>
