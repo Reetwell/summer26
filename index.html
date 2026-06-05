@@ -586,7 +586,7 @@ html.show-splash .splash.splash-done {
   animation-fill-mode: forwards;
   animation-play-state: paused;
 }
-.sp-fill-a { animation-name: splashFillA; }
+.sp-fill-a { animation-name: splashFillA; padding-right: .16em; } /* gap before italic "Body" so "r" and "B" don't crowd */
 .sp-fill-b { animation-name: splashFillB; }
 /* once the reveal finishes, drop the clip + mask so nothing looks cut off */
 .splash-mark.sp-done .sp-fill {
@@ -604,14 +604,14 @@ html.fonts-ready .sp-fill { animation-play-state: running; }
 @keyframes splashFillA {
   0%, 18% { max-width: 0;   opacity: 0; }
   24%     { opacity: 1; }
-  95%     { max-width: 6ch; opacity: 1; }
-  100%    { max-width: 6ch; opacity: 1; }
+  95%     { max-width: 9ch; opacity: 1; }
+  100%    { max-width: 9ch; opacity: 1; }
 }
 @keyframes splashFillB {
   0%, 22% { max-width: 0;   opacity: 0; }
   28%     { opacity: 1; }
-  97%     { max-width: 4ch; opacity: 1; }
-  100%    { max-width: 4ch; opacity: 1; }
+  97%     { max-width: 7ch; opacity: 1; }
+  100%    { max-width: 7ch; opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
   .splash-mark, .sp-fill { animation-duration: .01s; }
