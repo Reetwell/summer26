@@ -558,17 +558,19 @@ html.show-splash .splash.splash-done {
   line-height: 1.1;
   font-size: clamp(36px, 11vw, 48px);
   letter-spacing: .5px;
-  /* whole monogram starts big, then settles to wordmark size */
-  transform: scale(1.4);
+  /* whole monogram starts slightly enlarged, then settles in one motion */
+  transform: scale(1.22);
   opacity: 0;
   will-change: transform, opacity;
-  animation: splashMark 1.7s cubic-bezier(.22,1,.36,1) forwards;
+  animation: splashMark 2s cubic-bezier(.4,0,.2,1) forwards;
   animation-play-state: paused; /* hold until fonts are ready (no glyph-swap jank) */
 }
 /* the two anchor letters stay put; the words grow out from between them */
 .sp-s, .sp-b { display: inline-block; }
 .sp-b, .sp-fill-b { color: #8FE3C5; font-style: italic; }
-/* "ummer" and "ody" are collapsed at first so only "SB" shows */
+/* "ummer" and "ody" are collapsed at first so only "SB" shows. A soft mask on
+   the leading edge lets letters fade in as they're revealed instead of being
+   hard-clipped through (which looked choppy). */
 .sp-fill {
   display: inline-block;
   box-sizing: border-box;
@@ -577,31 +579,38 @@ html.show-splash .splash.splash-done {
   max-width: 0;
   opacity: 0;
   will-change: max-width, opacity;
-  animation-duration: 1.7s;
-  animation-timing-function: cubic-bezier(.22,1,.36,1);
+  -webkit-mask-image: linear-gradient(to right, #000 60%, transparent 100%);
+          mask-image: linear-gradient(to right, #000 60%, transparent 100%);
+  animation-duration: 2s;
+  animation-timing-function: cubic-bezier(.4,0,.2,1);
   animation-fill-mode: forwards;
   animation-play-state: paused;
 }
 .sp-fill-a { animation-name: splashFillA; }
 .sp-fill-b { animation-name: splashFillB; }
-/* once the reveal finishes, drop the clip so nothing looks cut off */
-.splash-mark.sp-done .sp-fill { overflow: visible; }
+/* once the reveal finishes, drop the clip + mask so nothing looks cut off */
+.splash-mark.sp-done .sp-fill {
+  overflow: visible;
+  -webkit-mask-image: none;
+          mask-image: none;
+}
 html.fonts-ready .splash-mark,
 html.fonts-ready .sp-fill { animation-play-state: running; }
 @keyframes splashMark {
-  0%   { opacity: 0; transform: scale(1.4); }
-  18%  { opacity: 1; transform: scale(1.4); }
-  42%  { opacity: 1; transform: scale(1.4); }
+  0%   { opacity: 0; transform: scale(1.22); }
+  14%  { opacity: 1; transform: scale(1.22); }
   100% { opacity: 1; transform: scale(1); }
 }
 @keyframes splashFillA {
-  0%, 42% { max-width: 0;   opacity: 0; }
-  88%     { max-width: 6ch; opacity: 1; }
+  0%, 18% { max-width: 0;   opacity: 0; }
+  24%     { opacity: 1; }
+  95%     { max-width: 6ch; opacity: 1; }
   100%    { max-width: 6ch; opacity: 1; }
 }
 @keyframes splashFillB {
-  0%, 46% { max-width: 0;   opacity: 0; }
-  90%     { max-width: 4ch; opacity: 1; }
+  0%, 22% { max-width: 0;   opacity: 0; }
+  28%     { opacity: 1; }
+  97%     { max-width: 4ch; opacity: 1; }
   100%    { max-width: 4ch; opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -2656,7 +2665,7 @@ function playSplash(){
     document.documentElement.classList.add('fonts-ready');
     const mark = document.querySelector('.splash-mark');
     if(mark) mark.addEventListener('animationend', () => mark.classList.add('sp-done'), { once:true });
-    setTimeout(dismissSplash, 1820);
+    setTimeout(dismissSplash, 2200);
   };
   if(document.fonts && document.fonts.ready){
     let done = false;
