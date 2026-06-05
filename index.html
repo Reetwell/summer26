@@ -543,7 +543,7 @@ html.show-splash .splash {
   background: #0F6E56;
   /* default state: visible. .splash-done fades the whole layer out. */
   opacity: 1;
-  transition: opacity .45s ease;
+  transition: opacity .6s ease;
 }
 html.show-splash .splash.splash-done {
   opacity: 0;
@@ -559,11 +559,11 @@ html.show-splash .splash.splash-done {
   line-height: 1.1;
   font-size: clamp(44px, 15vw, 66px);
   letter-spacing: .5px;
-  /* whole monogram starts slightly enlarged, then settles in one motion */
-  transform: scale(1.22);
+  /* starts as just "SB", holds a beat, then expands into the wordmark */
+  transform: scale(1.12);
   opacity: 0;
   will-change: transform, opacity;
-  animation: splashMark 2s cubic-bezier(.4,0,.2,1) forwards;
+  animation: splashMark 1.8s cubic-bezier(.4,0,.2,1) forwards;
   animation-play-state: paused; /* hold until fonts are ready (no glyph-swap jank) */
 }
 /* the two anchor letters stay put; the words grow out from between them */
@@ -580,9 +580,9 @@ html.show-splash .splash.splash-done {
   max-width: 0;
   opacity: 0;
   will-change: max-width, opacity;
-  -webkit-mask-image: linear-gradient(to right, #000 60%, transparent 100%);
-          mask-image: linear-gradient(to right, #000 60%, transparent 100%);
-  animation-duration: 2s;
+  -webkit-mask-image: linear-gradient(to right, #000 80%, transparent 100%);
+          mask-image: linear-gradient(to right, #000 80%, transparent 100%);
+  animation-duration: 1.8s;
   animation-timing-function: cubic-bezier(.4,0,.2,1);
   animation-fill-mode: forwards;
   animation-play-state: paused;
@@ -598,20 +598,21 @@ html.show-splash .splash.splash-done {
 html.fonts-ready .splash-mark,
 html.fonts-ready .sp-fill { animation-play-state: running; }
 @keyframes splashMark {
-  0%   { opacity: 0; transform: scale(1.22); }
-  14%  { opacity: 1; transform: scale(1.22); }
+  0%   { opacity: 0; transform: scale(1.12); }
+  12%  { opacity: 1; transform: scale(1.12); }
+  32%  { opacity: 1; transform: scale(1.12); } /* hold "SB" only */
   100% { opacity: 1; transform: scale(1); }
 }
 @keyframes splashFillA {
-  0%, 18% { max-width: 0;   opacity: 0; }
-  24%     { opacity: 1; }
-  95%     { max-width: 9ch; opacity: 1; }
+  0%, 32% { max-width: 0;   opacity: 0; } /* stay hidden during the "SB" beat */
+  40%     { opacity: 1; }
+  94%     { max-width: 9ch; opacity: 1; }
   100%    { max-width: 9ch; opacity: 1; }
 }
 @keyframes splashFillB {
-  0%, 22% { max-width: 0;   opacity: 0; }
-  28%     { opacity: 1; }
-  97%     { max-width: 7ch; opacity: 1; }
+  0%, 36% { max-width: 0;   opacity: 0; }
+  44%     { opacity: 1; }
+  96%     { max-width: 7ch; opacity: 1; }
   100%    { max-width: 7ch; opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -2669,10 +2670,12 @@ function playSplash(){
     // swap mid-flight (which reads as "laggy")
     document.documentElement.classList.add('fonts-ready');
     const mark = document.querySelector('.splash-mark');
+    const REVEAL = 1800; // matches the CSS animation duration
+    const HOLD = 3000;   // crisp wordmark sits on screen this long before exiting
     const finish = () => { if(mark) mark.classList.add('sp-done'); }; // drops mask/clip → crisp wordmark
     if(mark) mark.addEventListener('animationend', finish, { once:true });
-    setTimeout(finish, 2050);        // fallback: iOS PWAs don't always fire animationend
-    setTimeout(dismissSplash, 2300);
+    setTimeout(finish, REVEAL + 60);            // fallback: iOS PWAs don't always fire animationend
+    setTimeout(dismissSplash, REVEAL + HOLD);   // expand → solidify → hold 3s → smooth fade out
   };
   if(document.fonts && document.fonts.ready){
     let done = false;
@@ -2687,7 +2690,7 @@ function dismissSplash(){
   const el = document.getElementById('splash');
   if(!el) return;
   el.classList.add('splash-done');
-  setTimeout(()=>{ document.documentElement.classList.remove('show-splash'); }, 500);
+  setTimeout(()=>{ document.documentElement.classList.remove('show-splash'); }, 650);
 }
 
 // ==================== NOTIFICATION DEEP-LINK ====================
