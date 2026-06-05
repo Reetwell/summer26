@@ -567,9 +567,10 @@ html.show-splash .splash.splash-done {
 .spl {
   display: inline-block;
   overflow: visible;           /* let italic ink + descenders spill past the inline box */
-  will-change: transform, opacity, filter;
-  -webkit-backface-visibility: hidden;
-          backface-visibility: hidden;
+  /* NB: no backface-visibility / will-change:filter here — in WebKit those force
+     each letter into a layer clipped to its box, which shaved off the italic
+     "y" descender. transform/opacity layers don't clip, so the glyphs stay whole. */
+  will-change: transform, opacity;
 }
 .spl.bd { color: #8FE3C5; font-style: italic; }
 @media (prefers-reduced-motion: reduce) {
