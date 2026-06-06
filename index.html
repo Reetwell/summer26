@@ -541,9 +541,10 @@ html.show-splash .splash {
   justify-content: center;
   padding-bottom: 18vh; /* nudge the wordmark above dead-centre */
   background: #0F6E56;
-  /* default state: visible. .splash-done fades the whole layer out. */
+  /* default state: visible. .splash-done fades the whole layer out — a long,
+     gentle ease so it dissolves into the app instead of snapping. */
   opacity: 1;
-  transition: opacity .6s ease;
+  transition: opacity .9s cubic-bezier(.4, 0, .2, 1);
 }
 html.show-splash .splash.splash-done {
   opacity: 0;
@@ -567,6 +568,13 @@ html.show-splash .splash.splash-done {
 .spl {
   display: inline-block;
   overflow: visible;           /* let italic ink + descenders spill past the inline box */
+  /* Pad the box, then cancel it with an equal negative margin. Net effect: glyph
+     positions + spacing are IDENTICAL, but each letter's border box (and therefore
+     its GPU-layer backing) grows to enclose the italic flourish + descender ink.
+     That stops WebKit clipping the overhang while the letter is on its own layer
+     during the animation (e.g. the italic "B" in the held "SB"). */
+  padding: 0.16em 0.18em;
+  margin: -0.16em -0.18em;
   /* NB: no backface-visibility / will-change:filter here — in WebKit those force
      each letter into a layer clipped to its box, which shaved off the italic
      "y" descender. transform/opacity layers don't clip, so the glyphs stay whole. */
@@ -2628,9 +2636,9 @@ async function disableReminders(){
         motion, so nothing overlaps), while "ummer" and "ody" materialise in
         place — blur-in + a small upward rise — in a left-to-right stagger.
      5. Hold the finished wordmark, then fade the layer out. */
-const SPLASH_BEAT = 460;    // how long "SB" sits alone first
+const SPLASH_BEAT = 2000;   // how long the "SB" logo sits alone before the split
 const SPLASH_GLIDE = 1050;  // S/B travel + letters settle
-const SPLASH_HOLD = 3000;   // finished wordmark dwell time
+const SPLASH_HOLD = 1500;   // finished wordmark dwell time (SB already held 2s up front)
 function playSplash(){
   const el = document.getElementById('splash');
   if(!el || !document.documentElement.classList.contains('show-splash')) return;
@@ -2758,9 +2766,17 @@ function playSplash(){
 }
 function dismissSplash(){
   const el = document.getElementById('splash');
-  if(!el) return;
+  if(!el || el.classList.contains('splash-done')) return; // guard double-fire
+  // Let the wordmark drift up + dissolve a touch faster than the green layer, so
+  // it melts into the app rather than the whole screen blinking off in one step.
+  const mark = document.getElementById('splash-mark');
+  if(mark){
+    mark.style.transition = 'transform 900ms cubic-bezier(.4, 0, .2, 1), opacity 650ms ease';
+    mark.style.transform = 'scale(1.05)';
+    mark.style.opacity = '0';
+  }
   el.classList.add('splash-done');
-  setTimeout(()=>{ document.documentElement.classList.remove('show-splash'); }, 650);
+  setTimeout(()=>{ document.documentElement.classList.remove('show-splash'); }, 950);
 }
 
 // ==================== NOTIFICATION DEEP-LINK ====================
