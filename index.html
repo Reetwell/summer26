@@ -760,35 +760,38 @@ html.show-splash .splash.splash-done {
   <!-- Sync across devices -->
   <div class="today-block">
     <div class="tblock-title"><svg class="tb-icon" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9 9 0 0 0-6.7 3M3 12a9 9 0 0 0 9 9 9 9 0 0 0 6.7-3"/><path d="M3 4v5h5"/><path d="M21 20v-5h-5"/></svg>Sync across devices</div>
-    <div id="sync-body">
-      <div class="rem-status" id="sync-status">Keep your logs, weight and meal plan in sync across your phone, iPad and laptop.</div>
+    <div id="auth-body">
+      <div class="rem-status" id="auth-status">Sign in to sync your logs, weight and meal plan across all your devices.</div>
 
-      <!-- OFF state -->
-      <div id="sync-off">
-        <div class="rem-actions">
-          <button class="food-add-btn" onclick="syncTurnOn()" style="width:100%">Turn on sync</button>
+      <!-- Signed out -->
+      <div id="auth-out">
+        <div class="food-input-row">
+          <input type="email" class="food-input" id="auth-email" placeholder="you@email.com" autocomplete="email" inputmode="email">
         </div>
         <div class="rem-actions" style="margin-top:8px">
-          <button class="food-add-btn secondary" onclick="syncLinkPrompt()" style="width:100%;background:transparent;border:1px solid var(--border);color:var(--text)">Link this device with a code</button>
+          <button class="food-add-btn" id="auth-send" onclick="authSendCode()" style="width:100%">Email me a sign-in link</button>
+        </div>
+        <div id="auth-code-row" style="display:none;margin-top:8px">
+          <div class="food-input-row">
+            <input type="text" class="food-input" id="auth-code" placeholder="6-digit code from email" inputmode="numeric" autocomplete="one-time-code">
+            <button class="food-add-btn" onclick="authVerifyCode()">Verify</button>
+          </div>
         </div>
       </div>
 
-      <!-- ON state -->
-      <div id="sync-on" style="display:none">
+      <!-- Signed in -->
+      <div id="auth-in" style="display:none">
         <div class="rem-row" style="align-items:center">
-          <label class="rem-label">Your sync code</label>
-          <code id="sync-code" style="font-family:ui-monospace,Menlo,monospace;font-size:.95em;letter-spacing:.5px;user-select:all"></code>
+          <label class="rem-label">Signed in as</label>
+          <span id="auth-user" style="font-size:.95em;color:var(--text)"></span>
         </div>
-        <div class="food-hint" id="sync-last" style="margin-top:8px"></div>
+        <div class="food-hint" id="auth-last" style="margin-top:8px"></div>
         <div class="rem-actions" style="margin-top:10px;display:flex;gap:8px">
-          <button class="food-add-btn" onclick="syncCopyCode()" style="flex:1">Copy code</button>
           <button class="food-add-btn" onclick="syncNow()" style="flex:1">Sync now</button>
-        </div>
-        <div class="rem-actions" style="margin-top:8px">
-          <button class="food-add-btn secondary" onclick="syncUnlink()" style="width:100%;background:transparent;border:1px solid var(--border);color:var(--muted)">Unlink this device</button>
+          <button class="food-add-btn secondary" onclick="authSignOut()" style="flex:1;background:transparent;border:1px solid var(--border);color:var(--muted)">Sign out</button>
         </div>
       </div>
-      <div class="food-hint" id="sync-hint" style="margin-top:10px">Enter the same code on another device to link them. Anyone with the code can see your data, so keep it private.</div>
+      <div class="food-hint" style="margin-top:10px">On iPhone the sign-in link may open Safari instead of this app — if so, use the 6-digit code from the same email here.</div>
     </div>
   </div>
 
@@ -2568,177 +2571,206 @@ const REMINDER_BACKEND = "https://summerbody.me-e29.workers.dev"; // Cloudflare 
 
 let remState = loadStore('sbp-reminders', { enabled:false, protein:'09:00', creatine:'20:00' });
 
-// ==================== CROSS-DEVICE SYNC ====================
-// Stores the app's data keys on the Cloudflare Worker (KV) so they follow you
-// between devices. Each key carries its own timestamp; the newer one wins, so
-// logging weight on one device and meals on another never clobber each other.
-const SYNC_BACKEND = REMINDER_BACKEND; // same Worker
+// ==================== CROSS-DEVICE SYNC (Supabase) ====================
+// Data lives in Supabase Postgres (table app_data) keyed by the signed-in
+// user. localStorage stays as the offline cache; we mirror each synced key
+// to a row and reconcile per-key by newer updated_at. Sign in to turn it on;
+// logged-out the app is fully usable (local only).
+//
+// Fill these in before deploying (anon key is safe to ship; never the
+// service_role key):
+const SUPABASE_URL = 'https://owqyrgufwvqgbrpdpskx.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93cXlyZ3Vmd3ZxZ2JycGRwc2t4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MzczOTQsImV4cCI6MjA5NjMxMzM5NH0.Z_zUJbKvO6-FBbKheDmlVu46XjT9toFaVlct12IY8zU';
+
 const SYNC_KEYS = ['sbp-today','sbp-weight','sbp-workouts','sbp-session-logs','sbp-shop','sbp-mealplan'];
 const SYNC_KEY_SET = new Set(SYNC_KEYS);
 
 // Capture the real setter BEFORE patching, so our own sync writes don't recurse.
 const _lsSet = localStorage.setItem.bind(localStorage);
 
-let syncState = (function(){ try { return JSON.parse(localStorage.getItem('sbp-sync')) || {}; } catch(_){ return {}; } })();
-function saveSyncState(){ _lsSet('sbp-sync', JSON.stringify(syncState)); }
+let sb = null;            // Supabase client (created once configured + signed in flow)
+let authUser = null;      // current signed-in user, or null
+let _lastSync = 0;        // ms of last successful pull/push
+let _dirty = new Set();   // synced keys edited since last push
+let _remoteT = {};        // last-seen remote updated_at (ms) per key
+
+function syncConfigured(){ return SUPABASE_URL.indexOf('__') !== 0 && SUPABASE_ANON_KEY.indexOf('__') !== 0; }
 function getSyncMeta(){ try { return JSON.parse(localStorage.getItem('sbp-sync-meta')) || {}; } catch(_){ return {}; } }
 function saveSyncMeta(m){ _lsSet('sbp-sync-meta', JSON.stringify(m)); }
 
-// Patch setItem so every save to a synced key bumps its timestamp and queues a push.
+// Patch setItem so each save to a synced key timestamps it and queues a push.
 localStorage.setItem = function(k, v){
   _lsSet(k, v);
-  if (syncState.id && SYNC_KEY_SET.has(k)) {
+  if (authUser && SYNC_KEY_SET.has(k)) {
     const m = getSyncMeta(); m[k] = Date.now(); saveSyncMeta(m);
-    schedulePush();
+    _dirty.add(k); schedulePush();
   }
 };
 
 let _pushTimer = null;
 function schedulePush(){
-  if (!syncState.id) return;
+  if (!authUser) return;
   clearTimeout(_pushTimer);
-  _pushTimer = setTimeout(() => { syncPush().catch(()=>{}); }, 1500);
+  _pushTimer = setTimeout(() => { pushDirty().catch(()=>{}); }, 1500);
 }
 
-function genSyncCode(){
-  // 20 chars of base32 (~100 bits) — unguessable but still typeable.
-  const alpha = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-  const a = new Uint8Array(20); crypto.getRandomValues(a);
-  let s = ''; for (let i=0;i<a.length;i++) s += alpha[a[i] % alpha.length];
-  return s;
-}
-
-async function syncPull(){
-  if (!syncState.id || !SYNC_BACKEND) return false;
-  const res = await fetch(SYNC_BACKEND.replace(/\/$/,'') + '/data/pull', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ syncId: syncState.id })
+// Load the Supabase JS SDK on demand (keeps the initial load light and works
+// even if the CDN is briefly unreachable — the app just stays local-only).
+function ensureSupabase(){
+  return new Promise((resolve) => {
+    if (window.supabase) return resolve(true);
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+    s.async = true;
+    s.onload = () => resolve(true);
+    s.onerror = () => resolve(false);
+    document.head.appendChild(s);
   });
-  if (!res.ok) throw new Error('pull failed');
-  const data = await res.json();
-  return applyRemote(data.keys || {});
 }
 
-async function syncPush(){
-  if (!syncState.id || !SYNC_BACKEND) return false;
-  const meta = getSyncMeta();
-  const keys = {};
-  for (const name of SYNC_KEYS) {
-    const v = localStorage.getItem(name);
-    if (v == null) continue;
-    keys[name] = { v, t: meta[name] || 1 };
+// Startup: create the client (if configured), restore any session, and wire
+// up auth-state changes.
+async function initAuth(){
+  reflectAuth();
+  if (!syncConfigured()) return;            // placeholders not filled yet
+  const ok = await ensureSupabase();
+  if (!ok || !window.supabase) return;
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+  });
+  sb.auth.onAuthStateChange((_event, session) => { onAuth(session); });
+  try { const { data } = await sb.auth.getSession(); await onAuth(data.session); }
+  catch(_){ reflectAuth(); }
+}
+
+async function onAuth(session){
+  authUser = (session && session.user) ? session.user : null;
+  reflectAuth();
+  if (authUser) { try { await syncReconcile(); } catch(_){} }
+}
+
+// Pull everything, merge newer-wins; if our screen data changed, reload once
+// so the in-memory globals rebuild cleanly. Then push anything locally-newer.
+async function syncReconcile(){
+  const changed = await pullMerge();
+  if (changed && !sessionStorage.getItem('sbp-synced-reload')) {
+    sessionStorage.setItem('sbp-synced-reload', '1');
+    location.reload();
+    return;
   }
-  const res = await fetch(SYNC_BACKEND.replace(/\/$/,'') + '/data/push', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ syncId: syncState.id, keys })
-  });
-  if (!res.ok) throw new Error('push failed');
-  const data = await res.json();
-  syncState.last = Date.now(); saveSyncState();
-  reflectSync();
-  // Pick up anything newer another device pushed since our pull.
-  return applyRemote(data.keys || {});
+  await pushNewer();
 }
 
-// Write any remote keys that are newer than ours straight to localStorage.
-// Returns true if anything changed (so we can refresh the screen).
-function applyRemote(remoteKeys){
+async function pullMerge(){
+  if (!sb || !authUser) return false;
+  const { data, error } = await sb.from('app_data')
+    .select('key,value,updated_at').eq('user_id', authUser.id);
+  if (error) throw error;
   const meta = getSyncMeta();
   let changed = false;
-  for (const name of Object.keys(remoteKeys)) {
-    if (!SYNC_KEY_SET.has(name)) continue;
-    const r = remoteKeys[name];
-    if (!r || typeof r.v !== 'string' || typeof r.t !== 'number') continue;
-    if (r.t > (meta[name] || 0)) {
-      _lsSet(name, r.v);     // raw write — don't re-bump the timestamp
-      meta[name] = r.t;
-      changed = true;
+  _remoteT = {};
+  for (const row of (data || [])) {
+    if (!SYNC_KEY_SET.has(row.key)) continue;
+    const rt = Date.parse(row.updated_at);
+    _remoteT[row.key] = rt;
+    if (rt > (meta[row.key] || 0)) {
+      const str = JSON.stringify(row.value);
+      if (localStorage.getItem(row.key) !== str) { _lsSet(row.key, str); changed = true; }
+      meta[row.key] = rt;
     }
   }
-  if (changed) saveSyncMeta(meta);
+  saveSyncMeta(meta);
+  _lastSync = Date.now(); reflectAuth();
   return changed;
 }
 
-// Called once on startup. Pull first; if remote had newer data, reload so all
-// the in-memory state is rebuilt cleanly. Otherwise push our local state up.
-async function syncInit(){
-  reflectSync();
-  if (!syncState.id || !SYNC_BACKEND) return;
+// Mark any key whose local timestamp beats what's on the server as dirty, push.
+async function pushNewer(){
+  const meta = getSyncMeta();
+  for (const k of SYNC_KEYS) {
+    if (localStorage.getItem(k) == null) continue;
+    if ((meta[k] || 0) > (_remoteT[k] || 0)) _dirty.add(k);
+  }
+  await pushDirty();
+}
+
+async function pushDirty(){
+  if (!sb || !authUser || !_dirty.size) return;
+  const keys = [..._dirty]; _dirty.clear();
+  const rows = [];
+  for (const k of keys) {
+    const v = localStorage.getItem(k);
+    if (v == null) continue;
+    let parsed; try { parsed = JSON.parse(v); } catch(_){ continue; }
+    rows.push({ user_id: authUser.id, key: k, value: parsed });
+  }
+  if (!rows.length) return;
+  const { data, error } = await sb.from('app_data')
+    .upsert(rows, { onConflict: 'user_id,key' }).select('key,updated_at');
+  if (error) { keys.forEach(k => _dirty.add(k)); throw error; }   // retry next time
+  const meta = getSyncMeta();
+  for (const row of (data || [])) { meta[row.key] = Date.parse(row.updated_at); _remoteT[row.key] = meta[row.key]; }
+  saveSyncMeta(meta);
+  _lastSync = Date.now(); reflectAuth();
+}
+
+// ---- auth UI actions ----
+async function authSendCode(){
+  if (!syncConfigured() || !sb) { showToast('Sign-in isn’t set up yet.', 'error'); return; }
+  const email = (document.getElementById('auth-email').value || '').trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { showToast('Enter a valid email.', 'error'); return; }
+  const btn = document.getElementById('auth-send'); if (btn) btn.disabled = true;
   try {
-    const changed = await syncPull();
-    if (changed && !sessionStorage.getItem('sbp-synced-reload')) {
-      sessionStorage.setItem('sbp-synced-reload', '1');
-      location.reload();
-      return;
-    }
-    await syncPush();
-  } catch(_){ /* offline is fine — we'll try again next open */ }
+    const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.href.split('#')[0] } });
+    if (error) throw error;
+    document.getElementById('auth-code-row').style.display = 'block';
+    showToast('Check your email for the link or code', 'success');
+  } catch(e){ showToast((e && e.message) || 'Could not send email', 'error'); }
+  finally { if (btn) btn.disabled = false; }
 }
 
-function syncTurnOn(){
-  syncState.id = genSyncCode();
-  // First device: mark everything we already have as the source of truth.
-  const meta = getSyncMeta(); const now = Date.now();
-  for (const name of SYNC_KEYS) { if (localStorage.getItem(name) != null) meta[name] = now; }
-  saveSyncMeta(meta); saveSyncState();
-  reflectSync();
-  syncPush().then(()=> showToast('Sync turned on', 'success')).catch(()=> showToast('Saved — will sync when online', 'info'));
+async function authVerifyCode(){
+  if (!sb) return;
+  const email = (document.getElementById('auth-email').value || '').trim();
+  const token = (document.getElementById('auth-code').value || '').trim();
+  if (!token) { showToast('Enter the code from your email', 'error'); return; }
+  try {
+    const { error } = await sb.auth.verifyOtp({ email, token, type: 'email' });
+    if (error) throw error;
+    // onAuthStateChange takes over from here.
+  } catch(e){ showToast((e && e.message) || 'Invalid or expired code', 'error'); }
 }
 
-function syncLinkPrompt(){
-  const code = (prompt('Enter the sync code from your other device:') || '').trim().toUpperCase();
-  if (!code) return;
-  if (!/^[A-Z0-9_-]{8,64}$/.test(code)) { showToast('That code doesn’t look right.', 'error'); return; }
-  syncState.id = code; saveSyncState();
-  // Treat the other device as the source of truth: clear local timestamps so
-  // its data wins, then pull.
-  saveSyncMeta({});
-  reflectSync();
-  showToast('Linking…', 'info');
-  syncPull().then((changed) => {
-    if (changed) { sessionStorage.setItem('sbp-synced-reload','1'); location.reload(); }
-    else { syncPush(); showToast('Linked — devices are in sync', 'success'); }
-  }).catch(()=> showToast('Couldn’t reach the sync server — try again.', 'error'));
+async function authSignOut(){
+  if (!sb) return;
+  await sb.auth.signOut();   // local data stays; syncing just stops
+  showToast('Signed out — your data stays on this device', 'info');
 }
 
 function syncNow(){
-  if (!syncState.id) return;
+  if (!authUser) return;
   showToast('Syncing…', 'info');
-  syncPull().then((changed) => {
-    if (changed) { sessionStorage.setItem('sbp-synced-reload','1'); location.reload(); return; }
-    return syncPush().then(()=> showToast('Up to date', 'success'));
-  }).catch(()=> showToast('Couldn’t reach the sync server.', 'error'));
+  syncReconcile()
+    .then(() => { if (!sessionStorage.getItem('sbp-synced-reload')) showToast('Up to date', 'success'); })
+    .catch(() => showToast('Sync failed — try again', 'error'));
 }
 
-function syncUnlink(){
-  if (!confirm('Unlink this device? Your data stays on this device but stops syncing. Other linked devices keep the data.')) return;
-  syncState = {}; saveSyncState(); saveSyncMeta({});
-  reflectSync();
-  showToast('Sync turned off', 'info');
-}
-
-function syncCopyCode(){
-  if (!syncState.id) return;
-  const done = () => showToast('Code copied', 'success');
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(syncState.id).then(done).catch(()=> showToast(syncState.id, 'info'));
-  } else { showToast(syncState.id, 'info'); }
-}
-
-function reflectSync(){
-  const off = document.getElementById('sync-off');
-  const on = document.getElementById('sync-on');
-  const status = document.getElementById('sync-status');
-  if (!off || !on) return;
-  if (syncState.id) {
-    off.style.display = 'none'; on.style.display = 'block';
-    const codeEl = document.getElementById('sync-code'); if (codeEl) codeEl.textContent = syncState.id;
-    const last = document.getElementById('sync-last');
-    if (last) last.textContent = syncState.last ? 'Last synced ' + new Date(syncState.last).toLocaleString() : 'Not synced yet';
-    if (status) status.textContent = 'This device is syncing. Use the same code on your other devices.';
+function reflectAuth(){
+  const out = document.getElementById('auth-out');
+  const inn = document.getElementById('auth-in');
+  const status = document.getElementById('auth-status');
+  if (!out || !inn) return;
+  if (authUser) {
+    out.style.display = 'none'; inn.style.display = 'block';
+    const u = document.getElementById('auth-user'); if (u) u.textContent = authUser.email || 'signed in';
+    const last = document.getElementById('auth-last');
+    if (last) last.textContent = _lastSync ? ('Last synced ' + new Date(_lastSync).toLocaleTimeString()) : 'Syncing…';
+    if (status) status.textContent = 'Your data syncs automatically across your devices.';
   } else {
-    off.style.display = 'block'; on.style.display = 'none';
-    if (status) status.textContent = 'Keep your logs, weight and meal plan in sync across your phone, iPad and laptop.';
+    out.style.display = 'block'; inn.style.display = 'none';
+    if (status) status.textContent = syncConfigured()
+      ? 'Sign in to sync your logs, weight and meal plan across all your devices.'
+      : 'Sync is being set up — sign-in will appear here once it’s live.';
   }
 }
 
@@ -3111,7 +3143,7 @@ updateLogSessionButton();
 initSessionCardGlow();
 renderToday();
 initReminders();
-syncInit();
+initAuth();
 playSplash();
 handleLaunchParam();
 
