@@ -2672,12 +2672,19 @@ function playSplash(){
     const centreX = total / 2;
     const fs = parseFloat(getComputedStyle(mark).fontSize) || 64;
     const padPx = 0.18 * fs;                 // matches .spl horizontal padding
-    const gap = 0.06 * fs;                   // tight space between S and B in the logo
-    const glyphS = S.w - 2 * padPx;          // real ink width of S
-    const glyphB = B.w - 2 * padPx;          // real ink width of B
-    const pairW = glyphS + gap + glyphB;     // visual width of the tight "SB"
-    const colS = centreX - pairW / 2 - padPx; // S box-left (glyph centred about centreX)
-    const colB = colS + glyphS + gap;        // B box-left so B glyph follows S after gap
+    // Kern the held "SB" INK-to-INK so it reads as one monogram, not two close
+    // letters. The box advances include built-in side bearings (whitespace baked
+    // into each glyph): S's right bearing ~0.031em and B's left bearing ~0.02em.
+    // Subtract them so only a hair of real ink gap is left. (Measured for
+    // DM Serif Display; safe even if slightly off — it just nudges the spacing.)
+    const RSB_S = 0.031 * fs, LSB_B = 0.02 * fs;
+    const inkGap = 0.02 * fs;                 // the small visible gap we actually want
+    const gap = inkGap - RSB_S - LSB_B;       // advance-space gap (comes out negative)
+    const advS = S.w - 2 * padPx;             // S advance width
+    const advB = B.w - 2 * padPx;             // B advance width
+    const pairW = advS + gap + advB;          // width of the tightly-kerned pair
+    const colS = centreX - pairW / 2 - padPx; // S box-left (pair centred about centreX)
+    const colB = colS + advS + gap;           // B box-left so B sits snug after S
     S.dx = colS - S.left;                   // how far S must glide (leftish)
     B.dx = colB - B.left;                   // how far B must glide (rightish)
 
