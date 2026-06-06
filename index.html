@@ -2665,10 +2665,19 @@ function playSplash(){
     if(!S || !B){ mark.style.opacity = '1'; setTimeout(dismissSplash, SPLASH_HOLD); return; }
 
     // Where the centred "SB" pair sits inside the (final-width) mark box.
+    // Each letter box carries 0.18em of invisible side-padding (so the GPU layer
+    // doesn't clip italic ink). Collapse on the GLYPH widths, not the padded-box
+    // widths, otherwise S and B end up ~0.36em too far apart in the held "SB".
     const total = Math.max.apply(null, items.map(i => i.left + i.w));
     const centreX = total / 2;
-    const colS = centreX - (S.w + B.w) / 2; // left edge of S when collapsed
-    const colB = colS + S.w;                // B sits right after S
+    const fs = parseFloat(getComputedStyle(mark).fontSize) || 64;
+    const padPx = 0.18 * fs;                 // matches .spl horizontal padding
+    const gap = 0.06 * fs;                   // tight space between S and B in the logo
+    const glyphS = S.w - 2 * padPx;          // real ink width of S
+    const glyphB = B.w - 2 * padPx;          // real ink width of B
+    const pairW = glyphS + gap + glyphB;     // visual width of the tight "SB"
+    const colS = centreX - pairW / 2 - padPx; // S box-left (glyph centred about centreX)
+    const colB = colS + glyphS + gap;        // B box-left so B glyph follows S after gap
     S.dx = colS - S.left;                   // how far S must glide (leftish)
     B.dx = colB - B.left;                   // how far B must glide (rightish)
 
