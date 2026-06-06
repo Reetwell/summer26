@@ -392,9 +392,23 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
   display: flex; align-items: center; gap: 12px; width: 100%;
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
   padding: 14px 18px; cursor: pointer; margin-bottom: 14px; text-align: left;
-  transition: all .15s; font-family: 'DM Sans', sans-serif;
+  transition: border-color .25s ease, background .25s ease, box-shadow .25s ease;
+  font-family: 'DM Sans', sans-serif;
+  position: relative; overflow: hidden; isolation: isolate;
 }
-.log-session-btn:hover { border-color: var(--green-500); background: var(--green-50); }
+/* Cursor-following green "spotlight" glow. JS sets --mx/--my to the mouse
+   position inside the card; the radial gradient is drawn there and fades in on
+   hover. Sits behind the card content (which is lifted to z-index:1). */
+.log-session-btn::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  z-index: 0; opacity: 0; transition: opacity .3s ease;
+  background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%),
+              rgba(34, 168, 122, 0.38), rgba(34, 168, 122, 0.14) 42%, transparent 72%);
+}
+.log-session-btn > * { position: relative; z-index: 1; }
+.log-session-btn:hover { border-color: var(--green-500); background: var(--green-50); box-shadow: 0 6px 22px -10px rgba(34, 168, 122, 0.55); }
+.log-session-btn:hover::before { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .log-session-btn::before { transition: none; } }
 .log-btn-icon { width: 38px; height: 38px; border-radius: 10px; background: var(--green-50); display: flex; align-items: center; justify-content: center; color: var(--green-700); font-size: 17px; flex-shrink: 0; }
 .log-btn-text { flex: 1; }
 .log-btn-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
@@ -2101,6 +2115,25 @@ function renderSessionHistory() {
   }).join('');
 }
 
+// Make the session card's green glow follow the cursor. We update CSS custom
+// properties (cheap, no layout) on pointer move; CSS draws the radial glow there.
+function initSessionCardGlow() {
+  const btn = document.getElementById('log-session-btn');
+  if(!btn || btn.dataset.glow) return;
+  btn.dataset.glow = '1';
+  btn.addEventListener('pointermove', (e) => {
+    const r = btn.getBoundingClientRect();
+    btn.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+    btn.style.setProperty('--my', (e.clientY - r.top) + 'px');
+  });
+  // Ease the glow back to centre when the cursor leaves, so the next hover
+  // doesn't snap from a stale corner position.
+  btn.addEventListener('pointerleave', () => {
+    btn.style.setProperty('--mx', '50%');
+    btn.style.setProperty('--my', '50%');
+  });
+}
+
 function updateLogSessionButton() {
   const today = new Date();
   const session = getSessionForDate(today);
@@ -2866,6 +2899,7 @@ updateShopProgress('sp1');
 updateShopProgress('sp2');
 renderSessionHistory();
 updateLogSessionButton();
+initSessionCardGlow();
 renderToday();
 initReminders();
 playSplash();
