@@ -78,6 +78,40 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .nav-link.active { background: var(--green-50); color: var(--green-900); }
 .nav-date { margin-left: auto; font-size: 12px; color: var(--text-tertiary); white-space: nowrap; }
 
+/* Account / sign-in button — floats top-right on all viewports */
+.account-btn {
+  position: fixed; z-index: 110; top: 8px; right: 16px;
+  width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface, #fff); border: 1px solid var(--border);
+  color: var(--text-secondary); cursor: pointer;
+  box-shadow: 0 2px 10px -6px rgba(26,26,24,.35);
+  transition: background .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .15s ease;
+}
+.account-btn:hover { background: var(--green-50); color: var(--green-900); border-color: var(--green-500); }
+.account-btn:active { transform: scale(.94); }
+.account-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.account-btn.signed-in { background: var(--green-50); color: var(--green-900); border-color: var(--green-500); }
+.account-dot {
+  display: none; position: absolute; top: 7px; right: 7px;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--green-500); border: 2px solid var(--surface, #fff);
+}
+.account-btn.signed-in .account-dot { display: block; }
+/* On desktop, keep the date clear of the floating button */
+@media (min-width: 681px) { .top-nav { padding-right: 72px; } }
+@media (max-width: 680px) { .account-btn { top: calc(env(safe-area-inset-top, 0px) + 10px); right: 14px; } }
+
+/* Back link on the account page */
+.account-back {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: none; border: none; cursor: pointer; padding: 4px 0;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+  color: var(--text-secondary); margin-bottom: 8px;
+}
+.account-back:hover { color: var(--green-900); }
+.account-back .nav-icon { stroke: currentColor; fill: none; }
+
 .bottom-nav {
   display: none; position: fixed; bottom: 0; left: 0; right: 0;
   height: var(--bottom-nav-h); background: rgba(247,246,243,0.96);
@@ -635,6 +669,12 @@ html.show-splash .splash.splash-done {
   })();
 </script>
 
+<!-- Account / sign-in button (floats top-right on every viewport) -->
+<button class="account-btn" id="account-btn" onclick="openAccount()" aria-label="Account and sync" title="Account & sync">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 19a6.5 6.5 0 0 1 13 0"/></svg>
+  <span class="account-dot" id="account-dot" aria-hidden="true"></span>
+</button>
+
 <nav class="top-nav">
   <div class="nav-brand">Summer<span>Body</span></div>
   <div class="nav-links">
@@ -754,44 +794,6 @@ html.show-splash .splash.splash-done {
         <button class="food-add-btn" id="rem-enable-btn" onclick="enableReminders()" style="width:100%">Enable reminders</button>
       </div>
       <div class="food-hint" id="rem-hint" style="margin-top:10px">On iPhone, add this app to your Home Screen first, then enable.</div>
-    </div>
-  </div>
-
-  <!-- Sync across devices -->
-  <div class="today-block">
-    <div class="tblock-title"><svg class="tb-icon" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9 9 0 0 0-6.7 3M3 12a9 9 0 0 0 9 9 9 9 0 0 0 6.7-3"/><path d="M3 4v5h5"/><path d="M21 20v-5h-5"/></svg>Sync across devices</div>
-    <div id="auth-body">
-      <div class="rem-status" id="auth-status">Sign in to sync your logs, weight and meal plan across all your devices.</div>
-
-      <!-- Signed out -->
-      <div id="auth-out">
-        <div class="food-input-row">
-          <input type="email" class="food-input" id="auth-email" placeholder="you@email.com" autocomplete="email" inputmode="email">
-        </div>
-        <div class="rem-actions" style="margin-top:8px">
-          <button class="food-add-btn" id="auth-send" onclick="authSendCode()" style="width:100%">Email me a sign-in link</button>
-        </div>
-        <div id="auth-code-row" style="display:none;margin-top:8px">
-          <div class="food-input-row">
-            <input type="text" class="food-input" id="auth-code" placeholder="6-digit code from email" inputmode="numeric" autocomplete="one-time-code">
-            <button class="food-add-btn" onclick="authVerifyCode()">Verify</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Signed in -->
-      <div id="auth-in" style="display:none">
-        <div class="rem-row" style="align-items:center">
-          <label class="rem-label">Signed in as</label>
-          <span id="auth-user" style="font-size:.95em;color:var(--text)"></span>
-        </div>
-        <div class="food-hint" id="auth-last" style="margin-top:8px"></div>
-        <div class="rem-actions" style="margin-top:10px;display:flex;gap:8px">
-          <button class="food-add-btn" onclick="syncNow()" style="flex:1">Sync now</button>
-          <button class="food-add-btn secondary" onclick="authSignOut()" style="flex:1;background:transparent;border:1px solid var(--border);color:var(--muted)">Sign out</button>
-        </div>
-      </div>
-      <div class="food-hint" style="margin-top:10px">On iPhone the sign-in link may open Safari instead of this app — if so, use the 6-digit code from the same email here.</div>
     </div>
   </div>
 
@@ -1339,6 +1341,54 @@ html.show-splash .splash.splash-done {
   </div>
 </div>
 
+<!-- ==================== ACCOUNT / SIGN-IN ==================== -->
+<div class="section" id="sec-account">
+  <button class="account-back" onclick="goHome()" aria-label="Back">
+    <svg viewBox="0 0 24 24" class="nav-icon" style="width:16px;height:16px;vertical-align:-3px"><polyline points="15 18 9 12 15 6"/></svg> Back
+  </button>
+  <div class="page-header">
+    <h1>Account</h1>
+    <p>Sign in to keep your logs, weight and meal plan in sync across all your devices.</p>
+  </div>
+
+  <div class="today-block">
+    <div class="tblock-title"><svg class="tb-icon" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9 9 0 0 0-6.7 3M3 12a9 9 0 0 0 9 9 9 9 0 0 0 6.7-3"/><path d="M3 4v5h5"/><path d="M21 20v-5h-5"/></svg>Sync across devices</div>
+    <div id="auth-body">
+      <div class="rem-status" id="auth-status">Sign in to sync your logs, weight and meal plan across all your devices.</div>
+
+      <!-- Signed out -->
+      <div id="auth-out">
+        <div class="food-input-row">
+          <input type="email" class="food-input" id="auth-email" placeholder="you@email.com" autocomplete="email" inputmode="email">
+        </div>
+        <div class="rem-actions" style="margin-top:8px">
+          <button class="food-add-btn" id="auth-send" onclick="authSendCode()" style="width:100%">Email me a sign-in link</button>
+        </div>
+        <div id="auth-code-row" style="display:none;margin-top:8px">
+          <div class="food-input-row">
+            <input type="text" class="food-input" id="auth-code" placeholder="6-digit code from email" inputmode="numeric" autocomplete="one-time-code">
+            <button class="food-add-btn" onclick="authVerifyCode()">Verify</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signed in -->
+      <div id="auth-in" style="display:none">
+        <div class="rem-row" style="align-items:center">
+          <label class="rem-label">Signed in as</label>
+          <span id="auth-user" style="font-size:.95em;color:var(--text-primary)"></span>
+        </div>
+        <div class="food-hint" id="auth-last" style="margin-top:8px"></div>
+        <div class="rem-actions" style="margin-top:10px;display:flex;gap:8px">
+          <button class="food-add-btn" onclick="syncNow()" style="flex:1">Sync now</button>
+          <button class="food-add-btn secondary" onclick="authSignOut()" style="flex:1;background:transparent;border:1px solid var(--border);color:var(--text-secondary)">Sign out</button>
+        </div>
+      </div>
+      <div class="food-hint" style="margin-top:10px">On iPhone the sign-in link may open Safari instead of this app — if so, use the 6-digit code from the same email here.</div>
+    </div>
+  </div>
+</div>
+
 <!-- ==================== SESSION LOGGER MODAL ==================== -->
 <div id="session-modal" style="display:none;position:fixed;inset:0;z-index:200;">
   <div class="modal-overlay" onclick="closeSessionModal()"></div>
@@ -1373,6 +1423,18 @@ function showSection(id, el) {
   if(id === 'shopping') { updateShopProgress('sp1'); updateShopProgress('sp2'); }
   if(id === 'progress') { renderWorkoutGrid(); renderWeightChart(); renderSessionHistory(); updateLogSessionButton(); }
   if(id === 'today') { renderToday(); }
+}
+
+// Account page (reached via the floating top-right button, not the main nav).
+function openAccount() {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-account').classList.add('active');
+  document.querySelectorAll('.nav-link, .bnav-item').forEach(n => n.classList.remove('active'));
+  window.scrollTo(0, 0);
+}
+function goHome() {
+  const navBtn = document.querySelector('.bottom-nav [data-bnav]') || document.querySelector('.nav-link');
+  showSection('today', navBtn);
 }
 
 // Date
@@ -2759,6 +2821,8 @@ function reflectAuth(){
   const out = document.getElementById('auth-out');
   const inn = document.getElementById('auth-in');
   const status = document.getElementById('auth-status');
+  const accBtn = document.getElementById('account-btn');
+  if (accBtn) accBtn.classList.toggle('signed-in', !!authUser);
   if (!out || !inn) return;
   if (authUser) {
     out.style.display = 'none'; inn.style.display = 'block';
