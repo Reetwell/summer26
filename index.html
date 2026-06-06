@@ -2693,12 +2693,23 @@ function playSplash(){
 
     const ease = 'cubic-bezier(.22,.61,.36,1)'; // smooth ease-out, no overshoot
 
+    // DM Serif Display's italic leans ~14°. Counter-skew B by that during the
+    // held "SB" so it stands UPRIGHT (same glyph, just de-slanted), then animate
+    // the skew back to 0 during the split so it leans into its natural italic.
+    const UPRIGHT_SKEW = 14; // degrees
+    B.el.style.transformOrigin = '50% 50%'; // pivot at the glyph's middle so the
+                                            // kerned position is preserved while upright
+
     // 2) Collapse to "SB": only S and B visible (glided to centre); the rest
-    //    hidden in place, pre-blurred and nudged down a touch.
+    //    hidden in place, pre-blurred and nudged down a touch. B is straightened.
     items.forEach((it) => {
       it.el.style.transition = 'none';
-      if(it.g === 's' || it.g === 'b'){
+      if(it.g === 's'){
         it.el.style.transform = 'translateX(' + it.dx.toFixed(2) + 'px)';
+        it.el.style.opacity = '1';
+        it.el.style.filter = 'none';
+      } else if(it.g === 'b'){
+        it.el.style.transform = 'translateX(' + it.dx.toFixed(2) + 'px) skewX(' + UPRIGHT_SKEW + 'deg)';
         it.el.style.opacity = '1';
         it.el.style.filter = 'none';
       } else {
@@ -2716,11 +2727,12 @@ function playSplash(){
       mark.style.transition = 'transform ' + SPLASH_GLIDE + 'ms ' + ease;
       mark.style.transform = 'scale(1)';
 
-      // S and B glide to their real positions.
-      [S, B].forEach((it) => {
-        it.el.style.transition = 'transform ' + SPLASH_GLIDE + 'ms ' + ease;
-        it.el.style.transform = 'translateX(0)';
-      });
+      // S and B glide to their real positions; B also leans from upright into
+      // its natural italic (skew 14deg -> 0) over the same glide.
+      S.el.style.transition = 'transform ' + SPLASH_GLIDE + 'ms ' + ease;
+      S.el.style.transform = 'translateX(0px)';
+      B.el.style.transition = 'transform ' + SPLASH_GLIDE + 'ms ' + ease;
+      B.el.style.transform = 'translateX(0px) skewX(0deg)';
 
       // "ummer" / "ody" focus into place with a left-to-right stagger.
       fillers.forEach((it, i) => {
