@@ -57,6 +57,43 @@ export default {
         return cors(json(due ? { ...MESSAGES[due], type: due } : { title: "SummerBody", body: "Supplement reminder 💪" }));
       }
 
+      // ---- Cross-device data sync ----
+      // Stores the app's localStorage keys under data:<syncId>, one timestamp
+      // per key, so different devices editing different things don't clobber
+      // each other. Anyone with the syncId can read/write that bucket — the
+      // code is long and random, so it doubles as the secret.
+      if (url.pathname === "/data/pull" && request.method === "POST") {
+        const body = await request.json();
+        const id = cleanSyncId(body.syncId);
+        if (!id) return cors(json({ error: "bad syncId" }, 400));
+        const raw = await env.REMINDERS.get("data:" + id);
+        const rec = raw ? JSON.parse(raw) : { keys: {} };
+        return cors(json({ ok: true, keys: rec.keys || {} }));
+      }
+
+      if (url.pathname === "/data/push" && request.method === "POST") {
+        const body = await request.json();
+        const id = cleanSyncId(body.syncId);
+        if (!id) return cors(json({ error: "bad syncId" }, 400));
+        const incoming = body.keys && typeof body.keys === "object" ? body.keys : {};
+        const raw = await env.REMINDERS.get("data:" + id);
+        const rec = raw ? JSON.parse(raw) : { keys: {} };
+        if (!rec.keys) rec.keys = {};
+        // Per-key last-write-wins: keep whichever side has the newer timestamp.
+        for (const name of Object.keys(incoming)) {
+          const inc = incoming[name];
+          if (!inc || typeof inc.v !== "string" || typeof inc.t !== "number") continue;
+          if (inc.v.length > 2_000_000) continue; // guard against a runaway key
+          const cur = rec.keys[name];
+          if (!cur || inc.t > cur.t) rec.keys[name] = { v: inc.v, t: inc.t };
+        }
+        rec.updated = Date.now();
+        await env.REMINDERS.put("data:" + id, JSON.stringify(rec));
+        // Return the merged set so the client can pick up anything newer that
+        // another device pushed in the meantime.
+        return cors(json({ ok: true, keys: rec.keys }));
+      }
+
       if (url.pathname === "/" ) return cors(json({ ok: true, service: "summerbody-reminders" }));
       return cors(json({ error: "not found" }, 404));
     } catch (e) {
@@ -96,6 +133,14 @@ async function runReminders(env) {
       }
     }
   }
+}
+
+// ---- sync helpers ----
+// Accept only sane sync codes (base32-ish, 8–64 chars) so the KV key is safe.
+function cleanSyncId(id) {
+  if (typeof id !== "string") return null;
+  const s = id.trim();
+  return /^[A-Za-z0-9_-]{8,64}$/.test(s) ? s : null;
 }
 
 // ---- schedule helpers ----

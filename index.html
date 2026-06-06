@@ -757,6 +757,41 @@ html.show-splash .splash.splash-done {
     </div>
   </div>
 
+  <!-- Sync across devices -->
+  <div class="today-block">
+    <div class="tblock-title"><svg class="tb-icon" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9 9 0 0 0-6.7 3M3 12a9 9 0 0 0 9 9 9 9 0 0 0 6.7-3"/><path d="M3 4v5h5"/><path d="M21 20v-5h-5"/></svg>Sync across devices</div>
+    <div id="sync-body">
+      <div class="rem-status" id="sync-status">Keep your logs, weight and meal plan in sync across your phone, iPad and laptop.</div>
+
+      <!-- OFF state -->
+      <div id="sync-off">
+        <div class="rem-actions">
+          <button class="food-add-btn" onclick="syncTurnOn()" style="width:100%">Turn on sync</button>
+        </div>
+        <div class="rem-actions" style="margin-top:8px">
+          <button class="food-add-btn secondary" onclick="syncLinkPrompt()" style="width:100%;background:transparent;border:1px solid var(--border);color:var(--text)">Link this device with a code</button>
+        </div>
+      </div>
+
+      <!-- ON state -->
+      <div id="sync-on" style="display:none">
+        <div class="rem-row" style="align-items:center">
+          <label class="rem-label">Your sync code</label>
+          <code id="sync-code" style="font-family:ui-monospace,Menlo,monospace;font-size:.95em;letter-spacing:.5px;user-select:all"></code>
+        </div>
+        <div class="food-hint" id="sync-last" style="margin-top:8px"></div>
+        <div class="rem-actions" style="margin-top:10px;display:flex;gap:8px">
+          <button class="food-add-btn" onclick="syncCopyCode()" style="flex:1">Copy code</button>
+          <button class="food-add-btn" onclick="syncNow()" style="flex:1">Sync now</button>
+        </div>
+        <div class="rem-actions" style="margin-top:8px">
+          <button class="food-add-btn secondary" onclick="syncUnlink()" style="width:100%;background:transparent;border:1px solid var(--border);color:var(--muted)">Unlink this device</button>
+        </div>
+      </div>
+      <div class="food-hint" id="sync-hint" style="margin-top:10px">Enter the same code on another device to link them. Anyone with the code can see your data, so keep it private.</div>
+    </div>
+  </div>
+
   <!-- Junk -->
   <div class="today-block">
     <div class="tblock-title"><svg class="tb-icon" viewBox="0 0 24 24"><path d="M5 8h14l-1.5 12h-11z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Junk food <span class="junk-count" style="margin-left:auto;font-weight:400">(<b id="junk-count">0</b> today)</span></div>
@@ -2533,6 +2568,180 @@ const REMINDER_BACKEND = "https://summerbody.me-e29.workers.dev"; // Cloudflare 
 
 let remState = loadStore('sbp-reminders', { enabled:false, protein:'09:00', creatine:'20:00' });
 
+// ==================== CROSS-DEVICE SYNC ====================
+// Stores the app's data keys on the Cloudflare Worker (KV) so they follow you
+// between devices. Each key carries its own timestamp; the newer one wins, so
+// logging weight on one device and meals on another never clobber each other.
+const SYNC_BACKEND = REMINDER_BACKEND; // same Worker
+const SYNC_KEYS = ['sbp-today','sbp-weight','sbp-workouts','sbp-session-logs','sbp-shop','sbp-mealplan'];
+const SYNC_KEY_SET = new Set(SYNC_KEYS);
+
+// Capture the real setter BEFORE patching, so our own sync writes don't recurse.
+const _lsSet = localStorage.setItem.bind(localStorage);
+
+let syncState = (function(){ try { return JSON.parse(localStorage.getItem('sbp-sync')) || {}; } catch(_){ return {}; } })();
+function saveSyncState(){ _lsSet('sbp-sync', JSON.stringify(syncState)); }
+function getSyncMeta(){ try { return JSON.parse(localStorage.getItem('sbp-sync-meta')) || {}; } catch(_){ return {}; } }
+function saveSyncMeta(m){ _lsSet('sbp-sync-meta', JSON.stringify(m)); }
+
+// Patch setItem so every save to a synced key bumps its timestamp and queues a push.
+localStorage.setItem = function(k, v){
+  _lsSet(k, v);
+  if (syncState.id && SYNC_KEY_SET.has(k)) {
+    const m = getSyncMeta(); m[k] = Date.now(); saveSyncMeta(m);
+    schedulePush();
+  }
+};
+
+let _pushTimer = null;
+function schedulePush(){
+  if (!syncState.id) return;
+  clearTimeout(_pushTimer);
+  _pushTimer = setTimeout(() => { syncPush().catch(()=>{}); }, 1500);
+}
+
+function genSyncCode(){
+  // 20 chars of base32 (~100 bits) — unguessable but still typeable.
+  const alpha = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  const a = new Uint8Array(20); crypto.getRandomValues(a);
+  let s = ''; for (let i=0;i<a.length;i++) s += alpha[a[i] % alpha.length];
+  return s;
+}
+
+async function syncPull(){
+  if (!syncState.id || !SYNC_BACKEND) return false;
+  const res = await fetch(SYNC_BACKEND.replace(/\/$/,'') + '/data/pull', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ syncId: syncState.id })
+  });
+  if (!res.ok) throw new Error('pull failed');
+  const data = await res.json();
+  return applyRemote(data.keys || {});
+}
+
+async function syncPush(){
+  if (!syncState.id || !SYNC_BACKEND) return false;
+  const meta = getSyncMeta();
+  const keys = {};
+  for (const name of SYNC_KEYS) {
+    const v = localStorage.getItem(name);
+    if (v == null) continue;
+    keys[name] = { v, t: meta[name] || 1 };
+  }
+  const res = await fetch(SYNC_BACKEND.replace(/\/$/,'') + '/data/push', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ syncId: syncState.id, keys })
+  });
+  if (!res.ok) throw new Error('push failed');
+  const data = await res.json();
+  syncState.last = Date.now(); saveSyncState();
+  reflectSync();
+  // Pick up anything newer another device pushed since our pull.
+  return applyRemote(data.keys || {});
+}
+
+// Write any remote keys that are newer than ours straight to localStorage.
+// Returns true if anything changed (so we can refresh the screen).
+function applyRemote(remoteKeys){
+  const meta = getSyncMeta();
+  let changed = false;
+  for (const name of Object.keys(remoteKeys)) {
+    if (!SYNC_KEY_SET.has(name)) continue;
+    const r = remoteKeys[name];
+    if (!r || typeof r.v !== 'string' || typeof r.t !== 'number') continue;
+    if (r.t > (meta[name] || 0)) {
+      _lsSet(name, r.v);     // raw write — don't re-bump the timestamp
+      meta[name] = r.t;
+      changed = true;
+    }
+  }
+  if (changed) saveSyncMeta(meta);
+  return changed;
+}
+
+// Called once on startup. Pull first; if remote had newer data, reload so all
+// the in-memory state is rebuilt cleanly. Otherwise push our local state up.
+async function syncInit(){
+  reflectSync();
+  if (!syncState.id || !SYNC_BACKEND) return;
+  try {
+    const changed = await syncPull();
+    if (changed && !sessionStorage.getItem('sbp-synced-reload')) {
+      sessionStorage.setItem('sbp-synced-reload', '1');
+      location.reload();
+      return;
+    }
+    await syncPush();
+  } catch(_){ /* offline is fine — we'll try again next open */ }
+}
+
+function syncTurnOn(){
+  syncState.id = genSyncCode();
+  // First device: mark everything we already have as the source of truth.
+  const meta = getSyncMeta(); const now = Date.now();
+  for (const name of SYNC_KEYS) { if (localStorage.getItem(name) != null) meta[name] = now; }
+  saveSyncMeta(meta); saveSyncState();
+  reflectSync();
+  syncPush().then(()=> showToast('Sync turned on', 'success')).catch(()=> showToast('Saved — will sync when online', 'info'));
+}
+
+function syncLinkPrompt(){
+  const code = (prompt('Enter the sync code from your other device:') || '').trim().toUpperCase();
+  if (!code) return;
+  if (!/^[A-Z0-9_-]{8,64}$/.test(code)) { showToast('That code doesn’t look right.', 'error'); return; }
+  syncState.id = code; saveSyncState();
+  // Treat the other device as the source of truth: clear local timestamps so
+  // its data wins, then pull.
+  saveSyncMeta({});
+  reflectSync();
+  showToast('Linking…', 'info');
+  syncPull().then((changed) => {
+    if (changed) { sessionStorage.setItem('sbp-synced-reload','1'); location.reload(); }
+    else { syncPush(); showToast('Linked — devices are in sync', 'success'); }
+  }).catch(()=> showToast('Couldn’t reach the sync server — try again.', 'error'));
+}
+
+function syncNow(){
+  if (!syncState.id) return;
+  showToast('Syncing…', 'info');
+  syncPull().then((changed) => {
+    if (changed) { sessionStorage.setItem('sbp-synced-reload','1'); location.reload(); return; }
+    return syncPush().then(()=> showToast('Up to date', 'success'));
+  }).catch(()=> showToast('Couldn’t reach the sync server.', 'error'));
+}
+
+function syncUnlink(){
+  if (!confirm('Unlink this device? Your data stays on this device but stops syncing. Other linked devices keep the data.')) return;
+  syncState = {}; saveSyncState(); saveSyncMeta({});
+  reflectSync();
+  showToast('Sync turned off', 'info');
+}
+
+function syncCopyCode(){
+  if (!syncState.id) return;
+  const done = () => showToast('Code copied', 'success');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(syncState.id).then(done).catch(()=> showToast(syncState.id, 'info'));
+  } else { showToast(syncState.id, 'info'); }
+}
+
+function reflectSync(){
+  const off = document.getElementById('sync-off');
+  const on = document.getElementById('sync-on');
+  const status = document.getElementById('sync-status');
+  if (!off || !on) return;
+  if (syncState.id) {
+    off.style.display = 'none'; on.style.display = 'block';
+    const codeEl = document.getElementById('sync-code'); if (codeEl) codeEl.textContent = syncState.id;
+    const last = document.getElementById('sync-last');
+    if (last) last.textContent = syncState.last ? 'Last synced ' + new Date(syncState.last).toLocaleString() : 'Not synced yet';
+    if (status) status.textContent = 'This device is syncing. Use the same code on your other devices.';
+  } else {
+    off.style.display = 'block'; on.style.display = 'none';
+    if (status) status.textContent = 'Keep your logs, weight and meal plan in sync across your phone, iPad and laptop.';
+  }
+}
+
 // Lightweight in-app toast (replaces native alert, matches the design system)
 const TOAST_ICONS = {
   success: '<polyline points="20 6 9 17 4 12"/>',
@@ -2902,6 +3111,7 @@ updateLogSessionButton();
 initSessionCardGlow();
 renderToday();
 initReminders();
+syncInit();
 playSplash();
 handleLaunchParam();
 
