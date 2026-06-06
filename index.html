@@ -134,6 +134,21 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .signin-forgot a { color:var(--green-900); font-weight:600; text-decoration:none; cursor:pointer; }
 .signin-note { color:var(--text-tertiary); font-size:12px; line-height:1.5; margin-top:14px; text-align:center; }
 
+/* ---------- Welcome overlay (post sign-in) ---------- */
+.welcome-ov { position:fixed; inset:0; z-index:300; display:none; align-items:center; justify-content:center; background:linear-gradient(160deg,#0F6E56,#085041); }
+.welcome-ov.show { display:flex; animation:welcomeFade .45s ease; }
+.welcome-ov.out { animation:welcomeOut .55s ease forwards; }
+.welcome-inner { text-align:center; color:#fff; padding:24px; }
+.welcome-check { width:64px; height:64px; margin:0 auto 18px; border-radius:50%; background:rgba(255,255,255,.16); display:flex; align-items:center; justify-content:center; opacity:0; transform:scale(.6); animation:welcomePop .5s cubic-bezier(.34,1.56,.64,1) forwards; }
+.welcome-check svg { width:30px; height:30px; fill:none; stroke:#fff; stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:30; stroke-dashoffset:30; animation:welcomeDraw .5s ease .35s forwards; }
+.welcome-hi { font-family:'DM Sans',sans-serif; font-size:15px; font-weight:500; letter-spacing:.22em; text-transform:uppercase; color:rgba(255,255,255,.78); opacity:0; transform:translateY(10px); animation:welcomeUp .6s ease .35s forwards; }
+.welcome-name { font-family:'DM Serif Display',serif; font-size:40px; line-height:1.1; margin-top:8px; opacity:0; transform:translateY(14px); animation:welcomeUp .7s ease .6s forwards; }
+@keyframes welcomeFade { from{opacity:0;} to{opacity:1;} }
+@keyframes welcomeOut { to{opacity:0;visibility:hidden;} }
+@keyframes welcomeUp { to{opacity:1;transform:none;} }
+@keyframes welcomePop { to{opacity:1;transform:none;} }
+@keyframes welcomeDraw { to{stroke-dashoffset:0;} }
+
 .bottom-nav {
   display: none; position: fixed; bottom: 0; left: 0; right: 0;
   height: var(--bottom-nav-h); background: rgba(247,246,243,0.96);
@@ -676,6 +691,15 @@ html.show-splash .splash.splash-done {
      class that reveals it. -->
 <div class="splash" id="splash" aria-hidden="true">
   <div class="splash-mark" id="splash-mark" aria-label="SummerBody"><span class="spl" data-g="s">S</span><span class="spl" data-g="m">u</span><span class="spl" data-g="m">m</span><span class="spl" data-g="m">m</span><span class="spl" data-g="m">e</span><span class="spl" data-g="m">r</span><span class="spl bd" data-g="b">B</span><span class="spl bd" data-g="o">o</span><span class="spl bd" data-g="o">d</span><span class="spl bd" data-g="o">y</span></div>
+</div>
+
+<!-- Welcome overlay: shown briefly right after a successful sign-in / sign-up. -->
+<div class="welcome-ov" id="welcome-ov" aria-hidden="true">
+  <div class="welcome-inner">
+    <div class="welcome-check" id="welcome-check"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="welcome-hi">Welcome</div>
+    <div class="welcome-name" id="welcome-name"></div>
+  </div>
 </div>
 <script>
   (function () {
@@ -2733,7 +2757,14 @@ async function initAuth(){
 async function onAuth(session){
   authUser = (session && session.user) ? session.user : null;
   reflectAuth();
-  if (authUser) { try { await syncReconcile(); } catch(_){} }
+  if (authUser) {
+    if (_pendingWelcome) {
+      _pendingWelcome = false;
+      const name = (authUser.user_metadata && authUser.user_metadata.name) || '';
+      await playWelcome(name);
+    }
+    try { await syncReconcile(); } catch(_){}
+  }
 }
 
 // Pull everything, merge newer-wins; if our screen data changed, reload once
@@ -2804,6 +2835,22 @@ async function pushDirty(){
 // ---- auth UI actions ----
 // 'in' = sign in, 'up' = create account
 let _authMode = 'in';
+let _pendingWelcome = false;
+
+// Full-screen "Welcome, <name>" celebration after a successful sign-in.
+function playWelcome(name){
+  return new Promise(resolve => {
+    const ov = document.getElementById('welcome-ov');
+    if (!ov) { resolve(); return; }
+    const nm = document.getElementById('welcome-name');
+    if (nm) nm.textContent = name || 'You’re in';
+    ov.classList.remove('out', 'show');
+    void ov.offsetWidth;        // restart CSS animations
+    ov.classList.add('show');
+    setTimeout(() => { ov.classList.add('out'); }, 2000);
+    setTimeout(() => { ov.classList.remove('show', 'out'); resolve(); }, 2600);
+  });
+}
 function authSetMode(mode){
   _authMode = (mode === 'up') ? 'up' : 'in';
   const up = _authMode === 'up';
@@ -2824,20 +2871,24 @@ async function authSubmit(){
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { showToast('Enter a valid email.', 'error'); return; }
   if (password.length < 6) { showToast('Password must be at least 6 characters.', 'error'); return; }
   if (_authMode === 'up' && !name) { showToast('Enter your name.', 'error'); return; }
-  const btn = document.getElementById('auth-cta'); if (btn) btn.disabled = true;
+  const btn = document.getElementById('auth-cta');
+  const restore = _authMode === 'up' ? 'Create account' : 'Sign in';
+  if (btn) { btn.disabled = true; btn.textContent = _authMode === 'up' ? 'Creating account…' : 'Signing in…'; }
   try {
     if (_authMode === 'up') {
       const { data, error } = await sb.auth.signUp({ email, password, options: { data: { name } } });
       if (error) throw error;
-      if (!data.session) { showToast('Account created — check your email to confirm, then sign in.', 'info'); authSetMode('in'); }
-      // else onAuthStateChange takes over.
+      if (data.session) { _pendingWelcome = true; }   // signed in immediately
+      else { showToast('Account created — check your email to confirm, then sign in.', 'info'); authSetMode('in'); }
+      // when there's a session, onAuthStateChange takes over (plays welcome).
     } else {
       const { error } = await sb.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      // onAuthStateChange takes over.
+      _pendingWelcome = true;
+      // onAuthStateChange takes over (plays welcome).
     }
   } catch(e){ showToast((e && e.message) || 'Could not sign in', 'error'); }
-  finally { if (btn) btn.disabled = false; }
+  finally { if (btn) { btn.disabled = false; btn.textContent = restore; } }
 }
 
 async function authForgot(){
