@@ -473,7 +473,9 @@ html.gated, html.gated body { overflow:hidden; }
   .desk-side button svg { width: 21px; height: 21px; stroke: var(--text-tertiary); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
   .desk-side button.active { background: var(--green-50); color: var(--green-900); }
   .desk-side button.active svg { stroke: var(--green-500); }
-  .main { margin-left: 240px; max-width: 1180px; padding-top: 32px; padding-left: 40px; padding-right: 40px; }
+  .main { margin-left: 240px; max-width: none; padding-top: 32px; padding-left: 48px; padding-right: 48px; }
+  /* Fill the space right of the sidebar, but keep content centred & readable */
+  .main > .section { max-width: 1120px; margin-left: auto; margin-right: auto; }
 
   /* On desktop the Today screen becomes the bento dashboard. */
   #sec-today .page-header { display: none; }
