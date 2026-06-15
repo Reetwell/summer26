@@ -459,6 +459,77 @@ html.gated, html.gated body { overflow:hidden; }
   .ptoggle { flex: 1; text-align: center; font-size: 11px; padding: 7px 8px; }
 }
 
+/* ==================== DESKTOP DASHBOARD (>=1024px) ==================== */
+.desk-side { display: none; }
+.desk-greet { display: none; }
+#today-bento { display: none; }
+@media (min-width: 1024px) {
+  .top-nav { display: none; }
+  .desk-side { display: flex; position: fixed; top: 0; left: 0; bottom: 0; width: 240px; background: var(--surface); border-right: 1px solid var(--border); padding: 22px 16px; flex-direction: column; gap: 6px; z-index: 30; }
+  .desk-side .logo { font-family: 'DM Serif Display', serif; font-size: 22px; padding: 4px 12px 20px; color: var(--text-primary); }
+  .desk-side .logo span { color: var(--green-500); }
+  .desk-side button { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: var(--radius-md); font-size: 15px; font-weight: 600; color: var(--text-secondary); text-align: left; background: none; border: none; cursor: pointer; width: 100%; transition: background .12s, color .12s; }
+  .desk-side button:hover { background: var(--gray-100); }
+  .desk-side button svg { width: 21px; height: 21px; stroke: var(--text-tertiary); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .desk-side button.active { background: var(--green-50); color: var(--green-900); }
+  .desk-side button.active svg { stroke: var(--green-500); }
+  .main { margin-left: 240px; max-width: 1180px; padding-top: 32px; padding-left: 40px; padding-right: 40px; }
+
+  /* On desktop the Today screen becomes the bento dashboard. */
+  #sec-today .page-header { display: none; }
+  #sec-today .today-hero, #sec-today .today-summary, #sec-today .today-macros { display: none; }
+  .desk-greet { display: block; font-family: 'DM Serif Display', serif; font-size: 30px; margin-bottom: 20px; color: var(--text-primary); }
+  .desk-greet span { color: var(--green-500); }
+
+  #today-bento { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; grid-auto-rows: minmax(150px, auto); margin-bottom: 24px; }
+  .dtile { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px; display: flex; flex-direction: column; }
+  .dtile h5 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-tertiary); margin-bottom: 10px; }
+  .dspan2 { grid-column: span 2; }
+
+  .dtile-ring { grid-column: span 2; align-items: center; justify-content: center; text-align: center; }
+  .dtile-ring .ringbox { position: relative; width: 132px; height: 132px; }
+  .dtile-ring svg { transform: rotate(-90deg); }
+  .dtile-ring .rt { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .dtile-ring .rt b { font-family: 'DM Serif Display', serif; font-size: 26px; line-height: 1; }
+  .dtile-ring .rt span { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+  .dtile-ring .cap { font-weight: 600; font-size: 13px; margin-top: 12px; }
+
+  .dtile-streak { background: linear-gradient(135deg, var(--amber-50), #fff); }
+  .dtile-streak .big { font-family: 'DM Serif Display', serif; font-size: 42px; line-height: 1; color: var(--amber-900); }
+  .dtile-streak .tiny { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+  .dtile-wt .n { font-family: 'DM Serif Display', serif; font-size: 30px; line-height: 1; }
+  .dtile-wt .delta { font-weight: 600; font-size: 13px; margin-top: 3px; }
+  .dtile-wt svg { width: 100%; margin-top: auto; }
+
+  .dtile-wk { grid-column: span 2; background: linear-gradient(150deg, var(--green-700), var(--green-900)); color: #fff; border: none; box-shadow: 0 16px 34px -18px rgba(15,110,86,.7); }
+  .dtile-wk h5 { color: var(--green-100); }
+  .dtile-wk .t { font-family: 'DM Serif Display', serif; font-size: 22px; line-height: 1.1; }
+  .dtile-wk .ex { font-size: 13px; color: rgba(255,255,255,.82); margin-top: 8px; line-height: 1.6; }
+  .dtile-wk .btn { margin-top: auto; align-self: flex-start; background: #fff; color: var(--green-900); border: none; border-radius: 999px; padding: 12px 22px; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 16px; }
+
+  .dtile-mac { grid-column: span 2; }
+  .dtile-mac .row { display: flex; align-items: center; gap: 12px; margin-bottom: 13px; font-size: 13px; }
+  .dtile-mac .row:last-child { margin-bottom: 0; }
+  .dtile-mac .row .k { width: 58px; font-weight: 600; }
+  .dtile-mac .row .bar { flex: 1; height: 8px; background: var(--gray-100); border-radius: 4px; overflow: hidden; }
+  .dtile-mac .row .bar i { display: block; height: 100%; border-radius: 4px; }
+  .dtile-mac .row .v { width: 84px; text-align: right; color: var(--text-tertiary); font-size: 12px; }
+
+  .dtile-log { grid-column: span 2; background: var(--green-900); border: none; color: #fff; }
+  .dtile-log h5 { color: rgba(255,255,255,.6); }
+  .dtile-log .q { font-family: 'DM Serif Display', serif; font-size: 20px; color: #fff; }
+  .dtile-log .qb { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .dtile-log .qb button { background: rgba(255,255,255,.14); color: #fff; border: none; border-radius: 999px; padding: 8px 15px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .12s; }
+  .dtile-log .qb button:hover { background: rgba(255,255,255,.24); }
+
+  .dtile-rcp { grid-column: span 2; padding: 0; overflow: hidden; }
+  .dtile-rcp img { width: 100%; height: 130px; object-fit: cover; background: var(--gray-100); display: block; }
+  .dtile-rcp .b { padding: 14px 16px; }
+  .dtile-rcp .b .t { font-family: 'DM Serif Display', serif; font-size: 17px; }
+  .dtile-rcp .b .pr { margin-top: 8px; display: flex; gap: 6px; }
+}
+
 /* ==================== SESSION LOGGER ==================== */
 .modal-overlay { position: fixed; inset: 0; background: rgba(26,26,24,0.55); z-index: 200; backdrop-filter: blur(2px); }
 .modal-panel {
@@ -909,10 +980,56 @@ html.show-splash .splash.splash-done {
   </button>
 </nav>
 
+<!-- Desktop sidebar (>=1024px) -->
+<nav class="desk-side">
+  <div class="logo">Summer<span>Body</span></div>
+  <button class="active" data-dside="today" onclick="showSection('today',this)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg> Home</button>
+  <button data-dside="plan" onclick="showSection('plan',this)"><svg viewBox="0 0 24 24"><path d="M6 7v10M18 7v10M4 9h4M16 9h4M8 12h8"/></svg> Train</button>
+  <button data-dside="meals" onclick="showSection('meals',this)"><svg viewBox="0 0 24 24"><path d="M4 4h16v6a8 8 0 0 1-16 0z"/><path d="M9 4V2M15 4V2"/></svg> Meals</button>
+  <button data-dside="recipes" onclick="showRecipesSoon()"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><polygon points="10 8 16 12 10 16"/></svg> Recipes</button>
+  <button data-dside="shopping" onclick="showSection('shopping',this)"><svg viewBox="0 0 24 24"><path d="M6 8h12v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></svg> Shopping</button>
+  <button data-dside="progress" onclick="showSection('progress',this)"><svg viewBox="0 0 24 24"><path d="M4 4v16h16"/><path d="M7 15l3-3 3 2 4-5"/></svg> Progress</button>
+</nav>
+
 <main class="main">
 
 <!-- ==================== TODAY ==================== -->
 <div class="section active" id="sec-today">
+  <div class="desk-greet" id="desk-greet">Hey, <span id="desk-greet-name">there</span></div>
+
+  <!-- Desktop bento dashboard (>=1024px) -->
+  <div id="today-bento">
+    <div class="dtile dtile-ring">
+      <div class="ringbox">
+        <svg width="132" height="132" viewBox="0 0 132 132">
+          <circle cx="66" cy="66" r="58" fill="none" stroke="var(--gray-100)" stroke-width="12"/>
+          <circle id="db-ring-arc" cx="66" cy="66" r="58" fill="none" stroke="var(--green-500)" stroke-width="12" stroke-linecap="round" stroke-dasharray="364.4" stroke-dashoffset="364.4"/>
+        </svg>
+        <div class="rt"><b id="db-ring-pct">0%</b><span>today's goal</span></div>
+      </div>
+      <div class="cap" id="db-ring-cap">Let's get going</div>
+    </div>
+
+    <div class="dtile dtile-streak"><h5>Streak</h5><div class="big" id="db-streak">0</div><div class="tiny" id="db-streak-sub">start one today</div></div>
+
+    <div class="dtile dtile-wt"><h5>Weight</h5><div class="n" id="db-wt">—</div><div class="delta" id="db-wt-delta"></div><div id="db-wt-spark"></div></div>
+
+    <div class="dtile dtile-wk dspan2"><h5 id="db-wk-lbl">Up next</h5><div class="t" id="db-wk-title">—</div><div class="ex" id="db-wk-ex"></div><button class="btn" id="db-wk-btn" onclick="heroStart()">Start session</button></div>
+
+    <div class="dtile dtile-mac dspan2"><h5>Fuel today</h5><div id="db-mac"></div></div>
+
+    <div class="dtile dtile-log dspan2"><h5>Quick log</h5><div class="q">What did you just have?</div>
+      <div class="qb">
+        <button onclick="quickAdd('whey protein shake','Protein shake')">+ Protein</button>
+        <button onclick="changeWater(1)">+ Water</button>
+        <button onclick="toggleCreatine()">+ Creatine</button>
+        <button onclick="document.getElementById('food-input').focus()">+ Meal</button>
+      </div>
+    </div>
+
+    <div class="dtile dtile-rcp dspan2" id="db-rcp" style="display:none"></div>
+  </div>
+
   <div class="page-header only-big">
     <h1>Today</h1>
     <p id="today-sub">Track your fuel for the day</p>
@@ -1710,7 +1827,9 @@ function showSection(id, el) {
   document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
   document.querySelectorAll('.bnav-item').forEach(n => n.classList.remove('active'));
   document.querySelectorAll('[data-bnav]').forEach(n => { if(n.onclick.toString().includes("'" + id + "'")) n.classList.add('active'); });
-  el.classList.add('active');
+  document.querySelectorAll('.desk-side button').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.desk-side [data-dside="' + id + '"]').forEach(n => n.classList.add('active'));
+  if(el) el.classList.add('active');
   if(id === 'shopping') { updateShopProgress('sp1'); updateShopProgress('sp2'); }
   if(id === 'progress') { renderWorkoutGrid(); renderWeightChart(); renderSessionHistory(); updateLogSessionButton(); }
   if(id === 'today') { renderToday(); }
@@ -3083,6 +3202,83 @@ function renderTodayHero() {
   else { chip.style.display = 'none'; }
 }
 
+// Desktop bento dashboard (>=1024px). All elements guarded so it's a no-op on mobile.
+function renderTodayBento(day, tot, tgt) {
+  if(!document.getElementById('today-bento')) return;
+
+  const gn = document.getElementById('desk-greet-name');
+  if(gn) { const nm = (typeof authUser !== 'undefined' && authUser && authUser.user_metadata && authUser.user_metadata.name) || ''; gn.textContent = nm || 'there'; }
+
+  // calorie goal ring
+  const pct = tgt.kcal ? Math.round(tot.kcal / tgt.kcal * 100) : 0;
+  const C = 2 * Math.PI * 58;
+  const arc = document.getElementById('db-ring-arc');
+  if(arc) { arc.style.strokeDasharray = C.toFixed(1); arc.style.strokeDashoffset = (C * (1 - Math.min(1, pct/100))).toFixed(1); arc.setAttribute('stroke', pct > 108 ? 'var(--pink-500)' : 'var(--green-500)'); }
+  const pctEl = document.getElementById('db-ring-pct'); if(pctEl) pctEl.textContent = pct + '%';
+  const cap = document.getElementById('db-ring-cap');
+  if(cap) cap.textContent = pct >= 100 ? 'Goal hit 🎉' : pct >= 70 ? 'Almost there 💪' : pct >= 30 ? 'Keep fuelling' : "Let's get going";
+
+  // streak
+  const streak = currentStreak();
+  const sEl = document.getElementById('db-streak'); if(sEl) sEl.textContent = streak;
+  const sSub = document.getElementById('db-streak-sub'); if(sSub) sSub.textContent = streak > 0 ? 'days · keep it alive' : 'start one today';
+
+  // weight
+  const wEl = document.getElementById('db-wt'), wD = document.getElementById('db-wt-delta'), wS = document.getElementById('db-wt-spark');
+  if(wEl) {
+    if(weightLog && weightLog.length) {
+      const latest = weightLog[0].weight;
+      wEl.innerHTML = latest.toFixed(1) + '<span style="font-size:14px"> kg</span>';
+      if(weightLog.length > 1) {
+        const prev = weightLog[Math.min(weightLog.length - 1, 6)].weight;
+        const d = latest - prev, down = d <= 0;
+        wD.textContent = (down ? '▼ ' : '▲ ') + Math.abs(d).toFixed(1) + ' kg this week';
+        wD.style.color = down ? 'var(--green-700)' : 'var(--amber-900)';
+      } else { wD.textContent = 'first entry'; wD.style.color = 'var(--text-tertiary)'; }
+      const pts = [...weightLog].slice(0, 7).reverse().map(e => e.weight);
+      if(pts.length >= 2) {
+        const min = Math.min(...pts), max = Math.max(...pts), rng = (max - min) || 1, w = 120, h = 38;
+        const coords = pts.map((v, i) => ((i / (pts.length - 1)) * w).toFixed(0) + ',' + (h - ((v - min) / rng) * (h - 6) - 3).toFixed(0)).join(' ');
+        wS.innerHTML = '<svg viewBox="0 0 120 38"><polyline points="' + coords + '" fill="none" stroke="var(--green-500)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      } else wS.innerHTML = '';
+    } else { wEl.innerHTML = '—'; wD.textContent = 'Log it in Progress'; wD.style.color = 'var(--text-tertiary)'; wS.innerHTML = ''; }
+  }
+
+  // up next workout
+  const s = getSessionForDate(new Date());
+  const wkLbl = document.getElementById('db-wk-lbl'), wkTitle = document.getElementById('db-wk-title'), wkEx = document.getElementById('db-wk-ex'), wkBtn = document.getElementById('db-wk-btn');
+  const todayStr = new Date().toISOString().split('T')[0];
+  const hasLog = sessionLogs.find(l => l.date === todayStr);
+  if(wkTitle) {
+    if(!s || s.sessionType === 'rest') { wkLbl.textContent = 'Today'; wkTitle.textContent = 'Rest day'; wkEx.textContent = 'No gym — recover, sleep, hit your protein.'; wkBtn.textContent = 'View your plan'; }
+    else if(s.sessionType === 'football') { wkLbl.textContent = 'Up next'; wkTitle.textContent = 'Football'; wkEx.textContent = 'Counts as cardio · Phase 1a · Week ' + s.week; wkBtn.textContent = hasLog ? 'View session' : 'Mark as done'; }
+    else if(s.sessionType === 'active') { wkLbl.textContent = 'Up next'; wkTitle.textContent = 'Active rest'; wkEx.textContent = 'Easy swim or walk · Phase 2 · Week ' + s.week; wkBtn.textContent = hasLog ? 'View session' : 'Mark as done'; }
+    else { const sd = SESSION_DATA[s.sessionType]; wkLbl.textContent = 'Up next · ' + (s.phase === '2' ? 'Phase 2' : 'Phase 1'); wkTitle.textContent = sd ? sd.label : s.sessionType; wkEx.textContent = sd ? sd.exercises.slice(0, 4).map(e => e.name).join(' · ') : ''; wkBtn.textContent = hasLog ? 'View session' : 'Start session'; }
+  }
+
+  // fuel macros
+  const carbT = Math.round(tgt.kcal * 0.45 / 4), fatT = Math.round(tgt.kcal * 0.25 / 9);
+  const macWrap = document.getElementById('db-mac');
+  if(macWrap) {
+    const rows = [['Protein', tot.p, tgt.protein, 'var(--blue-500)'], ['Carbs', tot.c, carbT, 'var(--purple-500)'], ['Fat', tot.f, fatT, 'var(--green-500)']];
+    macWrap.innerHTML = rows.map(r => { const pc = r[2] ? Math.min(100, Math.round(r[1] / r[2] * 100)) : 0; return '<div class="row"><span class="k">' + r[0] + '</span><div class="bar"><i style="width:' + pc + '%;background:' + r[3] + '"></i></div><span class="v">' + r[1] + ' / ' + r[2] + 'g</span></div>'; }).join('');
+  }
+
+  // recipe tile (only when there are saved recipes)
+  const rcp = document.getElementById('db-rcp');
+  if(rcp) {
+    const r = (recipes && recipes.length) ? recipes[0] : null;
+    if(r) {
+      const img = r.thumbnail ? '<img src="' + esc(r.thumbnail) + '" alt="">' : '';
+      const m = r.macros || {};
+      const pills = (m.p != null || m.c != null || m.f != null) ? '<div class="pr"><span class="pill pill-p">P ' + (m.p || 0) + '</span><span class="pill pill-c">C ' + (m.c || 0) + '</span><span class="pill pill-f">F ' + (m.f || 0) + '</span></div>' : '';
+      rcp.innerHTML = img + '<div class="b"><div class="t">' + esc(r.title || 'Saved recipe') + '</div>' + pills + '</div>';
+      rcp.style.display = ''; rcp.style.cursor = 'pointer';
+      rcp.onclick = () => showRecipesSoon();
+    } else { rcp.style.display = 'none'; rcp.onclick = null; }
+  }
+}
+
 function renderToday() {
   const day = getDay();
   const tgt = todayTargets();
@@ -3135,6 +3331,7 @@ function renderToday() {
     ? [...day.junk].reverse().map(j=>`<div class="junk-item"><span>${esc(j.name)}</span><button class="fl-del" onclick="removeJunk(${j.ts})" aria-label="Remove">✕</button></div>`).join('')
     : '';
 
+  renderTodayBento(day, tot, tgt);
   renderTodayNudges(day, tot, tgt);
   renderTodayChart();
 }
