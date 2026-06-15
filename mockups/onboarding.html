@@ -278,6 +278,16 @@ const RMIN=14,RMAX=80,RTICK=24;
   r.addEventListener('pointerup',release);
   r.addEventListener('pointercancel',release);
 
+  // mouse wheel / trackpad: turn vertical or horizontal scroll into left-right movement
+  let wheelSettle;
+  r.addEventListener('wheel',e=>{
+    e.preventDefault();
+    cancelAnimationFrame(glide);
+    r.scrollLeft += (Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY);
+    clearTimeout(wheelSettle);
+    wheelSettle=setTimeout(()=>r.scrollTo({left:Math.round(r.scrollLeft/RTICK)*RTICK,behavior:'smooth'}),120);
+  },{passive:false});
+
   // center default 17 once laid out
   setTimeout(()=>{ r.scrollLeft=(17-RMIN)*RTICK; },60);
 })();
