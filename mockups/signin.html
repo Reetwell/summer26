@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SummerBody — Sign in (front door)</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+html,body{height:100%;}
+.si{height:100%;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;position:relative;}
+
+/* ---- hero ---- */
+.si-hero{flex:none;position:relative;height:42%;min-height:300px;overflow:hidden;
+  background:linear-gradient(155deg,var(--green-500),var(--green-900));
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;padding:0 28px;}
+.si-hero::after{content:"";position:absolute;inset:0;background:
+  radial-gradient(120px 120px at 18% 26%,rgba(255,255,255,.16),transparent 70%),
+  radial-gradient(160px 160px at 86% 70%,rgba(255,255,255,.12),transparent 70%);}
+.si-logo{font-family:'DM Serif Display',serif;font-size:40px;line-height:1;letter-spacing:-.5px;z-index:1;
+  opacity:0;transform:translateY(14px);animation:rise .6s cubic-bezier(.4,0,.2,1) .05s forwards;}
+.si-logo .sun{display:inline-block;width:30px;height:30px;border-radius:50%;background:#fff;margin-right:6px;vertical-align:-3px;box-shadow:0 0 0 6px rgba(255,255,255,.18);}
+.si-tag{font-size:14.5px;line-height:1.5;color:rgba(255,255,255,.9);max-width:280px;margin-top:14px;z-index:1;
+  opacity:0;transform:translateY(14px);animation:rise .6s cubic-bezier(.4,0,.2,1) .18s forwards;}
+@keyframes rise{to{opacity:1;transform:none;}}
+
+/* ---- sheet ---- */
+.si-sheet{flex:1;background:var(--bg);border-radius:26px 26px 0 0;margin-top:-26px;z-index:2;
+  padding:26px 24px calc(20px + env(safe-area-inset-bottom));display:flex;flex-direction:column;
+  box-shadow:0 -12px 30px -18px rgba(0,0,0,.18);overflow-y:auto;
+  opacity:0;transform:translateY(26px);animation:rise .55s cubic-bezier(.4,0,.2,1) .28s forwards;}
+.si-h{font-family:'DM Serif Display',serif;font-size:24px;text-align:center;}
+.si-sub{text-align:center;font-size:13.5px;color:var(--text-secondary);margin:5px 0 22px;}
+
+/* social buttons */
+.sbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:11px;
+  border-radius:14px;padding:15px;font-size:15.5px;font-weight:700;margin-bottom:11px;
+  transition:transform .1s,box-shadow .15s,background .15s;border:1.5px solid transparent;}
+.sbtn:active{transform:scale(.985);}
+.sbtn svg{width:19px;height:19px;flex:none;}
+.sbtn.apple{background:#000;color:#fff;}
+.sbtn.google{background:#fff;color:#1f2024;border-color:var(--border-strong,#dcdcdc);}
+
+/* divider */
+.si-or{display:flex;align-items:center;gap:12px;color:var(--text-tertiary);font-size:12px;margin:14px 2px 16px;}
+.si-or::before,.si-or::after{content:"";flex:1;height:1px;background:var(--border);}
+
+/* email fields */
+.fld{position:relative;margin-bottom:12px;}
+.fld input{width:100%;border:1.5px solid var(--gray-200);border-radius:13px;background:var(--surface);
+  padding:15px 14px;font-size:15px;color:var(--text-primary);outline:none;transition:border-color .15s,box-shadow .15s;}
+.fld input:focus{border-color:var(--green-500);box-shadow:0 0 0 4px var(--green-50);}
+.fld input::placeholder{color:var(--text-tertiary);}
+
+.si-cta{width:100%;border-radius:14px;padding:16px;font-size:16px;font-weight:700;
+  background:var(--green-500);color:#fff;margin-top:4px;transition:transform .1s,background .15s;}
+.si-cta:active{transform:scale(.985);}
+
+.si-toggle{text-align:center;font-size:13.5px;color:var(--text-secondary);margin-top:18px;}
+.si-toggle b{color:var(--green-700);font-weight:700;cursor:pointer;}
+
+.si-fine{text-align:center;font-size:11px;color:var(--text-tertiary);line-height:1.5;margin-top:16px;}
+.si-fine a{color:var(--text-secondary);text-decoration:underline;}
+
+/* signing-in overlay */
+.si-load{position:absolute;inset:0;z-index:40;background:rgba(247,246,243,.96);backdrop-filter:blur(4px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+  opacity:0;pointer-events:none;transition:opacity .3s;}
+.si-load.show{opacity:1;pointer-events:auto;}
+.spin{width:42px;height:42px;border-radius:50%;border:4px solid var(--green-50);border-top-color:var(--green-500);animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.si-load .msg{font-weight:700;color:var(--green-900);font-size:16px;}
+
+/* welcome-back overlay */
+.si-wb{position:absolute;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:14px;text-align:center;padding:30px;
+  opacity:0;pointer-events:none;transition:opacity .35s;}
+.si-wb.show{opacity:1;pointer-events:auto;}
+.si-wb .em{font-size:60px;transform:scale(.3);transition:transform .5s cubic-bezier(.34,1.56,.64,1);}
+.si-wb.show .em{transform:scale(1);}
+.si-wb .t{font-family:'DM Serif Display',serif;font-size:26px;}
+.si-wb .s{font-size:14px;color:var(--text-secondary);max-width:260px;}
+</style>
+</head>
+<body>
+<div class="si">
+
+  <div class="si-hero">
+    <div class="si-logo"><span class="sun"></span>SummerBody</div>
+    <div class="si-tag">Train, eat and track — built for how you actually live. Mostly free, always yours.</div>
+  </div>
+
+  <div class="si-sheet">
+    <div class="si-h" id="title">Create your account</div>
+    <div class="si-sub" id="sub">It's free. Set up takes about a minute.</div>
+
+    <button class="sbtn apple" onclick="go('apple')">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.37 1.43c0 1.14-.42 2.18-1.25 3.06-.99 1.06-2.18 1.66-3.45 1.55-.02-.13-.03-.27-.03-.42 0-1.09.48-2.18 1.27-2.99.4-.41.91-.76 1.52-1.04.61-.27 1.18-.43 1.72-.46.01.1.02.2.02.3zM20.5 17.2c-.32.74-.7 1.42-1.16 2.05-.62.85-1.13 1.44-1.52 1.77-.61.55-1.27.83-1.97.85-.5 0-1.11-.14-1.81-.43-.71-.29-1.36-.43-1.96-.43-.62 0-1.29.14-2.01.43-.72.29-1.3.45-1.74.46-.67.03-1.34-.26-2.01-.87-.43-.36-.96-.97-1.6-1.83-.68-.92-1.24-1.99-1.68-3.21-.47-1.32-.7-2.6-.7-3.84 0-1.42.31-2.64.92-3.67.48-.82 1.13-1.47 1.93-1.95.8-.48 1.67-.73 2.6-.74.53 0 1.23.16 2.1.48.87.32 1.42.48 1.66.48.18 0 .8-.19 1.84-.56.99-.35 1.82-.49 2.51-.43 1.86.15 3.26.88 4.19 2.21-1.66 1.01-2.49 2.42-2.47 4.24.02 1.41.53 2.59 1.54 3.52.46.43.97.77 1.54 1.01-.12.36-.25.7-.4 1.03z"/></svg>
+      Continue with Apple
+    </button>
+
+    <button class="sbtn google" onclick="go('google')">
+      <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.3 9.14 5.38 12 5.38z"/></svg>
+      Continue with Google
+    </button>
+
+    <div class="si-or">or</div>
+
+    <div class="fld"><input id="email" type="email" placeholder="Email" autocomplete="email"></div>
+    <div class="fld"><input id="pass" type="password" placeholder="Password" autocomplete="current-password"></div>
+
+    <button class="si-cta" id="cta" onclick="go('email')">Create account</button>
+
+    <div class="si-toggle" id="toggle">Already have an account? <b onclick="flip()">Sign in</b></div>
+
+    <div class="si-fine">By continuing you agree to our <a>Terms</a> &amp; <a>Privacy Policy</a>.</div>
+  </div>
+
+  <!-- signing in -->
+  <div class="si-load" id="load"><div class="spin"></div><div class="msg" id="loadmsg">Creating your account…</div></div>
+
+  <!-- welcome back (returning sign-in) -->
+  <div class="si-wb" id="wb"><div class="em">👋</div><div class="t" id="wbt">Welcome back!</div><div class="s">Loading your plan, progress and recipes…</div></div>
+
+</div>
+
+<script>
+let mode = 'up'; // 'up' = create account, 'in' = sign in
+
+function flip(){
+  mode = mode==='up' ? 'in' : 'up';
+  const t=document.getElementById('title'), s=document.getElementById('sub'),
+        cta=document.getElementById('cta'), tog=document.getElementById('toggle'),
+        pass=document.getElementById('pass');
+  if(mode==='up'){
+    t.textContent='Create your account';
+    s.textContent="It's free. Set up takes about a minute.";
+    cta.textContent='Create account';
+    tog.innerHTML='Already have an account? <b onclick="flip()">Sign in</b>';
+    pass.autocomplete='new-password';
+  }else{
+    t.textContent='Welcome back';
+    s.textContent='Sign in to pick up where you left off.';
+    cta.textContent='Sign in';
+    tog.innerHTML="New here? <b onclick=\"flip()\">Create account</b>";
+    pass.autocomplete='current-password';
+  }
+}
+
+function go(method){
+  // returning sign-in → straight into the app (welcome-back demo)
+  if(mode==='in'){
+    document.getElementById('wb').classList.add('show');
+    return;
+  }
+  // new account (any method) → setup flow
+  const provider = method==='apple'?'Apple':method==='google'?'Google':'email';
+  document.getElementById('loadmsg').textContent =
+    method==='email' ? 'Creating your account…' : 'Connecting with '+provider+'…';
+  document.getElementById('load').classList.add('show');
+  // hand off to the animated onboarding
+  setTimeout(()=>{ window.location.href = 'onboarding.html'; }, 1100);
+}
+</script>
+</body>
+</html>
