@@ -45,15 +45,16 @@ html,body{height:100%;}
 .gcard.sel .tick{opacity:1;transform:scale(1);}
 
 /* ---- step 3: age ruler ---- */
-.bignum{font-family:'DM Serif Display',serif;font-size:64px;line-height:1;color:var(--green-900);transition:transform .15s;}
-.bignum.bump{transform:scale(1.16);}
+.bignum{font-family:'DM Serif Display',serif;font-size:64px;line-height:1;color:var(--green-900);transition:transform .22s cubic-bezier(.34,1.56,.64,1);will-change:transform;}
+.bignum.bump{transform:scale(1.14);}
 .bignum small{font-size:18px;color:var(--text-tertiary);font-family:'DM Sans';}
 .ruler-wrap{position:relative;width:100%;max-width:360px;margin-top:18px;}
 .ruler-wrap::before{content:"";position:absolute;left:50%;top:0;transform:translateX(-50%);width:3px;height:46px;background:var(--green-500);border-radius:2px;z-index:3;}
-.ruler{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding:54px 0 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.ruler{display:flex;overflow-x:auto;scroll-snap-type:x proximity;padding:54px 0 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;cursor:grab;}
+.ruler:active{cursor:grabbing;}
 .ruler::-webkit-scrollbar{display:none;}
 .ruler .sp{flex:0 0 50%;}
-.ruler .tk{flex:0 0 16px;height:22px;display:flex;align-items:flex-start;justify-content:center;scroll-snap-align:center;}
+.ruler .tk{flex:0 0 24px;height:22px;display:flex;align-items:flex-start;justify-content:center;scroll-snap-align:center;}
 .ruler .tk i{width:2px;height:14px;background:var(--gray-200);border-radius:2px;}
 .ruler .tk.maj i{height:22px;background:var(--gray-400);}
 
@@ -231,7 +232,7 @@ function pickGoal(el){
 }
 
 /* step 3 age ruler */
-const RMIN=14,RMAX=80,RTICK=16;
+const RMIN=14,RMAX=80,RTICK=24;
 (function buildRuler(){
   const r=document.getElementById('ruler');
   let h='<div class="sp"></div>';
@@ -246,10 +247,37 @@ const RMIN=14,RMAX=80,RTICK=16;
       if(v!==last){ last=v; buzz();
         const el=document.getElementById('ageNum');
         el.innerHTML=v+'<small> yrs</small>';
-        el.classList.add('bump'); setTimeout(()=>el.classList.remove('bump'),150);
+        el.classList.add('bump'); setTimeout(()=>el.classList.remove('bump'),220);
       }
     });
+  },{passive:true});
+
+  // click/touch drag-to-scroll with flick momentum — makes it easy to move anywhere
+  let down=false, startX=0, startScroll=0, vel=0, lastX=0, lastT=0, glide;
+  r.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='touch') return; // phones use native momentum scroll
+    down=true; cancelAnimationFrame(glide); r.setPointerCapture(e.pointerId);
+    startX=lastX=e.clientX; startScroll=r.scrollLeft; vel=0; lastT=performance.now();
   });
+  r.addEventListener('pointermove',e=>{
+    if(!down)return;
+    r.scrollLeft=startScroll-(e.clientX-startX);
+    const now=performance.now(), dt=now-lastT||16;
+    vel=(e.clientX-lastX)/dt; lastX=e.clientX; lastT=now;
+  });
+  function release(){
+    if(!down)return; down=false;
+    let v=vel*16; // px per frame
+    (function step(){
+      if(Math.abs(v)<0.4){ // settle: snap to nearest tick
+        r.scrollTo({left:Math.round(r.scrollLeft/RTICK)*RTICK,behavior:'smooth'}); return;
+      }
+      r.scrollLeft-=v; v*=0.95; glide=requestAnimationFrame(step);
+    })();
+  }
+  r.addEventListener('pointerup',release);
+  r.addEventListener('pointercancel',release);
+
   // center default 17 once laid out
   setTimeout(()=>{ r.scrollLeft=(17-RMIN)*RTICK; },60);
 })();
@@ -257,7 +285,7 @@ const RMIN=14,RMAX=80,RTICK=16;
 /* step 4 weight dial */
 (function dialInit(){
   const dial=document.getElementById('dial'), knob=document.getElementById('knob'), num=document.getElementById('wNum');
-  const WMIN=30,WMAX=200; let w=70, dragging=false, lastA=null;
+  const WMIN=40,WMAX=120; let w=70, dragging=false, lastA=null;
   function render(){
     const frac=(w-WMIN)/(WMAX-WMIN);
     dial.style.background='conic-gradient(var(--green-500) '+(frac*360)+'deg,var(--gray-100) 0deg)';
@@ -272,7 +300,7 @@ const RMIN=14,RMAX=80,RTICK=16;
     if(d>180)d-=360; if(d<-180)d+=360;
     lastA=a;
     const prev=Math.round(w);
-    w=Math.max(WMIN,Math.min(WMAX, w + d*0.05));
+    w=Math.max(WMIN,Math.min(WMAX, w + d*0.09));
     if(Math.round(w)!==prev) buzz();
     render();
   });
