@@ -149,6 +149,36 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 @keyframes welcomePop { to{opacity:1;transform:none;} }
 @keyframes welcomeDraw { to{stroke-dashoffset:0;} }
 
+/* ---------- Account-first sign-in gate (front door) ---------- */
+html.gated, html.gated body { overflow:hidden; }
+.sigate { position:fixed; inset:0; z-index:250; background:var(--bg); display:none; overflow-y:auto; }
+.sigate.show { display:flex; align-items:flex-start; justify-content:center; }
+.sigate-box { width:100%; max-width:430px; min-height:100%; display:flex; flex-direction:column; }
+.sigate-hero { flex:none; position:relative; overflow:hidden; min-height:230px; padding:54px 28px; color:#fff; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(155deg,var(--green-500),var(--green-900)); }
+.sigate-hero::after { content:""; position:absolute; inset:0; background:radial-gradient(120px 120px at 18% 26%,rgba(255,255,255,.16),transparent 70%),radial-gradient(160px 160px at 86% 70%,rgba(255,255,255,.12),transparent 70%); }
+.sigate-logo { font-family:'DM Serif Display',serif; font-size:38px; line-height:1; letter-spacing:-.5px; z-index:1; }
+.sigate-logo .sun { display:inline-block; width:28px; height:28px; border-radius:50%; background:#fff; margin-right:6px; vertical-align:-2px; box-shadow:0 0 0 6px rgba(255,255,255,.18); }
+.sigate-tag { font-size:14px; line-height:1.5; color:rgba(255,255,255,.9); max-width:280px; margin-top:13px; z-index:1; }
+.sigate-sheet { flex:1; position:relative; z-index:2; background:var(--bg); border-radius:24px 24px 0 0; margin-top:-22px; padding:24px 22px calc(22px + env(safe-area-inset-bottom)); }
+.sigate-h { font-family:'DM Serif Display',serif; font-size:23px; text-align:center; color:var(--text-primary); }
+.sigate-sub { text-align:center; font-size:13px; color:var(--text-secondary); margin:5px 0 20px; }
+.sbtn { width:100%; display:flex; align-items:center; justify-content:center; gap:11px; border-radius:13px; padding:14px; font-size:15px; font-weight:700; font-family:'DM Sans',sans-serif; margin-bottom:10px; cursor:pointer; border:1.5px solid transparent; transition:transform .1s,background .15s,box-shadow .15s; }
+.sbtn:active { transform:scale(.985); }
+.sbtn svg { width:18px; height:18px; flex:none; }
+.sbtn.apple { background:#000; color:#fff; }
+.sbtn.google { background:#fff; color:#1f2024; border-color:#dcdcdc; }
+.sigate-or { display:flex; align-items:center; gap:12px; color:var(--text-tertiary); font-size:12px; margin:14px 2px 16px; }
+.sigate-or::before, .sigate-or::after { content:""; flex:1; height:1px; background:var(--border); }
+.sigate-cta { width:100%; border:none; border-radius:13px; padding:15px; font-size:16px; font-weight:700; font-family:'DM Sans',sans-serif; background:var(--green-500); color:#fff; cursor:pointer; margin-top:4px; transition:transform .1s,background .15s; }
+.sigate-cta:hover { background:var(--green-900); }
+.sigate-cta:active { transform:scale(.985); }
+.sigate-cta:disabled { opacity:.6; cursor:default; }
+.sigate-forgot { text-align:center; margin-top:12px; font-size:13px; color:var(--text-secondary); }
+.sigate-forgot a { color:var(--green-900); font-weight:600; cursor:pointer; }
+.sigate-toggle { text-align:center; font-size:13.5px; color:var(--text-secondary); margin-top:18px; }
+.sigate-toggle b { color:var(--green-900); font-weight:700; cursor:pointer; }
+.sigate-fine { text-align:center; font-size:11px; color:var(--text-tertiary); line-height:1.5; margin-top:16px; }
+
 /* ---------- Recipes ---------- */
 .recipe-add-btn { display:inline-flex; align-items:center; gap:8px; background:var(--green-500); color:#fff; border:none; border-radius:12px; padding:12px 18px; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:600; cursor:pointer; margin-bottom:18px; transition:background .15s,transform .1s; }
 .recipe-add-btn:hover { background:var(--green-900); }
@@ -744,6 +774,50 @@ html.show-splash .splash.splash-done {
     <div class="welcome-check" id="welcome-check"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></div>
     <div class="welcome-hi">Welcome</div>
     <div class="welcome-name" id="welcome-name"></div>
+  </div>
+</div>
+
+<!-- Account-first sign-in gate: the front door shown until you're signed in.
+     Reuses authSubmit/authSetMode/authForgot via the shared auth-* input ids. -->
+<div class="sigate" id="signin-gate" aria-hidden="true">
+  <div class="sigate-box">
+    <div class="sigate-hero">
+      <div class="sigate-logo"><span class="sun"></span>SummerBody</div>
+      <div class="sigate-tag">Train, eat and track — built for how you actually live. Mostly free, always yours.</div>
+    </div>
+    <div class="sigate-sheet">
+      <div class="sigate-h" id="auth-title">Welcome back</div>
+      <div class="sigate-sub" id="auth-sub">Sign in to pick up where you left off.</div>
+
+      <button class="sbtn apple" onclick="authOAuth('apple')">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.37 1.43c0 1.14-.42 2.18-1.25 3.06-.99 1.06-2.18 1.66-3.45 1.55-.02-.13-.03-.27-.03-.42 0-1.09.48-2.18 1.27-2.99.4-.41.91-.76 1.52-1.04.61-.27 1.18-.43 1.72-.46.01.1.02.2.02.3zM20.5 17.2c-.32.74-.7 1.42-1.16 2.05-.62.85-1.13 1.44-1.52 1.77-.61.55-1.27.83-1.97.85-.5 0-1.11-.14-1.81-.43-.71-.29-1.36-.43-1.96-.43-.62 0-1.29.14-2.01.43-.72.29-1.3.45-1.74.46-.67.03-1.34-.26-2.01-.87-.43-.36-.96-.97-1.6-1.83-.68-.92-1.24-1.99-1.68-3.21-.47-1.32-.7-2.6-.7-3.84 0-1.42.31-2.64.92-3.67.48-.82 1.13-1.47 1.93-1.95.8-.48 1.67-.73 2.6-.74.53 0 1.23.16 2.1.48.87.32 1.42.48 1.66.48.18 0 .8-.19 1.84-.56.99-.35 1.82-.49 2.51-.43 1.86.15 3.26.88 4.19 2.21-1.66 1.01-2.49 2.42-2.47 4.24.02 1.41.53 2.59 1.54 3.52.46.43.97.77 1.54 1.01-.12.36-.25.7-.4 1.03z"/></svg>
+        Continue with Apple
+      </button>
+      <button class="sbtn google" onclick="authOAuth('google')">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.3 9.14 5.38 12 5.38z"/></svg>
+        Continue with Google
+      </button>
+
+      <div class="sigate-or">or</div>
+
+      <div class="signin-field hide" id="auth-name-field">
+        <label for="auth-name">Your name</label>
+        <input class="signin-input" id="auth-name" placeholder="Your name" autocomplete="name">
+      </div>
+      <div class="signin-field">
+        <label for="auth-email">Email</label>
+        <input class="signin-input" id="auth-email" type="email" placeholder="you@email.com" autocomplete="email" inputmode="email">
+      </div>
+      <div class="signin-field">
+        <label for="auth-password">Password</label>
+        <input class="signin-input" id="auth-password" type="password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+
+      <button class="sigate-cta" id="auth-cta" onclick="authSubmit()">Sign in</button>
+      <div class="sigate-forgot" id="auth-forgot">Forgot your password? <a onclick="authForgot()">Reset it</a></div>
+      <div class="sigate-toggle" id="auth-toggle">New here? <b onclick="authSetMode('up')">Create account</b></div>
+      <div class="sigate-fine">By continuing you agree to our Terms &amp; Privacy Policy.</div>
+    </div>
   </div>
 </div>
 <script>
@@ -1456,36 +1530,11 @@ html.show-splash .splash.splash-done {
   </button>
   <div class="page-header">
     <h1>Account</h1>
-    <p>Sign in to keep your logs, weight and meal plan in sync across all your devices.</p>
+    <p>Manage your account and keep everything synced across your devices.</p>
   </div>
 
-  <!-- Signed out: Option 1 clean card -->
-  <div id="auth-out">
-    <div class="signin-mark">Summer<span>Body</span></div>
-    <div class="signin-card">
-      <div class="signin-seg" id="auth-seg">
-        <button class="on" data-mode="in" onclick="authSetMode('in')">Sign in</button>
-        <button data-mode="up" onclick="authSetMode('up')">Create account</button>
-      </div>
-      <h2 id="auth-title">Welcome back</h2>
-      <div class="signin-sub" id="auth-sub">Sign in to sync across your devices.</div>
-      <div class="signin-field hide" id="auth-name-field">
-        <label for="auth-name">Your name</label>
-        <input class="signin-input" id="auth-name" placeholder="Brian" autocomplete="name">
-      </div>
-      <div class="signin-field">
-        <label for="auth-email">Email</label>
-        <input class="signin-input" id="auth-email" type="email" placeholder="you@email.com" autocomplete="email" inputmode="email">
-      </div>
-      <div class="signin-field">
-        <label for="auth-password">Password</label>
-        <input class="signin-input" id="auth-password" type="password" placeholder="••••••••" autocomplete="current-password">
-      </div>
-      <button class="signin-btn" id="auth-cta" onclick="authSubmit()">Sign in</button>
-      <div class="signin-forgot" id="auth-forgot">Forgot your password? <a onclick="authForgot()">Reset it</a></div>
-    </div>
-    <div class="signin-note">Your data stays on this device too — signing in just keeps it in sync everywhere.</div>
-  </div>
+  <!-- Signed out users get the full-screen #signin-gate front door (defined near
+       the top of <body>), so this section only renders the signed-in view. -->
 
   <!-- Signed in -->
   <div id="auth-in" style="display:none">
@@ -3207,9 +3256,13 @@ function authSetMode(mode){
   document.querySelectorAll('#auth-seg button').forEach(b => b.classList.toggle('on', b.dataset.mode === _authMode));
   const nameField = document.getElementById('auth-name-field'); if (nameField) nameField.classList.toggle('hide', !up);
   const title = document.getElementById('auth-title'); if (title) title.textContent = up ? 'Create your account' : 'Welcome back';
-  const sub = document.getElementById('auth-sub'); if (sub) sub.textContent = up ? 'Just a name, email and password.' : 'Sign in to sync across your devices.';
+  const sub = document.getElementById('auth-sub'); if (sub) sub.textContent = up ? 'Apple, Google, or just an email — it’s free.' : 'Sign in to pick up where you left off.';
   const cta = document.getElementById('auth-cta'); if (cta) cta.textContent = up ? 'Create account' : 'Sign in';
   const forgot = document.getElementById('auth-forgot'); if (forgot) forgot.style.display = up ? 'none' : 'block';
+  const toggle = document.getElementById('auth-toggle');
+  if (toggle) toggle.innerHTML = up
+    ? 'Already have an account? <b onclick="authSetMode(\'in\')">Sign in</b>'
+    : 'New here? <b onclick="authSetMode(\'up\')">Create account</b>';
   const pw = document.getElementById('auth-password'); if (pw) pw.setAttribute('autocomplete', up ? 'new-password' : 'current-password');
 }
 
@@ -3241,6 +3294,24 @@ async function authSubmit(){
   finally { if (btn) { btn.disabled = false; btn.textContent = restore; } }
 }
 
+// One-tap providers. Redirects away and back; detectSessionInUrl + the
+// onAuthStateChange listener pick the session up on return. Until the provider
+// is enabled in the Supabase dashboard this surfaces a clear toast.
+async function authOAuth(provider){
+  if (!syncConfigured() || !sb) { showToast('Sign-in isn’t set up yet.', 'error'); return; }
+  try {
+    const { error } = await sb.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: location.href.split('#')[0] }
+    });
+    if (error) throw error;
+    // success → browser redirects to the provider; nothing more to do here.
+  } catch(e){
+    const label = provider.charAt(0).toUpperCase() + provider.slice(1);
+    showToast((e && e.message) || ('Could not continue with ' + label), 'error');
+  }
+}
+
 async function authForgot(){
   if (!sb) return;
   const email = (document.getElementById('auth-email').value || '').trim();
@@ -3267,21 +3338,24 @@ function syncNow(){
 }
 
 function reflectAuth(){
-  const out = document.getElementById('auth-out');
+  const gate = document.getElementById('signin-gate');
   const inn = document.getElementById('auth-in');
   const accBtn = document.getElementById('account-btn');
-  if (accBtn) accBtn.classList.toggle('signed-in', !!authUser);
-  if (!out || !inn) return;
+  // Account-first: show the full-screen front door whenever the auth client is
+  // ready but nobody's signed in. If the SDK never loaded (offline / not
+  // configured) sb stays null and we DON'T gate — the app stays usable.
+  const showGate = !!sb && !authUser;
+  if (gate) { gate.classList.toggle('show', showGate); gate.setAttribute('aria-hidden', showGate ? 'false' : 'true'); }
+  document.documentElement.classList.toggle('gated', showGate);
+  if (accBtn) { accBtn.classList.toggle('signed-in', !!authUser); accBtn.style.display = authUser ? '' : 'none'; }
+  if (inn) inn.style.display = authUser ? 'block' : 'none';
   if (authUser) {
-    out.style.display = 'none'; inn.style.display = 'block';
     const name = (authUser.user_metadata && authUser.user_metadata.name) || '';
     const greet = document.getElementById('auth-greeting');
     if (greet) greet.textContent = name ? ('Hey ' + name + ' 👋') : "You're signed in";
     const u = document.getElementById('auth-user'); if (u) u.textContent = authUser.email || '';
     const last = document.getElementById('auth-last');
     if (last) last.textContent = _lastSync ? ('Last synced ' + new Date(_lastSync).toLocaleTimeString()) : 'Syncing…';
-  } else {
-    out.style.display = 'block'; inn.style.display = 'none';
   }
 }
 

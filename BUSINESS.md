@@ -44,8 +44,10 @@ all in one place, mostly free.**
 | Now | Recipes from TikTok/IG/YouTube | Code done, gated behind "Coming soon" | Needs Anthropic API key live on the worker |
 | Next | Wearables: Apple Watch, Fitbit, Whoop, Oura | Planned (from TikTok idea) | **See §7 — Apple Watch forces a native app** |
 | Next | AI meal/macro help ("what do I eat to hit my protein") | Idea | Clear premium candidate (real AI cost) |
-| Later | App Store launch (native wrapper) | Deliberately deferred | Ties in with wearables — see §7 |
-| Later | **Liquid-glass bottom nav (native only)** | Planned for the app build | When we wrap natively for iOS, rebuild the bottom tab bar as Apple's real **Liquid Glass** material (translucent/blurred, iOS 26 style). Web stays as-is for now. |
+| Later | App Store launch — **native SwiftUI build** | Deliberately deferred | Ties in with wearables — see §7. **Decision: when we go native, build the iOS app in SwiftUI** (not just a Capacitor/web wrapper) so it can use Apple's real materials, animations and system integrations — the web PWA stays the cross-platform base, SwiftUI is the premium iOS layer. |
+| Later | **Liquid Glass throughout (native only)** | Planned for the SwiftUI build | In SwiftUI, lean into Apple's real **Liquid Glass** material (translucent/blurred, iOS 26 style) across the app — bottom tab bar first, then cards/sheets/nav where it fits. Web stays as-is for now. |
+| Later | **Apple Intelligence features (iOS 27)** | Idea — revisit when iOS 27 ships | When Apple Intelligence APIs land in iOS 27, use on-device/Apple models for things like natural-language food & workout logging, smart recaps and recovery suggestions — privacy-friendly (on-device) and ideally cost-free vs. our paid AI calls. Scope once the iOS 27 SDK is public. |
+| **Last** | **Rebrand — new product name** | Parked, do last | "SummerBody" was fine as a personal project but isn't a strong launch name for a 14–21 product. Rename only **after everything else is built & working** — no point rebranding a moving target. |
 | TBD | _(your "couple more things" — to be added)_ | — | Drop them in and we'll slot them |
 
 ---
