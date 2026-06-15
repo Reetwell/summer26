@@ -63,7 +63,8 @@ html,body{height:100%;}
 .dial .hole{position:absolute;inset:20px;border-radius:50%;background:var(--surface);box-shadow:inset 0 2px 10px rgba(0,0,0,.06);display:flex;flex-direction:column;align-items:center;justify-content:center;}
 .dial .hole .n{font-family:'DM Serif Display',serif;font-size:46px;line-height:1;color:var(--green-900);}
 .dial .hole .u{font-size:13px;color:var(--text-tertiary);margin-top:2px;}
-.dial .knob{position:absolute;top:8px;left:50%;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:#fff;border:3px solid var(--green-500);transform-origin:50% 107px;transition:transform .06s linear;will-change:transform;}
+.dial .knob{position:absolute;top:4px;left:50%;width:30px;height:30px;margin-left:-15px;border-radius:50%;background:#fff;border:4px solid var(--green-500);box-shadow:0 4px 12px -2px rgba(15,110,86,.55);transform-origin:50% 111px;transition:transform .06s linear;will-change:transform;display:grid;place-items:center;}
+.dial .knob::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--green-500);}
 .spin-hint{font-size:12px;color:var(--text-tertiary);margin-top:18px;}
 
 /* ---- step 5: goal-weight slider ---- */
@@ -83,19 +84,30 @@ html,body{height:100%;}
 .act-sub{font-size:13px;color:var(--text-secondary);margin-bottom:6px;}
 
 /* ---- step 7: days ---- */
-.days{display:flex;gap:9px;margin-top:8px;}
+.days{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin-top:8px;max-width:250px;}
 .day{width:42px;height:52px;border-radius:14px;border:2px solid var(--border);background:var(--surface);font-weight:700;font-size:14px;color:var(--text-secondary);display:grid;place-items:center;transition:transform .16s cubic-bezier(.34,1.56,.64,1),background .15s,color .15s,border-color .15s;}
 .day.on{background:var(--green-500);border-color:var(--green-500);color:#fff;transform:translateY(-4px) scale(1.06);}
 .day-count{margin-top:18px;font-size:14px;color:var(--text-secondary);}
 .day-count b{color:var(--green-900);}
 
 /* ---- step 8: finish ---- */
-.finish .ringbox{position:relative;width:180px;height:180px;}
+.finish{justify-content:flex-start;padding-top:34px;}
+.finish .ringbox{position:relative;width:128px;height:128px;}
 .finish svg{transform:rotate(-90deg);}
-.finish .rc{fill:none;stroke-width:14;stroke-linecap:round;}
-.finish .rc.bg{stroke:var(--gray-100);}
-.finish .rc.fg{stroke:var(--green-500);stroke-dasharray:471;stroke-dashoffset:471;transition:stroke-dashoffset 1.1s cubic-bezier(.4,0,.2,1);}
-.finish .ringbox .mid{position:absolute;inset:0;display:grid;place-items:center;font-size:42px;}
+.finish .rc{fill:none;stroke-width:11;stroke-linecap:round;}
+.finish .rc.bg{stroke:var(--green-50);}
+.finish .rc.fg{stroke:var(--green-500);stroke-dasharray:345;stroke-dashoffset:345;transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1) .15s;}
+.finish .ringbox .mid{position:absolute;inset:0;display:grid;place-items:center;font-size:46px;font-weight:800;color:var(--green-500);transform:scale(.2);opacity:0;transition:transform .55s cubic-bezier(.34,1.56,.64,1) .5s,opacity .4s .5s;}
+.finish.go .rc.fg{stroke-dashoffset:0;}
+.finish.go .mid{transform:scale(1);opacity:1;}
+.finish .recap{width:100%;max-width:330px;margin-top:22px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden;opacity:0;transform:translateY(14px);transition:opacity .5s .7s,transform .55s cubic-bezier(.4,0,.2,1) .7s;}
+.finish.go .recap{opacity:1;transform:none;}
+.recap .ru{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;font-size:14px;border-bottom:1px solid var(--border);}
+.recap .ru:last-child{border-bottom:0;}
+.recap .ru .lab{color:var(--text-secondary);display:flex;align-items:center;gap:9px;}
+.recap .ru .em{font-size:16px;}
+.recap .ru b{color:var(--text-primary);font-weight:700;}
+.recap .ru b .ar{color:var(--green-700);}
 .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:60;}
 .confetti i{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;opacity:0;}
 @keyframes fall{0%{opacity:1;transform:translateY(-10px) rotate(0)}100%{opacity:0;transform:translateY(105vh) rotate(540deg)}}
@@ -181,14 +193,19 @@ html,body{height:100%;}
       </section>
 
       <!-- 8 FINISH -->
-      <section class="step finish">
-        <div class="k" id="finK">All set</div>
-        <div class="q" id="finQ" style="margin-bottom:24px">You're ready, Brian 👊</div>
+      <section class="step finish" id="finStep">
         <div class="ringbox">
-          <svg width="180" height="180"><circle class="rc bg" cx="90" cy="90" r="75"/><circle class="rc fg" id="finRing" cx="90" cy="90" r="75"/></svg>
-          <div class="mid">🎯</div>
+          <svg width="128" height="128"><circle class="rc bg" cx="64" cy="64" r="55"/><circle class="rc fg" id="finRing" cx="64" cy="64" r="55"/></svg>
+          <div class="mid">✓</div>
         </div>
-        <div class="hint" style="margin-top:24px">Your plan's built around <b id="finGoal">your goal</b>. Let's go.</div>
+        <div class="k" style="margin-top:18px">All set</div>
+        <div class="q" id="finQ" style="margin-bottom:4px">You're ready, Brian 👊</div>
+        <div class="recap">
+          <div class="ru"><span class="lab"><span class="em">🎯</span>Goal</span><b id="rGoal">—</b></div>
+          <div class="ru"><span class="lab"><span class="em">🎂</span>Age</span><b id="rAge">—</b></div>
+          <div class="ru"><span class="lab"><span class="em">⚖️</span>Weight</span><b id="rWeight">—</b></div>
+          <div class="ru"><span class="lab"><span class="em">🏋️</span>Training</span><b id="rDays">—</b></div>
+        </div>
       </section>
 
     </div>
@@ -200,7 +217,7 @@ html,body{height:100%;}
 
 <script>
 const STEPS=8;
-let i=0, name='', goal='';
+let i=0, name='', goal='', ageVal=17, weightVal=70, goalWeightVal=66, daysCount=4;
 const track=document.getElementById('track'), bar=document.getElementById('bar'),
       back=document.getElementById('back'), cta=document.getElementById('cta');
 
@@ -227,7 +244,6 @@ function esc(s){return (s+'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':
 function pickGoal(el){
   document.querySelectorAll('.gcard').forEach(c=>c.classList.remove('sel'));
   el.classList.add('sel'); goal=el.dataset.goal;
-  document.getElementById('finGoal').textContent=goal.toLowerCase();
   buzz();
 }
 
@@ -244,7 +260,7 @@ const RMIN=14,RMAX=80,RTICK=24;
     cancelAnimationFrame(raf);
     raf=requestAnimationFrame(()=>{
       let v=Math.round(r.scrollLeft/RTICK)+RMIN; v=Math.max(RMIN,Math.min(RMAX,v));
-      if(v!==last){ last=v; buzz();
+      if(v!==last){ last=v; ageVal=v; buzz();
         const el=document.getElementById('ageNum');
         el.innerHTML=v+'<small> yrs</small>';
         el.classList.add('bump'); setTimeout(()=>el.classList.remove('bump'),220);
@@ -301,6 +317,8 @@ const RMIN=14,RMAX=80,RTICK=24;
     dial.style.background='conic-gradient(var(--green-500) '+(frac*360)+'deg,var(--gray-100) 0deg)';
     knob.style.transform='rotate('+(frac*360)+'deg)';
     num.textContent=w.toFixed(1);
+    weightVal=w;
+    document.getElementById('gwNow').textContent=Math.round(w);
   }
   function ang(e){const r=dial.getBoundingClientRect();return Math.atan2((e.clientY-(r.top+r.height/2)),(e.clientX-(r.left+r.width/2)))*180/Math.PI;}
   dial.addEventListener('pointerdown',e=>{dragging=true;lastA=ang(e);dial.setPointerCapture(e.pointerId);});
@@ -332,7 +350,8 @@ function makeSlider(wrapId,fillId,hdId,min,max,start,onChange){
 }
 /* step 5 goal weight */
 makeSlider('slider','sfill','shd',45,110,66,(v)=>{
-  document.getElementById('gwGoal').textContent=Math.round(v);
+  goalWeightVal=Math.round(v);
+  document.getElementById('gwGoal').textContent=goalWeightVal;
 });
 /* step 6 activity */
 const ACTS=[['🛋️','Not very active','Mostly sitting / rest'],['🚶','Lightly active','A few walks / light training'],['🏃','Active','Training 3–5× a week'],['🔥','Very active','Hard training most days']];
@@ -353,7 +372,7 @@ makeSlider('aslider','afill','ahd',0,3,1,(v)=>{
     b.onclick=()=>{on[idx]=!on[idx];b.classList.toggle('on',on[idx]);buzz();count();};
     wrap.appendChild(b);
   });
-  function count(){const n=on.filter(Boolean).length;
+  function count(){const n=on.filter(Boolean).length; daysCount=n;
     document.getElementById('dayCount').innerHTML='<b>'+n+(n===1?' day':' days')+'</b> a week'+(n>=3?' — nice':'');}
   count();
 })();
@@ -361,7 +380,13 @@ makeSlider('aslider','afill','ahd',0,3,1,(v)=>{
 /* step 8 finish */
 let celebrated=false;
 function celebrate(){
-  document.getElementById('finRing').style.strokeDashoffset='0';
+  // fill the recap with everything they just set
+  document.getElementById('rGoal').textContent = goal || 'Not set';
+  document.getElementById('rAge').textContent = ageVal + ' yrs';
+  document.getElementById('rWeight').innerHTML = weightVal.toFixed(1) + ' <span class="ar">→</span> ' + goalWeightVal + ' kg';
+  document.getElementById('rDays').textContent = daysCount + (daysCount===1?' day':' days') + ' / week';
+  // play the ring fill + checkmark + recap reveal
+  document.getElementById('finStep').classList.add('go');
   if(celebrated)return; celebrated=true;
   const box=document.getElementById('confetti'),cols=['#1D9E75','#378ADD','#7F77DD','#BA7517','#9FE1CB'];
   for(let n=0;n<70;n++){const s=document.createElement('i');
