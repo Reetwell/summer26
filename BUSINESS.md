@@ -84,14 +84,21 @@ costs plus a little**.
 |--------|-------|--------------|
 | **Monthly** | **£3–£4 / month** | Try it, cancel anytime |
 | **Annual** | ~£24–£30 / year (≈2 months free) | Committed users who want to save |
-| **Lifetime (one-time)** | **~£8.99–£9.99 once** *(confirm — Brian wrote "£89/99")* | Teens who hate recurring charges / one-tap on a parent's card |
+| **Lifetime (one-time)** | **~£50–£89 once** (leaning ~£59) | Super-fans who want to pay once and never think about it again |
 
-Why a cheap lifetime works *with* the thin-margin philosophy: AI cost per user is
-only pennies/month, so even a one-time £8.99 nets positive over a couple of years
-**and** removes the friction of a subscription — which matters a lot for an audience
-with no steady income. Risk: if a user is super-heavy on AI for years, a flat
-lifetime could go slightly underwater — capped by the per-user rate limits and the
-backend spend ceiling, so it can't run away.
+**The lifetime logic = price-lock.** Pay once and you're sealed in forever — even
+when the monthly price rises later, lifetime holders never pay again. It's
+deliberately premium because it's permanent. It also does two useful jobs:
+1. **Anchoring** — a £59–£89 lifetime sitting next to "£3.99/month" makes the
+   monthly look like a no-brainer. Most people buy the monthly *because* the
+   lifetime exists.
+2. **Upfront cash** — the few who do buy it hand us money now, not drip-fed.
+
+**Honest caveat for the 14–21 audience:** £50–89 upfront is a big ask for someone
+with no income — expect only a small % to take it (that's fine; that's not who it's
+for). The lifetime's main job is anchoring + serving die-hard fans, not volume.
+Cost-wise it's safe: AI per user is pennies/month, and rate limits + the spend
+ceiling stop even a heavy lifetime user from running costs away.
 
 The margin stays small by design; the goal is sustainability, not profit-maxing.
 We can always raise the free allowance if costs allow — err toward generous.
@@ -175,7 +182,7 @@ commit to the native build.
 
 ## 10. Immediate next actions
 
-- [ ] Confirm lifetime price (£8.99/9.99 vs £89.99) and which features are Plus-only
+- [ ] Lock lifetime price in the £50–£89 range (leaning ~£59) + which features are Plus-only
 - [ ] Add Anthropic API key to the worker → flip Recipes from "Coming soon" to live
 - [ ] Restore the paused Supabase project (fixes sign-in + sync)
 - [ ] Pick the first wearable to integrate (suggest Fitbit/Oura/Whoop via web first)
