@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SummerBody — Final · D on phone, Bento on tablet/desktop</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+/* ===== FINAL direction =====
+   < 600px  -> Concept D (Bento tiles + green Start-session hero + center-FAB tab bar)
+   >= 600px -> Concept B (plain Bento dashboard; tablet bottom-nav, desktop sidebar) */
+.app{min-height:100%;display:flex;flex-direction:column;}
+.only-phone{display:block;}
+.only-big{display:none;}
+@media(min-width:600px){ .only-phone{display:none!important;} .only-big{display:flex;} }
+
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--green-100);display:grid;place-items:center;font-weight:700;color:var(--green-900);flex:none;}
+
+/* ---------- header ---------- */
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px;background:linear-gradient(var(--bg) 78%,rgba(247,246,243,0));}
+.topbar .sub{font-size:12px;color:var(--text-tertiary);}
+.topbar .nm{font-family:'DM Serif Display',serif;font-size:23px;line-height:1.05;}
+.topbar .nm span{color:var(--green-500);}
+.hd{display:none;}
+@media(min-width:600px) and (max-width:1023px){
+  .hd{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:18px 22px 10px;background:var(--bg);}
+  .hd .sub{font-size:12px;color:var(--text-tertiary);}
+  .hd .nm{font-family:'DM Serif Display',serif;font-size:24px;}.hd .nm span{color:var(--green-500);}
+}
+
+/* ---------- layout shell ---------- */
+.wrap{flex:1;padding:4px 16px 110px;width:100%;max-width:520px;margin:0 auto;}
+.bento{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;}
+.tile h5{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-tertiary);margin-bottom:10px;}
+.span2{grid-column:span 2;}
+.desk-h{display:none;}
+
+@media(min-width:600px){
+  .wrap{padding:6px 22px 100px;max-width:1180px;}
+  .bento{grid-template-columns:repeat(4,1fr);gap:14px;}
+}
+
+/* ---------- PHONE hero (Concept C) ---------- */
+.hero{grid-column:span 2;position:relative;overflow:hidden;border-radius:var(--radius-xl);
+  background:linear-gradient(150deg,var(--green-700),var(--green-900));color:#fff;padding:20px 20px 22px;
+  box-shadow:0 18px 38px -16px rgba(15,110,86,.7);}
+.hero .lbl{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--green-100);}
+.hero .t{font-family:'DM Serif Display',serif;font-size:30px;line-height:1.05;margin:6px 0 4px;}
+.hero .meta{font-size:13px;color:rgba(255,255,255,.82);}
+.hero .streak{position:absolute;top:18px;right:18px;background:rgba(255,255,255,.16);color:#fff;font-weight:700;font-size:13px;padding:6px 12px;border-radius:999px;display:flex;align-items:center;gap:5px;}
+.hero .go{margin-top:16px;display:inline-flex;align-items:center;gap:9px;background:#fff;color:var(--green-900);font-weight:700;font-size:15px;padding:13px 22px;border-radius:999px;}
+.hero .go svg{width:16px;height:16px;fill:var(--green-900);}
+
+/* ---------- shared tiles ---------- */
+.t-ring{align-items:center;justify-content:center;text-align:center;gap:4px;}
+.t-ring .ring{--size:104px;position:relative;}.t-ring .ring-inner{position:relative;}
+.t-ring .cap{font-weight:600;font-size:13px;margin-top:6px;}
+@media(min-width:600px){ .t-ring{grid-column:span 2;} .t-ring .ring{--size:128px;} .t-ring .cap{margin-top:8px;} }
+
+.t-streak{background:linear-gradient(135deg,var(--amber-50),#fff);}
+.t-streak .big{font-family:'DM Serif Display',serif;font-size:42px;line-height:1;color:var(--amber-900);}
+
+.t-wt .n{font-family:'DM Serif Display',serif;font-size:30px;line-height:1;}
+.t-wt .delta{color:var(--green-700);font-weight:600;font-size:13px;margin-top:2px;}
+
+/* workout shown as a plain tile on big screens only */
+.t-wk .t{font-family:'DM Serif Display',serif;font-size:19px;margin-bottom:2px;}
+.t-wk .ex{font-size:13px;color:var(--text-secondary);margin-top:8px;line-height:1.7;}
+.t-wk .btn{margin-top:14px;width:100%;padding:12px;}
+
+.t-mac .row{display:flex;align-items:center;gap:10px;margin-bottom:11px;font-size:13px;}
+.t-mac .row:last-child{margin-bottom:0;}
+.t-mac .row .k{width:52px;font-weight:600;}
+.t-mac .row .v{width:66px;text-align:right;color:var(--text-tertiary);font-size:12px;}
+
+/* quick log — light on phone, green on big (matches Concept B) */
+.t-log{background:var(--green-50);border-color:transparent;gap:4px;}
+.t-log h5{color:var(--green-700);}
+.t-log .q{font-family:'DM Serif Display',serif;font-size:17px;line-height:1.15;color:var(--green-900);}
+.t-log .qb{display:flex;gap:7px;margin-top:11px;flex-wrap:wrap;}
+.t-log .qb button{background:#fff;color:var(--green-900);border:1px solid var(--green-100);border-radius:999px;padding:7px 12px;font-size:12.5px;font-weight:600;}
+@media(min-width:600px){
+  .t-log{background:var(--green-900);}
+  .t-log h5{color:rgba(255,255,255,.6);}
+  .t-log .q{color:#fff;font-size:20px;}
+  .t-log .qb button{background:rgba(255,255,255,.14);color:#fff;border:0;font-size:13px;padding:7px 13px;}
+}
+
+.t-rcp{padding:0;overflow:hidden;}
+.t-rcp img{width:100%;height:120px;object-fit:cover;background:var(--gray-100);}
+.t-rcp .b{padding:12px 14px;}
+.t-rcp .b .t{font-family:'DM Serif Display',serif;font-size:16px;}
+.t-rcp .b .pr{margin-top:8px;display:flex;gap:6px;}
+
+/* ---------- PHONE bottom nav (Concept A, center FAB) ---------- */
+.bnav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;padding:8px 6px calc(8px + env(safe-area-inset-bottom));}
+.bnav button{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--text-tertiary);flex:1;padding:4px 0;}
+.bnav button svg{width:23px;height:23px;stroke:var(--text-tertiary);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+.bnav button.on{color:var(--green-900);}.bnav button.on svg{stroke:var(--green-500);}
+.bnav .fab{flex:none;}
+.bnav .fab .plus{width:54px;height:54px;border-radius:50%;background:var(--green-500);display:grid;place-items:center;box-shadow:0 10px 24px -8px rgba(29,158,117,.7);margin-top:-22px;}
+.bnav .fab .plus svg{width:26px;height:26px;stroke:#fff;}
+
+/* ---------- TABLET bottom nav (Concept B) ---------- */
+.tbnav{display:none;}
+@media(min-width:600px) and (max-width:1023px){
+  .tbnav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--surface);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:10px 6px;}
+  .tbnav button{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;color:var(--text-tertiary);flex:1;}
+  .tbnav button svg{width:22px;height:22px;stroke:var(--text-tertiary);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+  .tbnav button.on{color:var(--green-900);}.tbnav button.on svg{stroke:var(--green-500);}
+}
+
+/* ---------- DESKTOP sidebar (Concept B) ---------- */
+.side{display:none;}
+@media(min-width:1024px){
+  .app{flex-direction:row;}
+  .side{display:flex;flex-direction:column;width:240px;flex:none;border-right:1px solid var(--border);background:var(--surface);padding:22px 16px;position:sticky;top:0;height:100vh;gap:6px;}
+  .side .logo{font-family:'DM Serif Display',serif;font-size:22px;padding:4px 12px 18px;}.side .logo span{color:var(--green-500);}
+  .side button{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:var(--radius-md);font-size:15px;font-weight:600;color:var(--text-secondary);text-align:left;}
+  .side button svg{width:21px;height:21px;stroke:var(--text-tertiary);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+  .side button.on{background:var(--green-50);color:var(--green-900);}.side button.on svg{stroke:var(--green-500);}
+  .wrap{padding:30px 36px;height:100vh;overflow:auto;max-width:none;}
+  .desk-h{display:block;font-family:'DM Serif Display',serif;font-size:30px;margin-bottom:18px;}.desk-h span{color:var(--green-500);}
+  .bento{grid-auto-rows:minmax(150px,auto);}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- desktop sidebar -->
+  <nav class="side">
+    <div class="logo">Summer<span>Body</span></div>
+    <button class="on"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg> Home</button>
+    <button><svg viewBox="0 0 24 24"><path d="M6 7v10M18 7v10M4 9h4M16 9h4M8 12h8"/></svg> Train</button>
+    <button><svg viewBox="0 0 24 24"><path d="M4 4h16v6a8 8 0 0 1-16 0z"/><path d="M9 4V2M15 4V2"/></svg> Meals</button>
+    <button><svg viewBox="0 0 24 24"><path d="M4 4v16h16"/><path d="M7 15l3-3 3 2 4-5"/></svg> Progress</button>
+    <button><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><polygon points="10 8 16 12 10 16"/></svg> Recipes</button>
+  </nav>
+
+  <!-- phone header -->
+  <header class="topbar only-phone">
+    <div><div class="sub">Sunday, 14 June</div><div class="nm">Hey, <span>Brian</span></div></div>
+    <div class="avatar">B</div>
+  </header>
+  <!-- tablet header -->
+  <header class="hd">
+    <div><div class="sub">Sunday, 14 June</div><div class="nm">Hey, <span>Brian</span></div></div>
+    <div class="avatar">B</div>
+  </header>
+
+  <div class="wrap">
+    <div class="desk-h">Hey, <span>Brian</span></div>
+    <div class="bento">
+
+      <!-- PHONE ONLY: green Start-session hero -->
+      <section class="hero only-phone">
+        <span class="streak">🔥 12</span>
+        <div class="lbl">Today · Push day</div>
+        <div class="t">Chest &amp; Triceps</div>
+        <div class="meta">4 exercises · ~45 min · let's move</div>
+        <a class="go"><svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20"/></svg> Start session</a>
+      </section>
+
+      <!-- daily goal ring -->
+      <div class="tile t-ring">
+        <div class="ring" style="--p:68"><div class="ring-inner"><div><div class="ring-num">68%</div><div class="ring-lbl">today's goal</div></div></div></div>
+        <div class="cap">Almost there 💪</div>
+      </div>
+
+      <!-- streak (big screens only — phone shows it in the hero chip) -->
+      <div class="tile t-streak only-big"><h5>Streak</h5><div class="big">12</div><div class="tiny">days · keep it alive</div></div>
+
+      <!-- weight -->
+      <div class="tile t-wt"><h5>Weight</h5><div class="n">78.6<span style="font-size:14px"> kg</span></div><div class="delta">▼ 0.4 this week</div>
+        <svg viewBox="0 0 120 40" style="width:100%;margin-top:auto"><polyline points="0,28 20,26 40,27 60,22 80,23 100,18 120,16" fill="none" stroke="var(--green-500)" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </div>
+
+      <!-- BIG SCREENS: workout as plain tile (no green hero) -->
+      <div class="tile t-wk span2 only-big"><h5>Up next · Lift</h5>
+        <div class="t">Push — Chest &amp; Triceps</div>
+        <div class="ex">Incline DB press · Cable fly · Overhead press · Triceps rope</div>
+        <button class="btn">Start session</button>
+      </div>
+
+      <!-- macros -->
+      <div class="tile t-mac span2"><h5>Fuel today</h5>
+        <div class="row"><span class="k">Protein</span><div class="mbar" style="flex:1"><i style="width:88%;background:var(--blue-500)"></i></div><span class="v">168 / 190</span></div>
+        <div class="row"><span class="k">Carbs</span><div class="mbar" style="flex:1"><i style="width:64%;background:var(--purple-500)"></i></div><span class="v">192 / 300</span></div>
+        <div class="row"><span class="k">Fat</span><div class="mbar" style="flex:1"><i style="width:52%;background:var(--green-500)"></i></div><span class="v">41 / 78</span></div>
+      </div>
+
+      <!-- quick log -->
+      <div class="tile t-log span2"><h5>Quick log</h5><div class="q">What did you just have?</div>
+        <div class="qb"><button>+ Protein</button><button>+ Water</button><button>+ Creatine</button><button>+ Meal</button></div>
+      </div>
+
+      <!-- recipe -->
+      <div class="tile t-rcp span2"><img src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=640&q=70" alt=""><div class="b"><div class="t">High-protein chicken wrap</div><div class="pr"><span class="pill pill-p">P 48</span><span class="pill pill-c">C 39</span><span class="pill pill-f">F 14</span></div></div></div>
+
+    </div>
+  </div>
+
+  <!-- phone bottom nav (center FAB) -->
+  <nav class="bnav only-phone">
+    <button class="on"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Today</button>
+    <button><svg viewBox="0 0 24 24"><path d="M6 7v10M18 7v10M4 9h4M16 9h4M8 12h8"/></svg>Train</button>
+    <button class="fab"><span class="plus"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span></button>
+    <button><svg viewBox="0 0 24 24"><path d="M4 4v16h16"/><path d="M7 15l3-3 3 2 4-5"/></svg>Progress</button>
+    <button><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><polygon points="10 8 16 12 10 16"/></svg>Recipes</button>
+  </nav>
+
+  <!-- tablet bottom nav -->
+  <nav class="tbnav">
+    <button class="on"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Home</button>
+    <button><svg viewBox="0 0 24 24"><path d="M6 7v10M18 7v10M4 9h4M16 9h4M8 12h8"/></svg>Train</button>
+    <button><svg viewBox="0 0 24 24"><path d="M4 4h16v6a8 8 0 0 1-16 0z"/><path d="M9 4V2M15 4V2"/></svg>Meals</button>
+    <button><svg viewBox="0 0 24 24"><path d="M4 4v16h16"/><path d="M7 15l3-3 3 2 4-5"/></svg>Progress</button>
+    <button><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><polygon points="10 8 16 12 10 16"/></svg>Recipes</button>
+  </nav>
+
+</div>
+</body>
+</html>

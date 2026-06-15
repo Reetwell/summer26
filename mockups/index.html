@@ -44,8 +44,9 @@ header p{color:var(--text-secondary);font-size:14px;margin-top:4px;}
 
 <div class="controls">
   <div class="seg big" id="concept">
-    <button data-c="d" class="on">D · Bento + A nav</button>
-    <button data-c="ab">★ A+B · Recommended</button>
+    <button data-c="final" class="on">★ Final · D phone + B big</button>
+    <button data-c="d">D · Bento + A nav (phone)</button>
+    <button data-c="ab">A+B hybrid</button>
     <button data-c="a">A · Today Feed</button>
     <button data-c="b">B · Bento</button>
     <button data-c="c">C · Hub & Stories</button>
@@ -63,7 +64,7 @@ header p{color:var(--text-secondary);font-size:14px;margin-top:4px;}
   <div class="frame-wrap" id="wrap">
     <div class="device phone" id="device-el">
       <div class="notch"></div>
-      <iframe id="frame" src="concept-d.html"></iframe>
+      <iframe id="frame" src="concept-final.html"></iframe>
     </div>
   </div>
 </div>
@@ -72,13 +73,14 @@ header p{color:var(--text-secondary);font-size:14px;margin-top:4px;}
 
 <script>
 const DESCS = {
+  final:"<b>★ Final direction — D on phone, plain Bento on tablet/desktop.</b> Your picks combined into one responsive layout. On a <b>phone</b>: Concept B's tiles topped by Concept C's green \"Start session\" hero (🔥 streak chip) with Concept A's center-＋ tab bar. On <b>tablet/desktop</b>: it drops the big hero for a calm equal-tile Bento grid → desktop sidebar. Switch device to watch it morph.",
   d:"<b>Concept D — Bento layout + Today-feed nav + the hero you liked.</b> Concept B's tile grid on the phone, topped by Concept C's green \"Start session\" hero (with the 🔥 streak chip), and Concept A's bottom tab bar with the center ＋. Built phone-first — the example you asked for.",
   ab:"<b>★ Recommended — A on phone, B on bigger screens.</b> Your pick: on a <b>phone (&lt;600px)</b> it's Concept A's single-scroll \"Today Feed\" with a center ＋ tab bar — lowest-friction, most TikTok-native. On <b>tablet &amp; desktop</b> it becomes Concept B's Bento dashboard (glanceable tiles → sidebar). One responsive layout, best of both. Resize or switch device to see it morph.",
   a:"<b>Concept A — Today Feed.</b> A single scrollable stack of \"what matters now\": daily goal ring + streak, next workout, macros, reminders, a saved recipe. Bottom tab bar with a center ＋ action. The most TikTok/Duolingo-native, lowest-friction option.",
   b:"<b>Concept B — Bento Dashboard.</b> Modular glanceable tiles (ring, streak, weight, workout, macros, quick-log, recipe). Tap a tile to dive in. 2-up on phone → full dashboard grid on desktop. The most premium & scalable (Apple Health / Spotify feel).",
   c:"<b>Concept C — Hub & Stories.</b> Story-style goal rings up top you tap through, one big focal \"Start session\" action, then swipeable carousels for your week & recipes. The most gesture-driven, app-like option (Instagram / Snap feel)."
 };
-let c='d', d='phone';
+let c='final', d='phone';
 const frame=document.getElementById('frame'), deviceEl=document.getElementById('device-el'),
       wrap=document.getElementById('wrap'), descEl=document.getElementById('desc'),
       openlink=document.getElementById('openlink'), stage=document.getElementById('stage');
