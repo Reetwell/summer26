@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SummerBody — Layout concepts</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+body{display:flex;flex-direction:column;min-height:100vh;}
+header{padding:22px 20px 6px;text-align:center;}
+header .logo{font-family:'DM Serif Display',serif;font-size:26px;}
+header .logo span{color:var(--green-500);}
+header p{color:var(--text-secondary);font-size:14px;margin-top:4px;}
+
+.controls{position:sticky;top:0;z-index:10;background:rgba(247,246,243,.92);backdrop-filter:blur(8px);padding:14px 16px;display:flex;flex-direction:column;gap:10px;align-items:center;border-bottom:1px solid var(--border);}
+.seg{display:inline-flex;background:var(--gray-100);border-radius:999px;padding:4px;gap:2px;}
+.seg button{padding:8px 16px;border-radius:999px;font-size:13px;font-weight:600;color:var(--text-secondary);white-space:nowrap;}
+.seg button.on{background:var(--surface);color:var(--green-900);box-shadow:0 1px 4px rgba(0,0,0,.1);}
+.seg.big button{padding:9px 18px;font-size:14px;}
+
+.desc{max-width:560px;text-align:center;color:var(--text-secondary);font-size:13.5px;line-height:1.55;padding:2px 16px 0;min-height:38px;}
+.desc b{color:var(--text-primary);}
+
+.stage{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:24px 12px 60px;overflow:auto;}
+.frame-wrap{transform-origin:top center;transition:transform .2s;}
+.device{background:#fff;border:1px solid var(--border-strong);overflow:hidden;position:relative;box-shadow:var(--shadow-lg);}
+.device.phone{width:390px;height:844px;border-radius:44px;border:11px solid #111;}
+.device.tablet{width:820px;height:1100px;border-radius:30px;border:13px solid #111;}
+.device.desktop{width:1280px;height:800px;border-radius:14px;border:1px solid var(--border-strong);}
+.device iframe{width:100%;height:100%;border:0;background:#fff;}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#111;border-radius:0 0 16px 16px;z-index:5;}
+.device.desktop .notch{display:none;}
+.device.tablet .notch{display:none;}
+
+.legend{text-align:center;font-size:12px;color:var(--text-tertiary);padding:0 16px 30px;}
+.openlink{display:inline-block;margin-top:8px;font-size:13px;font-weight:600;color:var(--green-700);}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Summer<span>Body</span> — layout concepts</div>
+  <p>Same colours & fonts, three different structures. Built for 14–21.</p>
+</header>
+
+<div class="controls">
+  <div class="seg big" id="concept">
+    <button data-c="a" class="on">A · Today Feed</button>
+    <button data-c="b">B · Bento</button>
+    <button data-c="c">C · Hub & Stories</button>
+  </div>
+  <div class="seg" id="device">
+    <button data-d="phone" class="on">📱 Phone</button>
+    <button data-d="tablet">📲 Tablet</button>
+    <button data-d="desktop">💻 Desktop</button>
+  </div>
+  <div class="desc" id="desc"></div>
+  <a class="openlink" id="openlink" target="_blank">Open this one full-screen ↗</a>
+</div>
+
+<div class="stage" id="stage">
+  <div class="frame-wrap" id="wrap">
+    <div class="device phone" id="device-el">
+      <div class="notch"></div>
+      <iframe id="frame" src="concept-a.html"></iframe>
+    </div>
+  </div>
+</div>
+
+<div class="legend">Tip: open each concept full-screen on your actual phone to feel it properly. Drag/scroll inside the frames — the carousels and lists really work.</div>
+
+<script>
+const DESCS = {
+  a:"<b>Concept A — Today Feed.</b> A single scrollable stack of \"what matters now\": daily goal ring + streak, next workout, macros, reminders, a saved recipe. Bottom tab bar with a center ＋ action. The most TikTok/Duolingo-native, lowest-friction option.",
+  b:"<b>Concept B — Bento Dashboard.</b> Modular glanceable tiles (ring, streak, weight, workout, macros, quick-log, recipe). Tap a tile to dive in. 2-up on phone → full dashboard grid on desktop. The most premium & scalable (Apple Health / Spotify feel).",
+  c:"<b>Concept C — Hub & Stories.</b> Story-style goal rings up top you tap through, one big focal \"Start session\" action, then swipeable carousels for your week & recipes. The most gesture-driven, app-like option (Instagram / Snap feel)."
+};
+let c='a', d='phone';
+const frame=document.getElementById('frame'), deviceEl=document.getElementById('device-el'),
+      wrap=document.getElementById('wrap'), descEl=document.getElementById('desc'),
+      openlink=document.getElementById('openlink'), stage=document.getElementById('stage');
+
+function render(){
+  frame.src = 'concept-'+c+'.html';
+  openlink.href = 'concept-'+c+'.html';
+  deviceEl.className = 'device '+d;
+  descEl.innerHTML = DESCS[c];
+  fit();
+}
+function fit(){
+  // scale the device frame down to fit the available width/height
+  const sizes={phone:[390,844],tablet:[820,1100],desktop:[1280,800]};
+  const [w,h]=sizes[d];
+  const availW = stage.clientWidth - 24;
+  const availH = stage.clientHeight - 24;
+  const scale = Math.min(1, availW/(w+30), availH/(h+30));
+  wrap.style.transform = 'scale('+scale.toFixed(3)+')';
+}
+document.getElementById('concept').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  document.querySelectorAll('#concept button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); c=b.dataset.c; render();
+});
+document.getElementById('device').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  document.querySelectorAll('#device button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); d=b.dataset.d; render();
+});
+window.addEventListener('resize',fit);
+render();
+</script>
+</body>
+</html>

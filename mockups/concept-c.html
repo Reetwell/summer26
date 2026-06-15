@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SummerBody — Concept C · Hub & Stories</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+/* ===== Concept C — Hub + Stories ===== */
+.app{min-height:100%;display:flex;flex-direction:column;}
+.hd{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:16px 18px 8px;background:var(--bg);}
+.hd .nm{font-family:'DM Serif Display',serif;font-size:22px;}
+.hd .nm span{color:var(--green-500);}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--green-100);display:grid;place-items:center;font-weight:700;color:var(--green-900);flex:none;}
+
+/* story rings strip */
+.stories{display:flex;gap:14px;overflow-x:auto;padding:8px 18px 14px;scrollbar-width:none;}
+.stories::-webkit-scrollbar{display:none;}
+.story{flex:none;display:flex;flex-direction:column;align-items:center;gap:6px;width:72px;}
+.story .rng{width:64px;height:64px;border-radius:50%;padding:3px;background:conic-gradient(var(--green-500) calc(var(--p,100)*1%),var(--gray-200) 0);}
+.story .rng.done{background:conic-gradient(var(--green-500) 100%,var(--green-500) 0);}
+.story .rng .face{width:100%;height:100%;border-radius:50%;background:var(--surface);display:grid;place-items:center;font-size:24px;border:2px solid var(--bg);}
+.story .lab{font-size:11px;color:var(--text-secondary);font-weight:600;text-align:center;}
+.story.add .rng{background:var(--gray-200);}
+.story.add .face{color:var(--text-tertiary);}
+
+.scroll{flex:1;padding-bottom:108px;width:100%;max-width:640px;margin:0 auto;}
+
+/* hero focal action */
+.hero{margin:4px 16px 8px;border-radius:var(--radius-xl);padding:24px 22px;color:#fff;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,var(--green-700),var(--green-500));box-shadow:0 20px 40px -24px rgba(15,110,86,.9);}
+.hero .k{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;opacity:.8;}
+.hero .t{font-family:'DM Serif Display',serif;font-size:28px;line-height:1.1;margin:6px 0 4px;}
+.hero .s{font-size:13px;opacity:.9;margin-bottom:18px;}
+.hero .go{display:inline-flex;align-items:center;gap:8px;background:#fff;color:var(--green-900);font-weight:700;border-radius:999px;padding:13px 22px;font-size:15px;}
+.hero .streak{position:absolute;top:18px;right:18px;background:rgba(255,255,255,.18);color:#fff;}
+
+/* horizontal section carousels */
+.sec{margin-top:18px;}
+.sec-h{display:flex;align-items:center;justify-content:space-between;padding:0 18px 10px;}
+.sec-h h4{font-family:'DM Serif Display',serif;font-size:19px;}
+.sec-h a{font-size:13px;color:var(--green-700);font-weight:600;}
+.rail{display:flex;gap:12px;overflow-x:auto;padding:0 18px 4px;scrollbar-width:none;scroll-snap-type:x mandatory;}
+.rail::-webkit-scrollbar{display:none;}
+.rail > *{scroll-snap-align:start;}
+
+.mini{flex:none;width:200px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden;}
+.mini img{width:100%;height:118px;object-fit:cover;background:var(--gray-100);}
+.mini .b{padding:12px 14px;}
+.mini .b .t{font-weight:600;font-size:14px;line-height:1.25;}
+.mini .b .m{margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;}
+
+.wkcard{flex:none;width:230px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:16px;}
+.wkcard .tag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:3px 8px;border-radius:999px;background:var(--blue-50);color:var(--blue-900);}
+.wkcard .t{font-family:'DM Serif Display',serif;font-size:17px;margin:10px 0 6px;}
+.wkcard .ex{font-size:12px;color:var(--text-secondary);line-height:1.6;}
+.wkcard.rest{background:var(--gray-50);}
+
+/* glance stat row */
+.glance{display:flex;gap:12px;overflow-x:auto;padding:0 18px;scrollbar-width:none;}
+.glance::-webkit-scrollbar{display:none;}
+.gstat{flex:none;min-width:120px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:14px 16px;}
+.gstat .n{font-family:'DM Serif Display',serif;font-size:26px;line-height:1;}
+.gstat .l{font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.04em;margin-top:4px;}
+
+/* bottom nav */
+.bnav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--surface);border-top:1px solid var(--border);
+  display:flex;justify-content:space-around;padding:8px 6px calc(8px + env(safe-area-inset-bottom));}
+.bnav button{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--text-tertiary);flex:1;padding:4px 0;}
+.bnav button svg{width:23px;height:23px;stroke:var(--text-tertiary);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+.bnav button.on{color:var(--green-900);}
+.bnav button.on svg{stroke:var(--green-500);}
+
+/* desktop */
+.side{display:none;}
+@media(min-width:1024px){
+  .app{flex-direction:row;}
+  .bnav{display:none;} .hd{display:none;}
+  .side{display:flex;flex-direction:column;width:240px;flex:none;border-right:1px solid var(--border);background:var(--surface);
+    padding:22px 16px;position:sticky;top:0;height:100vh;gap:6px;}
+  .side .logo{font-family:'DM Serif Display',serif;font-size:22px;padding:4px 12px 18px;}
+  .side .logo span{color:var(--green-500);}
+  .side button{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:var(--radius-md);font-size:15px;font-weight:600;color:var(--text-secondary);text-align:left;}
+  .side button svg{width:21px;height:21px;stroke:var(--text-tertiary);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+  .side button.on{background:var(--green-50);color:var(--green-900);}
+  .side button.on svg{stroke:var(--green-500);}
+  .scroll{max-width:none;padding:28px 36px 40px;height:100vh;overflow:auto;}
+  .stories{padding-left:0;padding-right:0;}
+  .hero{margin:0 0 8px;}
+  .sec-h,.rail,.glance{padding-left:0;padding-right:0;}
+  /* on desktop the rails can show more without scrolling */
+  .rail .mini{width:220px;}
+}
+@media(min-width:600px) and (max-width:1023px){ .scroll{max-width:760px;} }
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="side">
+    <div class="logo">Summer<span>Body</span></div>
+    <button class="on"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg> Hub</button>
+    <button><svg viewBox="0 0 24 24"><path d="M6 7v10M18 7v10M4 9h4M16 9h4M8 12h8"/></svg> Train</button>
+    <button><svg viewBox="0 0 24 24"><path d="M4 4h16v6a8 8 0 0 1-16 0z"/><path d="M9 4V2M15 4V2"/></svg> Meals</button>
+    <button><svg viewBox="0 0 24 24"><path d="M4 4v16h16"/><path d="M7 15l3-3 3 2 4-5"/></svg> Progress</button>
+    <button><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><polygon points="10 8 16 12 10 16"/></svg> Recipes</button>
+  </nav>
+
+  <header class="hd">
+    <div class="nm">Summer<span>Body</span></div>
+    <div class="avatar">B</div>
+  </header>
+
+  <div class="scroll">
+    <!-- STORY RINGS: tap through today's goals -->
+    <div class="stories">
+      <div class="story"><div class="rng done"><div class="face">🏋️</div></div><div class="lab">Train</div></div>
+      <div class="story"><div class="rng" style="--p:88"><div class="face">🥩</div></div><div class="lab">Protein</div></div>
+      <div class="story"><div class="rng" style="--p:55"><div class="face">💧</div></div><div class="lab">Water</div></div>
+      <div class="story"><div class="rng done"><div class="face">💊</div></div><div class="lab">Creatine</div></div>
+      <div class="story"><div class="rng" style="--p:30"><div class="face">😴</div></div><div class="lab">Sleep</div></div>
+      <div class="story add"><div class="rng"><div class="face">＋</div></div><div class="lab">Add</div></div>
+    </div>
+
+    <!-- HERO FOCAL ACTION -->
+    <section class="hero">
+      <span class="streak pill" style="font-size:12px">🔥 12</span>
+      <div class="k">Today · Push day</div>
+      <div class="t">Chest & Triceps</div>
+      <div class="s">4 exercises · ~45 min · let's move</div>
+      <button class="go">▶ Start session</button>
+    </section>
+
+    <!-- GLANCE STATS -->
+    <div class="glance" style="margin-top:16px">
+      <div class="gstat"><div class="n">68%</div><div class="l">today's goal</div></div>
+      <div class="gstat"><div class="n">168g</div><div class="l">protein</div></div>
+      <div class="gstat"><div class="n">78.6</div><div class="l">weight kg</div></div>
+      <div class="gstat"><div class="n">4</div><div class="l">workouts</div></div>
+    </div>
+
+    <!-- THIS WEEK carousel -->
+    <div class="sec">
+      <div class="sec-h"><h4>This week</h4><a>Full plan →</a></div>
+      <div class="rail">
+        <div class="wkcard"><span class="tag">Today · Push</span><div class="t">Chest & Triceps</div><div class="ex">Incline DB press · Cable fly · OHP · Triceps rope</div></div>
+        <div class="wkcard"><span class="tag" style="background:var(--purple-50);color:var(--purple-900)">Tue · Pull</span><div class="t">Back & Biceps</div><div class="ex">Pull-ups · Rows · Face pulls · Curls</div></div>
+        <div class="wkcard rest"><span class="tag" style="background:var(--gray-100);color:var(--text-tertiary)">Wed · Rest</span><div class="t">Active recovery</div><div class="ex">Walk · stretch · mobility</div></div>
+        <div class="wkcard"><span class="tag">Thu · Legs</span><div class="t">Quads & Hams</div><div class="ex">Squats · RDL · Leg press · Calves</div></div>
+      </div>
+    </div>
+
+    <!-- SAVED RECIPES carousel -->
+    <div class="sec">
+      <div class="sec-h"><h4>Your recipes</h4><a>See all →</a></div>
+      <div class="rail">
+        <div class="mini"><img src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=480&q=70" alt=""><div class="b"><div class="t">High-protein chicken wrap</div><div class="m"><span class="pill pill-p">P48</span><span class="pill pill-c">C39</span></div></div></div>
+        <div class="mini"><img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=480&q=70" alt=""><div class="b"><div class="t">Steak & rice bowl</div><div class="m"><span class="pill pill-p">P52</span><span class="pill pill-c">C61</span></div></div></div>
+        <div class="mini"><img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=480&q=70" alt=""><div class="b"><div class="t">Greek yogurt bark</div><div class="m"><span class="pill pill-p">P22</span><span class="pill pill-f">F6</span></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bnav">
+    <button class="on"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>Hub</button>
+    <button><svg viewBox="0 0 24 24"><path d="M6 7v10M18 7v10M4 9h4M16 9h4M8 12h8"/></svg>Train</button>
+    <button><svg viewBox="0 0 24 24"><path d="M4 4h16v6a8 8 0 0 1-16 0z"/><path d="M9 4V2M15 4V2"/></svg>Meals</button>
+    <button><svg viewBox="0 0 24 24"><path d="M4 4v16h16"/><path d="M7 15l3-3 3 2 4-5"/></svg>Progress</button>
+    <button><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><polygon points="10 8 16 12 10 16"/></svg>Recipes</button>
+  </nav>
+</div>
+</body>
+</html>

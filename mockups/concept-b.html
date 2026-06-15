@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SummerBody — Concept B · Bento Dashboard</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+/* ===== Concept B — Bento Dashboard ===== */
+.app{min-height:100%;display:flex;flex-direction:column;}
+.hd{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:18px 18px 10px;background:var(--bg);}
+.hd .nm{font-family:'DM Serif Display',serif;font-size:24px;}
+.hd .nm span{color:var(--green-500);}
+.hd .sub{font-size:12px;color:var(--text-tertiary);}
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--green-100);display:grid;place-items:center;font-weight:700;color:var(--green-900);flex:none;}
+
+.wrap{flex:1;padding:6px 16px 110px;width:100%;max-width:1180px;margin:0 auto;}
+.bento{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;grid-auto-rows:minmax(0,auto);}
+.tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;}
+.tile h5{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-tertiary);margin-bottom:10px;}
+.span2{grid-column:span 2;}
+
+/* ring tile */
+.t-ring{align-items:center;justify-content:center;text-align:center;gap:6px;}
+.t-ring .ring{--size:128px;position:relative;}
+.t-ring .ring-inner{position:relative;}
+.t-ring .cap{font-weight:600;margin-top:8px;}
+
+/* streak tile */
+.t-streak{background:linear-gradient(135deg,var(--amber-50),#fff);}
+.t-streak .big{font-family:'DM Serif Display',serif;font-size:46px;line-height:1;color:var(--amber-900);}
+.t-streak .em{font-size:30px;}
+
+/* workout tile */
+.t-wk .t{font-family:'DM Serif Display',serif;font-size:19px;margin-bottom:2px;}
+.t-wk .ex{font-size:13px;color:var(--text-secondary);margin-top:8px;line-height:1.7;}
+.t-wk .btn{margin-top:14px;width:100%;padding:12px;}
+
+/* macros tile */
+.t-mac .row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:13px;}
+.t-mac .row .k{width:54px;font-weight:600;}
+.t-mac .row .v{width:64px;text-align:right;color:var(--text-tertiary);font-size:12px;}
+
+/* weight tile */
+.t-wt .n{font-family:'DM Serif Display',serif;font-size:34px;line-height:1;}
+.t-wt .delta{color:var(--green-700);font-weight:600;font-size:13px;}
+
+/* recipe tile */
+.t-rcp{padding:0;overflow:hidden;}
+.t-rcp img{width:100%;height:120px;object-fit:cover;background:var(--gray-100);}
+.t-rcp .b{padding:12px 14px;}
+.t-rcp .b .t{font-family:'DM Serif Display',serif;font-size:16px;}
+
+/* quick log tile */
+.t-log{background:var(--green-900);color:#fff;justify-content:center;align-items:flex-start;gap:6px;}
+.t-log h5{color:rgba(255,255,255,.6);}
+.t-log .q{font-family:'DM Serif Display',serif;font-size:20px;line-height:1.15;}
+.t-log .qb{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.t-log .qb button{background:rgba(255,255,255,.14);color:#fff;border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600;}
+
+/* bottom nav */
+.bnav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--surface);border-top:1px solid var(--border);
+  display:flex;justify-content:space-around;padding:8px 6px calc(8px + env(safe-area-inset-bottom));}
+.bnav button{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--text-tertiary);flex:1;padding:4px 0;}
+.bnav button svg{width:23px;height:23px;stroke:var(--text-tertiary);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+.bnav button.on{color:var(--green-900);}
+.bnav button.on svg{stroke:var(--green-500);}
+
+/* tablet */
+@media(min-width:600px){
+  .bento{grid-template-columns:repeat(4,1fr);gap:14px;}
+  .span2{grid-column:span 2;}
+  .span4{grid-column:span 4;}
+}
+/* desktop: sidebar + bigger bento */
+.side{display:none;}
+@media(min-width:1024px){
+  .app{flex-direction:row;}
+  .bnav{display:none;}
+  .hd{display:none;}
+  .side{display:flex;flex-direction:column;width:240px;flex:none;border-right:1px solid var(--border);background:var(--surface);
+    padding:22px 16px;position:sticky;top:0;height:100vh;gap:6px;}
+  .side .logo{font-family:'DM Serif Display',serif;font-size:22px;padding:4px 12px 18px;}
+  .side .logo span{color:var(--green-500);}
+  .side button{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:var(--radius-md);font-size:15px;font-weight:600;color:var(--text-secondary);text-align:left;}
+  .side button svg{width:21px;height:21px;stroke:var(--text-tertiary);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+  .side button.on{background:var(--green-50);color:var(--green-900);}
+  .side button.on svg{stroke:var(--green-500);}
+  .wrap{padding:30px 36px;height:100vh;overflow:auto;max-width:none;}
+  .wrap .desk-h{font-family:'DM Serif Display',serif;font-size:30px;margin-bottom:18px;}
+  .wrap .desk-h span{color:var(--green-500);}
+  .bento{grid-template-columns:repeat(4,1fr);grid-auto-rows:minmax(150px,auto);}
+}
+@media(max-width:1023px){ .desk-h{display:none;} }
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="side">
+    <div class="logo">Summer<span>Body</span></div>
+    <button class="on"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg> Dashboard</button>
+    <button><svg viewBox="0 0 24 24"><path d="M6 7v10M18 7v10M4 9h4M16 9h4M8 12h8"/></svg> Train</button>
+    <button><svg viewBox="0 0 24 24"><path d="M4 4h16v6a8 8 0 0 1-16 0z"/><path d="M9 4V2M15 4V2"/></svg> Meals</button>
+    <button><svg viewBox="0 0 24 24"><path d="M4 4v16h16"/><path d="M7 15l3-3 3 2 4-5"/></svg> Progress</button>
+    <button><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><polygon points="10 8 16 12 10 16"/></svg> Recipes</button>
+  </nav>
+
+  <header class="hd">
+    <div><div class="sub">Sunday, 14 June</div><div class="nm">Hey, <span>Brian</span></div></div>
+    <div class="avatar">B</div>
+  </header>
+
+  <div class="wrap">
+    <div class="desk-h">Hey, <span>Brian</span></div>
+    <div class="bento">
+
+      <!-- daily ring -->
+      <div class="tile t-ring span2">
+        <div class="ring" style="--p:68;--size:128px"><div class="ring-inner"><div><div class="ring-num">68%</div><div class="ring-lbl">today's goal</div></div></div></div>
+        <div class="cap">Almost there 💪</div>
+      </div>
+
+      <!-- streak -->
+      <div class="tile t-streak"><h5>Streak</h5><div class="big">12</div><div class="tiny">days · keep it alive</div></div>
+
+      <!-- weight -->
+      <div class="tile t-wt"><h5>Weight</h5><div class="n">78.6<span style="font-size:15px"> kg</span></div><div class="delta">▼ 0.4 this week</div>
+        <svg viewBox="0 0 120 40" style="width:100%;margin-top:auto"><polyline points="0,28 20,26 40,27 60,22 80,23 100,18 120,16" fill="none" stroke="var(--green-500)" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </div>
+
+      <!-- next workout -->
+      <div class="tile t-wk span2"><h5>Up next · Lift</h5>
+        <div class="t">Push — Chest & Triceps</div>
+        <div class="ex">Incline DB press · Cable fly · Overhead press · Triceps rope</div>
+        <button class="btn">Start session</button>
+      </div>
+
+      <!-- macros -->
+      <div class="tile t-mac span2"><h5>Fuel today</h5>
+        <div class="row"><span class="k">Protein</span><div class="mbar" style="flex:1"><i style="width:88%;background:var(--blue-500)"></i></div><span class="v">168/190</span></div>
+        <div class="row"><span class="k">Carbs</span><div class="mbar" style="flex:1"><i style="width:64%;background:var(--purple-500)"></i></div><span class="v">192/300</span></div>
+        <div class="row"><span class="k">Fat</span><div class="mbar" style="flex:1"><i style="width:52%;background:var(--green-500)"></i></div><span class="v">41/78</span></div>
+      </div>
+
+      <!-- quick log (action tile) -->
+      <div class="tile t-log span2"><h5>Quick log</h5><div class="q">What did you just have?</div>
+        <div class="qb"><button>+ Protein</button><button>+ Water</button><button>+ Creatine</button><button>+ Meal</button></div>
+      </div>
+
+      <!-- recipe -->
+      <div class="tile t-rcp span2"><img src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=640&q=70" alt=""><div class="b"><div class="t">High-protein chicken wrap</div><div style="margin-top:8px;display:flex;gap:6px"><span class="pill pill-p">P 48</span><span class="pill pill-c">C 39</span><span class="pill pill-f">F 14</span></div></div></div>
+
+    </div>
+  </div>
+
+  <nav class="bnav">
+    <button class="on"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Home</button>
+    <button><svg viewBox="0 0 24 24"><path d="M6 7v10M18 7v10M4 9h4M16 9h4M8 12h8"/></svg>Train</button>
+    <button><svg viewBox="0 0 24 24"><path d="M4 4h16v6a8 8 0 0 1-16 0z"/><path d="M9 4V2M15 4V2"/></svg>Meals</button>
+    <button><svg viewBox="0 0 24 24"><path d="M4 4v16h16"/><path d="M7 15l3-3 3 2 4-5"/></svg>Progress</button>
+    <button><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><polygon points="10 8 16 12 10 16"/></svg>Recipes</button>
+  </nav>
+</div>
+</body>
+</html>
