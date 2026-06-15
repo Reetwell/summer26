@@ -178,6 +178,9 @@ html.gated, html.gated body { overflow:hidden; }
 .sigate-toggle { text-align:center; font-size:13.5px; color:var(--text-secondary); margin-top:18px; }
 .sigate-toggle b { color:var(--green-900); font-weight:700; cursor:pointer; }
 .sigate-fine { text-align:center; font-size:11px; color:var(--text-tertiary); line-height:1.5; margin-top:16px; }
+.sigate-dev { text-align:center; margin-top:14px; }
+.sigate-dev a { font-size:12px; color:var(--text-tertiary); cursor:pointer; text-decoration:underline dotted; }
+.dev-skip-pill { position:fixed; bottom:16px; left:16px; z-index:300; display:inline-flex; align-items:center; gap:6px; background:var(--amber-50); color:var(--amber-900); border:1px solid var(--amber-500); border-radius:999px; padding:7px 13px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:600; cursor:pointer; box-shadow:0 6px 18px -8px rgba(0,0,0,.3); }
 
 /* Desktop / tablet: centre the card instead of pinning a phone column to the top */
 @media (min-width:600px) {
@@ -845,9 +848,13 @@ html.show-splash .splash.splash-done {
       <div class="sigate-forgot" id="auth-forgot">Forgot your password? <a onclick="authForgot()">Reset it</a></div>
       <div class="sigate-toggle" id="auth-toggle">New here? <b onclick="authSetMode('up')">Create account</b></div>
       <div class="sigate-fine">By continuing you agree to our Terms &amp; Privacy Policy.</div>
+      <!-- TEMP dev only — remove before launch -->
+      <div class="sigate-dev"><a onclick="devSkipSignin()">Skip sign-in (dev) →</a></div>
     </div>
   </div>
 </div>
+<!-- TEMP dev only — floating pill to restore the gate while sign-in is skipped -->
+<button class="dev-skip-pill" id="dev-skip-pill" style="display:none" onclick="devUndoSkip()">🔓 sign-in skipped · tap to restore</button>
 <script>
   (function () {
     try {
@@ -3437,6 +3444,18 @@ function syncNow(){
     .catch(() => showToast('Sync failed — try again', 'error'));
 }
 
+// TEMP (dev only): skip the sign-in gate while building the app. Persists across
+// reloads via localStorage; the floating dev pill clears it. Remove before launch.
+function devSkipSignin(){
+  localStorage.setItem('sbp-dev-skip', '1');
+  reflectAuth();
+  showToast('Sign-in skipped (dev mode). Tap the pill to bring it back.', 'info');
+}
+function devUndoSkip(){
+  localStorage.removeItem('sbp-dev-skip');
+  reflectAuth();
+}
+
 function reflectAuth(){
   const gate = document.getElementById('signin-gate');
   const inn = document.getElementById('auth-in');
@@ -3444,9 +3463,13 @@ function reflectAuth(){
   // Account-first: show the full-screen front door whenever the auth client is
   // ready but nobody's signed in. If the SDK never loaded (offline / not
   // configured) sb stays null and we DON'T gate — the app stays usable.
-  const showGate = !!sb && !authUser;
+  const devSkip = localStorage.getItem('sbp-dev-skip') === '1';
+  const showGate = !!sb && !authUser && !devSkip;
   if (gate) { gate.classList.toggle('show', showGate); gate.setAttribute('aria-hidden', showGate ? 'false' : 'true'); }
   document.documentElement.classList.toggle('gated', showGate);
+  // TEMP dev pill: visible only while sign-in is skipped & nobody's signed in.
+  const pill = document.getElementById('dev-skip-pill');
+  if (pill) pill.style.display = (devSkip && !authUser) ? 'inline-flex' : 'none';
   if (accBtn) { accBtn.classList.toggle('signed-in', !!authUser); accBtn.style.display = authUser ? '' : 'none'; }
   if (inn) inn.style.display = authUser ? 'block' : 'none';
   if (authUser) {
