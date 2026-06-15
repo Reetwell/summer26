@@ -252,6 +252,8 @@ html.gated, html.gated body { overflow:hidden; }
 .page-header { margin-bottom: 24px; }
 .page-header h1 { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--text-primary); margin-bottom: 4px; }
 .page-header p { font-size: 14px; color: var(--text-secondary); }
+.only-big { display: none; }
+@media (min-width: 600px) { .only-big { display: block; } .only-phone { display: none; } }
 
 /* PHASE TOGGLE */
 .phase-toggle { display: flex; gap: 6px; margin-bottom: 20px; background: var(--gray-100); padding: 4px; border-radius: 24px; width: fit-content; }
@@ -577,6 +579,21 @@ html.gated, html.gated body { overflow:hidden; }
 .today-nudge { display: flex; align-items: center; gap: 10px; background: var(--amber-50); border: 1px solid rgba(186,117,23,0.2); color: var(--amber-900); border-radius: var(--radius-md); padding: 11px 14px; font-size: 13px; margin-bottom: 16px; }
 .today-nudge svg { width: 18px; height: 18px; flex-shrink: 0; stroke: var(--amber-500); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
+/* Start-session hero (new look) */
+.today-hero { position: relative; overflow: hidden; border-radius: var(--radius-xl); padding: 22px 22px 24px; margin-bottom: 16px; color: #fff; background: linear-gradient(150deg, var(--green-500), var(--green-900)); box-shadow: 0 14px 30px -16px rgba(29,158,117,.55); }
+.today-hero::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120px 120px at 16% 22%, rgba(255,255,255,.16), transparent 70%), radial-gradient(170px 170px at 88% 78%, rgba(255,255,255,.12), transparent 70%); }
+.today-hero > * { position: relative; z-index: 1; }
+.th-lbl { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--green-100); }
+.th-title { font-family: 'DM Serif Display', serif; font-size: 30px; line-height: 1.05; margin: 6px 0 4px; }
+.th-meta { font-size: 13px; color: rgba(255,255,255,.85); }
+.th-streak { position: absolute; top: 18px; right: 18px; background: rgba(255,255,255,.16); color: #fff; font-weight: 700; font-size: 13px; padding: 6px 12px; border-radius: 999px; display: inline-flex; align-items: center; gap: 5px; }
+.th-go { margin-top: 16px; display: inline-flex; align-items: center; gap: 9px; background: #fff; color: var(--green-900); font-weight: 700; font-size: 15px; padding: 13px 22px; border-radius: 999px; transition: transform .1s; }
+.th-go:active { transform: scale(.97); }
+.th-go svg { width: 16px; height: 16px; fill: var(--green-900); }
+.today-hero.rest { background: linear-gradient(150deg, #6f7b86, #3c4650); box-shadow: 0 14px 30px -16px rgba(60,70,80,.5); }
+.today-hero.rest .th-go { color: #3c4650; }
+.today-hero.rest .th-go svg { fill: #3c4650; }
+
 /* Summary rings / headline stats */
 .today-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
 .tsum-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; }
@@ -878,9 +895,18 @@ html.show-splash .splash.splash-done {
 
 <!-- ==================== TODAY ==================== -->
 <div class="section active" id="sec-today">
-  <div class="page-header">
+  <div class="page-header only-big">
     <h1>Today</h1>
     <p id="today-sub">Track your fuel for the day</p>
+  </div>
+
+  <!-- Start-session hero (new look) -->
+  <div class="today-hero" id="today-hero" onclick="heroStart()" role="button" tabindex="0">
+    <div class="th-streak" id="th-streak" style="display:none">🔥 <span id="th-streak-n">0</span></div>
+    <div class="th-lbl" id="th-lbl">Today's session</div>
+    <div class="th-title" id="th-title">Loading…</div>
+    <div class="th-meta" id="th-meta"></div>
+    <div class="th-go" id="th-go"><svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20"/></svg> <span id="th-go-label">Start session</span></div>
   </div>
 
   <div id="today-nudges"></div>
@@ -2977,9 +3003,72 @@ function removeJunk(ts) {
   renderToday();
 }
 
+function currentStreak() {
+  let streak = 0;
+  const today = new Date();
+  for(let i=0;i<60;i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().split('T')[0];
+    if(workoutLog[key]) streak++;
+    else if(i > 0) break;
+  }
+  return streak;
+}
+
+function heroStart() {
+  const s = getSessionForDate(new Date());
+  if(!s || s.sessionType === 'rest') { showSection('plan', document.querySelector('[onclick*="\'plan\'"]')); return; }
+  openSessionLogger();
+}
+
+function renderTodayHero() {
+  const hero = document.getElementById('today-hero');
+  if(!hero) return;
+  const today = new Date();
+  const s = getSessionForDate(today);
+  const lbl = document.getElementById('th-lbl');
+  const title = document.getElementById('th-title');
+  const meta = document.getElementById('th-meta');
+  const goLabel = document.getElementById('th-go-label');
+  const todayStr = today.toISOString().split('T')[0];
+  const hasLog = sessionLogs.find(l => l.date === todayStr);
+
+  hero.classList.remove('rest');
+  if(!s || s.sessionType === 'rest') {
+    hero.classList.add('rest');
+    lbl.textContent = 'Today';
+    title.textContent = 'Rest day';
+    meta.textContent = 'No gym — sleep, eat your protein, recover.';
+    goLabel.textContent = 'View your plan';
+  } else if(s.sessionType === 'football') {
+    lbl.textContent = "Today's session";
+    title.textContent = 'Football';
+    meta.textContent = 'Phase 1a · Week ' + s.week + ' · Counts as cardio';
+    goLabel.textContent = hasLog ? 'View session' : 'Mark as done';
+  } else if(s.sessionType === 'active') {
+    lbl.textContent = "Today's session";
+    title.textContent = 'Active rest';
+    meta.textContent = 'Phase 2 · Week ' + s.week + ' · Easy swim or walk';
+    goLabel.textContent = hasLog ? 'View session' : 'Mark as done';
+  } else {
+    const sd = SESSION_DATA[s.sessionType];
+    lbl.textContent = "Today's session";
+    title.textContent = sd ? sd.label : s.sessionType;
+    meta.textContent = 'Phase ' + s.phase + ' · Week ' + s.week + (hasLog ? ' · Done ✓' : '');
+    goLabel.textContent = hasLog ? 'View session' : 'Start session';
+  }
+
+  const streak = currentStreak();
+  const chip = document.getElementById('th-streak');
+  if(streak > 0) { chip.style.display = ''; document.getElementById('th-streak-n').textContent = streak; }
+  else { chip.style.display = 'none'; }
+}
+
 function renderToday() {
   const day = getDay();
   const tgt = todayTargets();
+  renderTodayHero();
   // headline
   const tot = day.meals.reduce((a,m)=>({kcal:a.kcal+m.kcal,p:a.p+m.p,c:a.c+m.c,f:a.f+m.f}),{kcal:0,p:0,c:0,f:0});
   document.getElementById('t-kcal').textContent = tot.kcal;
