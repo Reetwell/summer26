@@ -66,6 +66,34 @@ Send that URL to Claude, and it will plug it into the app and redeploy. Done.
 
 ---
 
+## Recipe extraction (optional add-on)
+
+The same Worker also powers the **"Add recipe from TikTok/Instagram/YouTube"**
+feature via a `POST /recipe/extract` endpoint. It reads the post's public
+caption/metadata and uses Claude to draft a structured recipe you then edit.
+
+To enable it, add one more secret in **Settings → Variables and Secrets**:
+
+| Type                 | Name                | Value                              |
+|----------------------|---------------------|------------------------------------|
+| **Secret** (encrypt) | `ANTHROPIC_API_KEY` | your Anthropic API key (`sk-ant-…`) |
+
+Deploy after adding it. If the key is missing the endpoint still works — it just
+returns a blank editable draft instead of an AI-filled one.
+
+**Abuse / cost protection (already in `worker.js`):**
+- The endpoint only accepts browser requests from `https://reetwell.github.io`
+  (and localhost for dev) via a strict CORS origin allowlist.
+- Per-IP rate limit of **30 extractions/hour** (stored in the same `REMINDERS`
+  KV under `rl:` keys), returning HTTP 429 when exceeded.
+- Uses Claude **Haiku** with `max_tokens: 1024` and a 6000-char input cap, so
+  each call costs a fraction of a cent.
+
+These limit accidental/abusive spend, but the endpoint is still public (no user
+auth), so keep an eye on Anthropic usage if the app goes widely public.
+
+---
+
 ## How it works
 
 - The app subscribes your phone to Web Push and sends the subscription +

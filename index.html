@@ -149,6 +149,45 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 @keyframes welcomePop { to{opacity:1;transform:none;} }
 @keyframes welcomeDraw { to{stroke-dashoffset:0;} }
 
+/* ---------- Recipes ---------- */
+.recipe-add-btn { display:inline-flex; align-items:center; gap:8px; background:var(--green-500); color:#fff; border:none; border-radius:12px; padding:12px 18px; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:600; cursor:pointer; margin-bottom:18px; transition:background .15s,transform .1s; }
+.recipe-add-btn:hover { background:var(--green-900); }
+.recipe-add-btn:active { transform:scale(.99); }
+.recipe-add-btn svg { width:18px; height:18px; stroke:#fff; stroke-width:2.4; stroke-linecap:round; fill:none; }
+.recipe-empty { text-align:center; padding:48px 20px; color:var(--text-tertiary); font-size:14px; }
+.recipe-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:14px; margin-bottom:14px; box-shadow:0 8px 24px -20px rgba(0,0,0,.4); }
+.recipe-card-head { display:flex; gap:12px; cursor:pointer; }
+.recipe-card-thumb { width:84px; height:84px; flex-shrink:0; border-radius:var(--radius-md); object-fit:cover; background:var(--gray-100); }
+.recipe-card-thumb.placeholder { display:flex; align-items:center; justify-content:center; }
+.recipe-card-thumb.placeholder svg { width:30px; height:30px; stroke:var(--gray-400); fill:none; stroke-width:1.6; }
+.recipe-card-info { flex:1; min-width:0; }
+.recipe-card-title { font-weight:600; font-size:15px; color:var(--text-primary); line-height:1.3; }
+.recipe-card-meta { font-size:12px; color:var(--text-tertiary); margin-top:3px; display:flex; align-items:center; gap:6px; }
+.recipe-plat { display:inline-flex; align-items:center; gap:4px; text-transform:capitalize; }
+.recipe-card-kcal { font-size:12px; color:var(--text-secondary); margin-top:4px; }
+.star-rating { display:inline-flex; gap:1px; margin-top:8px; }
+.star-rating.lg { gap:3px; }
+.star { background:none; border:none; cursor:pointer; font-size:18px; line-height:1; color:var(--gray-200); padding:2px; transition:color .12s,transform .12s; }
+.star-rating.lg .star { font-size:26px; }
+.star.on { color:#F5B301; }
+.star:active { transform:scale(1.2); }
+.rf-hint { font-weight:400; color:var(--text-tertiary); }
+.rf-textarea { min-height:96px; resize:vertical; line-height:1.5; }
+.rf-macros { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.rf-macros .signin-input { padding:11px 8px; text-align:center; }
+.recipe-embed { width:100%; border:0; border-radius:var(--radius-md); background:#000; margin-bottom:14px; display:block; }
+.recipe-embed.r-tiktok, .recipe-embed.r-instagram { aspect-ratio:9/16; max-height:60vh; }
+.recipe-embed.r-youtube { aspect-ratio:16/9; }
+.recipe-embed-fallback { display:flex; flex-direction:column; align-items:center; gap:10px; text-decoration:none; color:var(--green-900); font-weight:600; font-size:14px; padding:16px; border:1px dashed var(--border-strong); border-radius:var(--radius-md); margin-bottom:14px; }
+.recipe-embed-fallback img { width:100%; max-height:240px; object-fit:cover; border-radius:var(--radius-sm); }
+.rv-ings { margin:6px 0 14px; padding:0; list-style:none; }
+.rv-ings li { font-size:14px; color:var(--text-secondary); padding:6px 0; border-bottom:1px solid var(--border); }
+.rv-steps { margin:6px 0 14px; padding-left:20px; }
+.rv-steps li { font-size:14px; color:var(--text-primary); line-height:1.6; margin-bottom:8px; }
+.rv-section-title { font-family:'DM Serif Display',serif; font-size:17px; margin:14px 0 4px; }
+.recipe-delete { display:block; width:100%; margin-top:8px; background:transparent; border:1px solid var(--border); color:var(--text-secondary); border-radius:12px; padding:12px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:pointer; }
+.recipe-delete:hover { border-color:#d9534f; color:#d9534f; }
+
 .bottom-nav {
   display: none; position: fixed; bottom: 0; left: 0; right: 0;
   height: var(--bottom-nav-h); background: rgba(247,246,243,0.96);
@@ -156,7 +195,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
   z-index: 100; padding: 0 8px; padding-bottom: env(safe-area-inset-bottom);
   align-items: center; justify-content: space-around;
 }
-.bnav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--text-tertiary); border: none; background: none; min-width: 56px; }
+.bnav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 4px; border-radius: var(--radius-sm); cursor: pointer; color: var(--text-tertiary); border: none; background: none; min-width: 0; flex: 1; }
 .bnav-item i { font-size: 20px; }
 .bnav-item span { font-size: 10px; font-weight: 500; }
 .bnav-item.active { color: var(--green-500); }
@@ -727,6 +766,7 @@ html.show-splash .splash.splash-done {
     <button class="nav-link active" onclick="showSection('today',this)"><svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="5" y1="5" x2="7" y2="7"/><line x1="17" y1="17" x2="19" y2="19"/><line x1="19" y1="5" x2="17" y2="7"/><line x1="7" y1="17" x2="5" y2="19"/></svg> Today</button>
     <button class="nav-link" onclick="showSection('plan',this)"><svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="3" x2="8" y2="6"/><line x1="16" y1="3" x2="16" y2="6"/></svg> Training Plan</button>
     <button class="nav-link" onclick="showSection('meals',this)"><svg class="nav-icon" viewBox="0 0 24 24"><line x1="3" y1="11" x2="21" y2="11"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M9 4c.7 1 .7 2 0 3"/><path d="M13 4c.7 1 .7 2 0 3"/></svg> Meal Plan</button>
+    <button class="nav-link" onclick="showSection('recipes',this)"><svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><polygon points="10 8 16 12 10 16"/></svg> Recipes</button>
     <button class="nav-link" onclick="showSection('shopping',this)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M6 8h12v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></svg> Shopping</button>
     <button class="nav-link" onclick="showSection('progress',this)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M4 4v16h16"/><path d="M7 15l3-3 3 2 4-5"/></svg> Progress</button>
   </div>
@@ -742,6 +782,9 @@ html.show-splash .splash.splash-done {
   </button>
   <button class="bnav-item" onclick="showSection('meals',this)" data-bnav>
     <svg class="nav-icon" viewBox="0 0 24 24"><line x1="3" y1="11" x2="21" y2="11"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M9 4c.7 1 .7 2 0 3"/><path d="M13 4c.7 1 .7 2 0 3"/></svg><span>Meals</span>
+  </button>
+  <button class="bnav-item" onclick="showSection('recipes',this)" data-bnav>
+    <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><polygon points="10 8 16 12 10 16"/></svg><span>Recipes</span>
   </button>
   <button class="bnav-item" onclick="showSection('shopping',this)" data-bnav>
     <svg class="nav-icon" viewBox="0 0 24 24"><path d="M6 8h12v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></svg><span>Shopping</span>
@@ -1387,6 +1430,19 @@ html.show-splash .splash.splash-done {
   </div>
 </div>
 
+<!-- ==================== RECIPES ==================== -->
+<div class="section" id="sec-recipes">
+  <div class="page-header">
+    <h1>Recipes</h1>
+    <p>Save recipes from TikTok, Instagram &amp; YouTube — watch the video and keep the method.</p>
+  </div>
+  <button class="recipe-add-btn" onclick="openAddRecipe()">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Add a recipe
+  </button>
+  <div id="recipes-list"></div>
+</div>
+
 <!-- ==================== ACCOUNT / SIGN-IN ==================== -->
 <div class="section" id="sec-account">
   <button class="account-back" onclick="goHome()" aria-label="Back">
@@ -1453,6 +1509,66 @@ html.show-splash .splash.splash-done {
   </div>
 </div>
 
+<!-- ==================== ADD RECIPE MODAL ==================== -->
+<div id="recipe-modal" style="display:none;position:fixed;inset:0;z-index:200;">
+  <div class="modal-overlay" onclick="closeRecipeModal()"></div>
+  <div class="modal-panel">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="recipe-modal-title">Add a recipe</div>
+        <div class="modal-sub" id="recipe-modal-sub">Paste a TikTok, Instagram or YouTube link</div>
+      </div>
+      <button class="modal-close" onclick="closeRecipeModal()"><i class="fa-regular fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <!-- Phase 1: paste URL -->
+      <div id="recipe-step-url">
+        <div class="signin-field">
+          <label for="recipe-url-input">Video link</label>
+          <input type="url" class="signin-input" id="recipe-url-input" placeholder="tiktok.com/…  ·  instagram.com/reel/…  ·  youtu.be/…" autocomplete="off" autocapitalize="off" spellcheck="false">
+        </div>
+        <button class="signin-btn" id="recipe-get-btn" onclick="getRecipeDraft()">Get recipe</button>
+        <p class="signin-note" style="text-align:left">We’ll try to read the recipe from the caption and let you tidy it up. Instagram captions often can’t be read automatically — you can just type it in.</p>
+      </div>
+
+      <!-- Phase 2: edit draft -->
+      <div id="recipe-step-edit" style="display:none">
+        <div id="recipe-embed-slot"></div>
+        <div class="signin-field"><label for="rf-title">Title</label>
+          <input class="signin-input" id="rf-title" placeholder="e.g. High-protein chicken wrap"></div>
+        <div class="signin-field"><label for="rf-ingredients">Ingredients <span class="rf-hint">(one per line)</span></label>
+          <textarea class="signin-input rf-textarea" id="rf-ingredients" placeholder="180g chicken breast&#10;1 tortilla wrap&#10;30g light cheese"></textarea></div>
+        <div class="signin-field"><label for="rf-steps">Method <span class="rf-hint">(one step per line)</span></label>
+          <textarea class="signin-input rf-textarea" id="rf-steps" placeholder="Season and grill the chicken&#10;Warm the wrap&#10;Assemble and roll"></textarea></div>
+        <div class="signin-field"><label>Macros <span class="rf-hint">(optional)</span></label>
+          <div class="rf-macros">
+            <input class="signin-input" id="rf-p" type="number" inputmode="numeric" placeholder="P (g)">
+            <input class="signin-input" id="rf-c" type="number" inputmode="numeric" placeholder="C (g)">
+            <input class="signin-input" id="rf-f" type="number" inputmode="numeric" placeholder="F (g)">
+            <input class="signin-input" id="rf-kcal" type="number" inputmode="numeric" placeholder="kcal">
+          </div>
+        </div>
+        <button class="signin-btn" onclick="saveRecipe()">Save recipe</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== RECIPE DETAIL MODAL ==================== -->
+<div id="recipe-view-modal" style="display:none;position:fixed;inset:0;z-index:200;">
+  <div class="modal-overlay" onclick="closeRecipeView()"></div>
+  <div class="modal-panel">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="rv-title">Recipe</div>
+        <div class="modal-sub" id="rv-author"></div>
+      </div>
+      <button class="modal-close" onclick="closeRecipeView()"><i class="fa-regular fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" id="rv-body"></div>
+  </div>
+</div>
+
 </main>
 
 <div class="toast-wrap" id="toast-wrap"></div>
@@ -1472,6 +1588,7 @@ function showSection(id, el) {
   if(id === 'shopping') { updateShopProgress('sp1'); updateShopProgress('sp2'); }
   if(id === 'progress') { renderWorkoutGrid(); renderWeightChart(); renderSessionHistory(); updateLogSessionButton(); }
   if(id === 'today') { renderToday(); }
+  if(id === 'recipes') { renderRecipes(); }
 }
 
 // Account page (reached via the floating top-right button, not the main nav).
@@ -1597,6 +1714,197 @@ let workoutLog = loadStore('sbp-workouts', {});
 let shopState = loadStore('sbp-shop', {});
 let currentWeek = 1;
 let weightChart = null;
+
+// ==================== RECIPES ====================
+let recipes = loadStore('sbp-recipes', []);
+let _recipeDraft = null;
+const PLATFORM_LABEL = { tiktok:'TikTok', instagram:'Instagram', youtube:'YouTube' };
+
+function persistRecipes() { localStorage.setItem('sbp-recipes', JSON.stringify(recipes)); }
+
+// Build a safe embed for a recipe. iframes for YouTube/TikTok; thumbnail link
+// fallback for Instagram and unresolved TikTok ids.
+function buildEmbed(platform, id, thumbnail, canonicalUrl) {
+  if (platform === 'youtube' && id) {
+    return '<iframe class="recipe-embed r-youtube" src="https://www.youtube.com/embed/' + esc(id) +
+      '" loading="lazy" allow="encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>';
+  }
+  if (platform === 'tiktok' && id) {
+    return '<iframe class="recipe-embed r-tiktok" src="https://www.tiktok.com/embed/v2/' + esc(id) +
+      '" loading="lazy" allow="encrypted-media" allowfullscreen></iframe>';
+  }
+  return '<a class="recipe-embed-fallback" href="' + esc(canonicalUrl) + '" target="_blank" rel="noopener">' +
+    (thumbnail ? '<img src="' + esc(thumbnail) + '" alt="">' : '') +
+    '<span>Open on ' + esc(PLATFORM_LABEL[platform] || 'the app') + ' ↗</span></a>';
+}
+
+function openAddRecipe() {
+  _recipeDraft = null;
+  document.getElementById('recipe-modal-title').textContent = 'Add a recipe';
+  document.getElementById('recipe-modal-sub').textContent = 'Paste a TikTok, Instagram or YouTube link';
+  document.getElementById('recipe-step-url').style.display = 'block';
+  document.getElementById('recipe-step-edit').style.display = 'none';
+  document.getElementById('recipe-url-input').value = '';
+  document.getElementById('recipe-embed-slot').innerHTML = '';
+  document.getElementById('recipe-modal').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+function closeRecipeModal() {
+  document.getElementById('recipe-modal').style.display = 'none';
+  document.getElementById('recipe-embed-slot').innerHTML = ''; // tear down iframe
+  document.body.style.overflow = '';
+}
+
+async function getRecipeDraft() {
+  const url = document.getElementById('recipe-url-input').value.trim();
+  if (!url) { showToast('Paste a link first', 'error'); return; }
+  const btn = document.getElementById('recipe-get-btn');
+  btn.disabled = true; btn.textContent = 'Getting recipe…';
+  let d = null;
+  try {
+    const r = await fetch(REMINDER_BACKEND.replace(/\/$/, '') + '/recipe/extract', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+    if (r.ok) d = await r.json();
+    else if (r.status === 429) showToast('Too many tries — wait a bit and retry', 'error');
+    else if (r.status === 400) showToast('That link isn’t a TikTok/Instagram/YouTube post', 'error');
+  } catch (_) {}
+  btn.disabled = false; btn.textContent = 'Get recipe';
+
+  // Always open the editable form, even on failure (graceful degradation).
+  d = d || { platform: 'unknown', embedId: null, canonicalUrl: url, title: '', author: '', thumbnail: '', ingredients: [], steps: [], macros: null, extractionQuality: 'empty' };
+  _recipeDraft = { url, canonicalUrl: d.canonicalUrl || url, platform: d.platform, embedId: d.embedId || null, author: d.author || '', thumbnail: d.thumbnail || '' };
+
+  document.getElementById('rf-title').value = d.title || '';
+  document.getElementById('rf-ingredients').value = (d.ingredients || []).join('\n');
+  document.getElementById('rf-steps').value = (d.steps || []).join('\n');
+  document.getElementById('rf-p').value = d.macros ? (d.macros.p ?? '') : '';
+  document.getElementById('rf-c').value = d.macros ? (d.macros.c ?? '') : '';
+  document.getElementById('rf-f').value = d.macros ? (d.macros.f ?? '') : '';
+  document.getElementById('rf-kcal').value = d.macros ? (d.macros.kcal ?? '') : '';
+  document.getElementById('recipe-embed-slot').innerHTML = buildEmbed(d.platform, d.embedId, d.thumbnail, d.canonicalUrl);
+
+  if (d.extractionQuality === 'empty') showToast('Couldn’t read much — fill it in below', 'info');
+  else if (d.extractionQuality === 'good') showToast('Got it — check the details below', 'success');
+
+  document.getElementById('recipe-modal-title').textContent = 'Edit recipe';
+  document.getElementById('recipe-modal-sub').textContent = 'Tidy it up, then save';
+  document.getElementById('recipe-step-url').style.display = 'none';
+  document.getElementById('recipe-step-edit').style.display = 'block';
+}
+
+function saveRecipe() {
+  if (!_recipeDraft) return;
+  const toLines = s => s.split('\n').map(x => x.trim()).filter(Boolean);
+  const num = id => { const v = parseFloat(document.getElementById(id).value); return isNaN(v) ? 0 : v; };
+  const p = num('rf-p'), c = num('rf-c'), f = num('rf-f'), kcal = num('rf-kcal');
+  const rec = {
+    id: 'r_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    url: _recipeDraft.url, canonicalUrl: _recipeDraft.canonicalUrl,
+    platform: _recipeDraft.platform, embedId: _recipeDraft.embedId,
+    title: (document.getElementById('rf-title').value.trim()) || 'Untitled recipe',
+    author: _recipeDraft.author, thumbnail: _recipeDraft.thumbnail,
+    ingredients: toLines(document.getElementById('rf-ingredients').value),
+    steps: toLines(document.getElementById('rf-steps').value),
+    macros: (p || c || f || kcal) ? { p, c, f, kcal } : null,
+    tags: [], rating: 0,
+    createdAt: Date.now(), updatedAt: Date.now(),
+  };
+  recipes.unshift(rec);
+  persistRecipes();
+  closeRecipeModal();
+  renderRecipes();
+  showToast('Recipe saved', 'success');
+}
+
+function renderRecipes() {
+  const wrap = document.getElementById('recipes-list');
+  if (!wrap) return;
+  if (!recipes.length) {
+    wrap.innerHTML = '<div class="recipe-empty">No saved recipes yet.<br>Tap “Add a recipe” and paste a link to get started.</div>';
+    return;
+  }
+  wrap.innerHTML = recipes.map(r => {
+    const thumb = r.thumbnail
+      ? '<img class="recipe-card-thumb" loading="lazy" src="' + esc(r.thumbnail) + '" alt="">'
+      : '<div class="recipe-card-thumb placeholder"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><polygon points="10 8 16 12 10 16"/></svg></div>';
+    const kcal = (r.macros && r.macros.kcal) ? '<div class="recipe-card-kcal">~' + r.macros.kcal + ' kcal</div>' : '';
+    return '<div class="recipe-card">' +
+      '<div class="recipe-card-head" onclick="openRecipe(\'' + r.id + '\')">' +
+        thumb +
+        '<div class="recipe-card-info">' +
+          '<div class="recipe-card-title">' + esc(r.title) + '</div>' +
+          '<div class="recipe-card-meta"><span class="recipe-plat">' + esc(PLATFORM_LABEL[r.platform] || r.platform || '') + '</span>' +
+            (r.author ? '· ' + esc(r.author) : '') + '</div>' +
+          kcal +
+        '</div>' +
+      '</div>' +
+      starRatingHtml(r.id, r.rating, false) +
+    '</div>';
+  }).join('');
+}
+
+function starRatingHtml(id, rating, large) {
+  let s = '<div class="star-rating' + (large ? ' lg' : '') + '" data-rid="' + id + '">';
+  for (let i = 1; i <= 5; i++) {
+    s += '<button class="star' + (i <= rating ? ' on' : '') + '" onclick="event.stopPropagation();setRating(\'' + id + '\',' + i + ')" aria-label="' + i + ' star' + (i > 1 ? 's' : '') + '">★</button>';
+  }
+  return s + '</div>';
+}
+
+function setRating(id, n) {
+  const r = recipes.find(x => x.id === id);
+  if (!r) return;
+  r.rating = (r.rating === n) ? 0 : n;   // tap the same star to clear
+  r.updatedAt = Date.now();
+  persistRecipes();
+  renderRecipes();
+  // keep the detail view in sync if open
+  const open = document.getElementById('recipe-view-modal');
+  if (open && open.style.display === 'block' && _openRecipeId === id) {
+    const slot = document.getElementById('rv-rating');
+    if (slot) slot.outerHTML = '<div id="rv-rating">' + starRatingHtml(id, r.rating, true) + '</div>';
+  }
+}
+
+let _openRecipeId = null;
+function openRecipe(id) {
+  const r = recipes.find(x => x.id === id);
+  if (!r) return;
+  _openRecipeId = id;
+  document.getElementById('rv-title').textContent = r.title;
+  document.getElementById('rv-author').textContent = (PLATFORM_LABEL[r.platform] || '') + (r.author ? ' · ' + r.author : '');
+  const ings = r.ingredients.length
+    ? '<div class="rv-section-title">Ingredients</div><ul class="rv-ings">' + r.ingredients.map(i => '<li>' + esc(i) + '</li>').join('') + '</ul>'
+    : '';
+  const steps = r.steps.length
+    ? '<div class="rv-section-title">Method</div><ol class="rv-steps">' + r.steps.map(s => '<li>' + esc(s) + '</li>').join('') + '</ol>'
+    : '';
+  const macros = r.macros
+    ? '<div class="mpills"><span class="pill pill-p">P: ' + r.macros.p + 'g</span><span class="pill pill-c">C: ' + r.macros.c + 'g</span><span class="pill pill-f">F: ' + r.macros.f + 'g</span></div>'
+    : '';
+  document.getElementById('rv-body').innerHTML =
+    buildEmbed(r.platform, r.embedId, r.thumbnail, r.canonicalUrl) +
+    '<div id="rv-rating">' + starRatingHtml(id, r.rating, true) + '</div>' +
+    ings + steps + macros +
+    '<button class="recipe-delete" onclick="deleteRecipe(\'' + id + '\')">Delete recipe</button>';
+  document.getElementById('recipe-view-modal').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+function closeRecipeView() {
+  document.getElementById('recipe-view-modal').style.display = 'none';
+  document.getElementById('rv-body').innerHTML = ''; // tear down iframe
+  _openRecipeId = null;
+  document.body.style.overflow = '';
+}
+function deleteRecipe(id) {
+  recipes = recipes.filter(x => x.id !== id);
+  persistRecipes();
+  closeRecipeView();
+  renderRecipes();
+  showToast('Recipe deleted', 'info');
+}
 
 // Training days per week (0=Sun,1=Mon,...,6=Sat)
 const trainingDays = {
@@ -2693,7 +3001,7 @@ let remState = loadStore('sbp-reminders', { enabled:false, protein:'09:00', crea
 const SUPABASE_URL = 'https://owqyrgufwvqgbrpdpskx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93cXlyZ3Vmd3ZxZ2JycGRwc2t4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MzczOTQsImV4cCI6MjA5NjMxMzM5NH0.Z_zUJbKvO6-FBbKheDmlVu46XjT9toFaVlct12IY8zU';
 
-const SYNC_KEYS = ['sbp-today','sbp-weight','sbp-workouts','sbp-session-logs','sbp-shop','sbp-mealplan'];
+const SYNC_KEYS = ['sbp-today','sbp-weight','sbp-workouts','sbp-session-logs','sbp-shop','sbp-mealplan','sbp-recipes'];
 const SYNC_KEY_SET = new Set(SYNC_KEYS);
 
 // Capture the real setter BEFORE patching, so our own sync writes don't recurse.
