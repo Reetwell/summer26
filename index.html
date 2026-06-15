@@ -832,8 +832,8 @@ html.show-splash .splash.splash-done {
   color: #fff;
   font-family: "DM Serif Display", Georgia, serif;
   line-height: 1.32;           /* taller line-box so descenders (y) aren't cut off */
-  font-size: clamp(46px, 15vw, 68px);
-  letter-spacing: .5px;
+  font-size: clamp(32px, 10.5vw, 54px);
+  letter-spacing: .3px;
   overflow: visible;
   opacity: 0;                  /* hidden until JS has measured + positioned the letters */
   transform: translateZ(0);    /* own compositor layer for buttery transforms */
@@ -874,12 +874,15 @@ html.show-splash .splash.splash-done {
 </head>
 <body>
 
-<!-- Launch splash: SB monogram expands into the SummerBody wordmark.
+<!-- Launch splash: BB monogram expands into the "Build Your Body" wordmark.
+     The two anchor letters (data-g s/b) are the B of "Build" and the B of
+     "Body"; they collapse to a centred "BB" monogram, hold, then split apart
+     while "uild Your" (white) and "ody" (mint italic) materialise in place.
      Only shown when running as an installed/standalone PWA so browser tabs
      don't get a green flash. The guard runs inline (before paint) to add the
      class that reveals it. -->
 <div class="splash" id="splash" aria-hidden="true">
-  <div class="splash-mark" id="splash-mark" aria-label="SummerBody"><span class="spl" data-g="s">S</span><span class="spl" data-g="m">u</span><span class="spl" data-g="m">m</span><span class="spl" data-g="m">m</span><span class="spl" data-g="m">e</span><span class="spl" data-g="m">r</span><span class="spl bd" data-g="b">B</span><span class="spl bd" data-g="o">o</span><span class="spl bd" data-g="o">d</span><span class="spl bd" data-g="o">y</span></div>
+  <div class="splash-mark" id="splash-mark" aria-label="Build Your Body"><span class="spl" data-g="s">B</span><span class="spl" data-g="m">u</span><span class="spl" data-g="m">i</span><span class="spl" data-g="m">l</span><span class="spl" data-g="m">d</span> <span class="spl" data-g="m">Y</span><span class="spl" data-g="m">o</span><span class="spl" data-g="m">u</span><span class="spl" data-g="m">r</span> <span class="spl bd" data-g="b">B</span><span class="spl bd" data-g="o">o</span><span class="spl bd" data-g="o">d</span><span class="spl bd" data-g="o">y</span></div>
 </div>
 
 <!-- Welcome overlay: shown briefly right after a successful sign-in / sign-up. -->
@@ -3829,9 +3832,9 @@ async function disableReminders(){
         motion, so nothing overlaps), while "ummer" and "ody" materialise in
         place — blur-in + a small upward rise — in a left-to-right stagger.
      5. Hold the finished wordmark, then fade the layer out. */
-const SPLASH_BEAT = 2000;   // how long the "SB" logo sits alone before the split
-const SPLASH_GLIDE = 1050;  // S/B travel + letters settle
-const SPLASH_HOLD = 1500;   // finished wordmark dwell time (SB already held 2s up front)
+const SPLASH_BEAT = 750;    // how long the "BB" logo sits alone before the split
+const SPLASH_GLIDE = 720;   // B/B travel + letters settle
+const SPLASH_HOLD = 700;    // finished wordmark dwell time before the fade-out
 function playSplash(){
   const el = document.getElementById('splash');
   if(!el || !document.documentElement.classList.contains('show-splash')) return;
@@ -3929,11 +3932,11 @@ function playSplash(){
 
       // "ummer" / "ody" focus into place with a left-to-right stagger.
       fillers.forEach((it, i) => {
-        const delay = 180 + i * 55; // letters start after the split begins
+        const delay = 140 + i * 34; // letters start after the split begins
         it.el.style.transition =
-          'transform 620ms ' + ease + ' ' + delay + 'ms, ' +
-          'opacity 520ms ease ' + delay + 'ms, ' +
-          'filter 520ms ease ' + delay + 'ms';
+          'transform 540ms ' + ease + ' ' + delay + 'ms, ' +
+          'opacity 440ms ease ' + delay + 'ms, ' +
+          'filter 440ms ease ' + delay + 'ms';
         it.el.style.transform = 'translateY(0)';
         it.el.style.opacity = '1';
         it.el.style.filter = 'blur(0px)';
@@ -3946,7 +3949,7 @@ function playSplash(){
         it.el.addEventListener('transitionend', function te(e){
           if(e.propertyName === 'filter'){ it.el.removeEventListener('transitionend', te); clearFilter(); }
         });
-        setTimeout(clearFilter, delay + 560);
+        setTimeout(clearFilter, delay + 480);
       });
     }, SPLASH_BEAT);
 
@@ -3957,7 +3960,7 @@ function playSplash(){
     //    (its ink sticks ~8px past its box). All letters are at identity here, so
     //    clearing transform/will-change is visually seamless but lets the
     //    overhanging ink paint on the normal layer, uncut.
-    const fillEnd = 180 + (fillers.length - 1) * 55 + 620;
+    const fillEnd = 140 + (fillers.length - 1) * 34 + 540;
     const settleAt = SPLASH_BEAT + Math.max(SPLASH_GLIDE, fillEnd) + 80;
     setTimeout(() => {
       letters.forEach((l) => {
