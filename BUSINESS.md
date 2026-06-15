@@ -1,0 +1,182 @@
+# SummerBody — App & Business Plan
+
+> Living document. Last updated: 2026-06-15.
+> This is the reference version — we also talk through it in chat. Edit freely as the plan evolves.
+
+---
+
+## 1. One-liner
+
+**A fitness app built for how 14–21 year olds actually live: save the meals you
+see on TikTok, train with a plan, track your body, and see your wearable data —
+all in one place, mostly free.**
+
+---
+
+## 2. Who it's for
+
+- **Core audience: 14–21.** Already glued to short-form video, already curious about
+  gym/nutrition, but priced out of (and bored by) the serious adult apps
+  (MyFitnessPal, Whoop, etc.).
+- They don't want a spreadsheet. They want it to feel like the apps they already use.
+- Price-sensitive (many have no income), so **free has to be genuinely good** — paid
+  is only for the few things that genuinely cost us money to run.
+
+---
+
+## 3. The product today (already built)
+
+- Training plan / workout tracking (phased program, per-day sessions)
+- Daily nutrition targets (protein, creatine reminders via push)
+- Bodyweight tracking + progress chart
+- Meal plan + shopping list
+- Cross-device sync + accounts (Supabase)
+- Installable PWA (works on phone home screen, sends push reminders)
+- **Recipes feature — built, currently behind a "Coming soon" teaser** while we
+  finish the AI extraction backend.
+
+---
+
+## 4. The roadmap (what's coming)
+
+| Phase | Feature | Status | Notes |
+|------:|---------|--------|-------|
+| Now | Recipes from TikTok/IG/YouTube | Code done, gated behind "Coming soon" | Needs Anthropic API key live on the worker |
+| Next | Wearables: Apple Watch, Fitbit, Whoop, Oura | Planned (from TikTok idea) | **See §7 — Apple Watch forces a native app** |
+| Next | AI meal/macro help ("what do I eat to hit my protein") | Idea | Clear premium candidate (real AI cost) |
+| Later | App Store launch (native wrapper) | Deliberately deferred | Ties in with wearables — see §7 |
+| TBD | _(your "couple more things" — to be added)_ | — | Drop them in and we'll slot them |
+
+---
+
+## 5. Money — the philosophy
+
+**Brian's rule: charge as little as possible, only for things that are genuinely
+game-changing AND genuinely cost us money. Everything else stays free.**
+
+Translated into a model:
+
+### Free tier (generous on purpose)
+Everything that costs us ~nothing to run stays free, forever:
+- Workouts, plans, bodyweight, progress charts
+- Meal plan + shopping list
+- Reminders / push
+- Sync across devices
+- Manually-typed recipes
+- A **small monthly allowance** of the expensive stuff (e.g. a few AI recipe
+  extractions per month) so everyone gets to taste it
+
+### Paid tier — "SummerBody Plus" (thin margin, honest pricing)
+Only the features with a **real per-use cost** sit here:
+- Unlimited **AI recipe extraction** (each call costs us a fraction of a penny)
+- **AI meal/macro coaching**
+- **Wearable sync** (if it needs a server/API cost to run)
+
+**Pricing principle (Brian's £2→£4 example):** price = our cost + a small margin.
+Never gouge. The example was illustrative — in reality AI usage per user is
+**pennies/month**, not £2/hour, so the practical way to apply "cost + small margin"
+for a consumer app is a **low price that comfortably covers even a heavy user's
+costs plus a little**.
+
+**Pricing menu (Brian's preference: give people options):**
+
+| Option | Price | Who it's for |
+|--------|-------|--------------|
+| **Monthly** | **£3–£4 / month** | Try it, cancel anytime |
+| **Annual** | ~£24–£30 / year (≈2 months free) | Committed users who want to save |
+| **Lifetime (one-time)** | **~£8.99–£9.99 once** *(confirm — Brian wrote "£89/99")* | Teens who hate recurring charges / one-tap on a parent's card |
+
+Why a cheap lifetime works *with* the thin-margin philosophy: AI cost per user is
+only pennies/month, so even a one-time £8.99 nets positive over a couple of years
+**and** removes the friction of a subscription — which matters a lot for an audience
+with no steady income. Risk: if a user is super-heavy on AI for years, a flat
+lifetime could go slightly underwater — capped by the per-user rate limits and the
+backend spend ceiling, so it can't run away.
+
+The margin stays small by design; the goal is sustainability, not profit-maxing.
+We can always raise the free allowance if costs allow — err toward generous.
+
+### Guardrails to keep costs (and therefore prices) low
+- Per-IP / per-user rate limits on AI endpoints (already built for recipes: 30/hr).
+- Cheapest capable AI model (Claude Haiku) + tight token caps.
+- A monthly **spend ceiling** on the backend so a viral spike can't bankrupt us —
+  past the cap, AI features queue/pause rather than rack up a bill.
+
+---
+
+## 6. What it costs us to run
+
+| Item | Cost | Notes |
+|------|------|-------|
+| GitHub Pages hosting | £0 | Static site, free |
+| Cloudflare Worker (reminders + AI endpoint) | £0 | Free tier: 100k req/day |
+| Supabase (auth + sync) | £0 free tier | ⚠️ Pauses after 7 days idle — see §9 |
+| Anthropic API (recipe/AI) | ~£0.004 per extraction | Pay-as-you-go, scales with use |
+| Apple Developer Program | **£79/yr** | Only when we go to the App Store |
+| Domain (optional) | ~£10/yr | Nice-to-have |
+
+**Personal/early use: pennies a month.** Real costs only start when (a) we go on the
+App Store (£79/yr) and (b) AI usage scales — and the paid tier is designed to cover
+exactly that.
+
+---
+
+## 7. Wearables (the TikTok idea) — and the catch
+
+Pulling in **Apple Watch / Fitbit / Whoop / Oura** data (steps, heart rate, sleep,
+recovery, calories burned) would make the app massively stickier — and unlock AI
+insights like "your recovery's low, take it easy today."
+
+**The technical reality, per device:**
+
+| Device | How we'd connect | Difficulty |
+|--------|------------------|-----------|
+| **Apple Watch** | Apple **HealthKit** | ⚠️ **Requires a native iOS app** — a web app *cannot* read HealthKit |
+| Fitbit | Fitbit Web API (OAuth) | Doable from web |
+| Whoop | Whoop API (OAuth, dev access) | Doable from web |
+| Oura | Oura API v2 (OAuth) | Doable from web |
+
+**Key strategic insight:** Apple Watch is almost certainly the #1 device for our
+audience, and it's the *one* that forces us off pure-web and into a **native app
+wrapper** (Capacitor/PWABuilder). So **"Apple Watch support" and "App Store launch"
+are effectively the same project** — they should be planned together, not separately.
+
+Fitbit/Whoop/Oura could ship earlier as web integrations to prove demand before we
+commit to the native build.
+
+---
+
+## 8. Go-to-market (rough)
+
+- **The recipe feature *is* the marketing.** Teens saving recipes from TikTok →
+  natural reason to share the app on TikTok. The content loop and the audience are
+  the same place.
+- Soft launch as the PWA (free), gather a core of real users + feedback.
+- Use that traction to justify the App Store push (where wearables/native live).
+- Word-of-mouth + creator collabs (fitness TikTokers in the 14–21 niche).
+
+---
+
+## 9. Risks & open questions
+
+- **Supabase auto-pause** (7-day idle on free tier) → caused the recent sign-in
+  glitch. Fix: keep it active / upgrade if we get real users. Data can be lost on a
+  paused free project — verify history survived the last pause.
+- **Audience is minors** → App Store age rating, privacy (COPPA/GDPR-K), and data
+  handling need real care before public launch. Health + wearable data is sensitive.
+- **Platform ToS** (TikTok/IG scraping) → we rely on public oEmbed + graceful
+  degradation; don't build hard dependencies on fragile scraping.
+- **AI cost runaway** → mitigated by rate limits, cheap model, and a spend ceiling.
+- **Apple Watch = native app** → biggest scope jump; bundle with App Store plan.
+- **Will teens pay anything?** → keep free tier strong; Plus must feel optional, not
+  like a paywall on basics.
+
+---
+
+## 10. Immediate next actions
+
+- [ ] Confirm lifetime price (£8.99/9.99 vs £89.99) and which features are Plus-only
+- [ ] Add Anthropic API key to the worker → flip Recipes from "Coming soon" to live
+- [ ] Restore the paused Supabase project (fixes sign-in + sync)
+- [ ] Pick the first wearable to integrate (suggest Fitbit/Oura/Whoop via web first)
+- [ ] Add Brian's remaining "couple more things" to §4
