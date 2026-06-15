@@ -530,6 +530,18 @@ html.gated, html.gated body { overflow:hidden; }
   .dtile-rcp .b { padding: 14px 16px; }
   .dtile-rcp .b .t { font-family: 'DM Serif Display', serif; font-size: 17px; }
   .dtile-rcp .b .pr { margin-top: 8px; display: flex; gap: 6px; }
+
+  /* ---- Extend the bento/dashboard feel to the other pages ---- */
+  /* Progress & Plan tile their cards into two masonry columns instead of one tall stack */
+  #sec-progress, #sec-plan { column-count: 2; column-gap: 18px; }
+  #sec-progress > *, #sec-plan > * { break-inside: avoid; margin-bottom: 18px; }
+  /* Full-width rows that shouldn't be split across columns */
+  #sec-progress .page-header, #sec-plan .page-header,
+  #sec-progress .tracker-grid, #sec-progress .card:last-child,
+  #sec-plan .timeline, #sec-plan .legend { column-span: all; }
+
+  /* Meals & Shopping stay single-focus, just a touch wider & calmer */
+  #sec-meals, #sec-shopping { max-width: 760px; }
 }
 
 /* ==================== SESSION LOGGER ==================== */
