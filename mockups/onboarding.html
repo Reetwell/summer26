@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SummerBody — Onboarding (animated setup)</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+html,body{height:100%;}
+.ob{height:100%;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;}
+
+/* top bar: back + progress */
+.ob-top{display:flex;align-items:center;gap:12px;padding:18px 18px 4px;}
+.ob-back{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--text-secondary);font-size:20px;flex:none;opacity:0;pointer-events:none;transition:opacity .2s;}
+.ob-back.show{opacity:1;pointer-events:auto;}
+.ob-prog{flex:1;height:6px;background:var(--gray-100);border-radius:999px;overflow:hidden;}
+.ob-prog i{display:block;height:100%;width:12%;background:var(--green-500);border-radius:999px;transition:width .4s cubic-bezier(.4,0,.2,1);}
+
+/* sliding track */
+.ob-view{flex:1;overflow:hidden;position:relative;}
+.ob-track{display:flex;height:100%;transition:transform .42s cubic-bezier(.4,0,.2,1);}
+.step{flex:0 0 100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 26px 0;text-align:center;}
+.step .k{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--green-700);margin-bottom:8px;}
+.step .q{font-family:'DM Serif Display',serif;font-size:27px;line-height:1.12;margin-bottom:6px;}
+.step .hint{font-size:13.5px;color:var(--text-secondary);margin-bottom:26px;max-width:300px;}
+
+/* footer */
+.ob-foot{padding:14px 22px calc(20px + env(safe-area-inset-bottom));}
+.ob-cta{width:100%;border-radius:14px;padding:16px;font-size:16px;font-weight:700;background:var(--green-500);color:#fff;transition:transform .1s,background .15s;}
+.ob-cta:active{transform:scale(.985);}
+
+/* ---- step 1: name ---- */
+.name-in{width:100%;max-width:320px;text-align:center;font-family:'DM Serif Display',serif;font-size:30px;color:var(--text-primary);border:0;border-bottom:2px solid var(--gray-200);padding:8px 0;background:none;outline:none;transition:border-color .2s;}
+.name-in:focus{border-color:var(--green-500);}
+
+/* ---- step 2: goal cards ---- */
+.goal-cards{width:100%;max-width:340px;display:flex;flex-direction:column;gap:12px;}
+.gcard{position:relative;display:flex;align-items:center;gap:14px;text-align:left;padding:18px;border-radius:var(--radius-lg);border:2px solid var(--border);background:var(--surface);transition:transform .18s cubic-bezier(.34,1.56,.64,1),border-color .15s,box-shadow .15s;}
+.gcard .em{font-size:26px;}
+.gcard .tt{font-weight:700;font-size:16px;}
+.gcard .ds{font-size:12.5px;color:var(--text-secondary);}
+.gcard .tick{position:absolute;right:16px;width:24px;height:24px;border-radius:50%;background:var(--green-500);display:grid;place-items:center;opacity:0;transform:scale(.4);transition:.2s cubic-bezier(.34,1.56,.64,1);}
+.gcard .tick svg{width:14px;height:14px;stroke:#fff;stroke-width:3;fill:none;}
+.gcard.sel{border-color:var(--green-500);box-shadow:0 0 0 4px var(--green-50);transform:scale(1.02);}
+.gcard.sel .tick{opacity:1;transform:scale(1);}
+
+/* ---- step 3: age ruler ---- */
+.bignum{font-family:'DM Serif Display',serif;font-size:64px;line-height:1;color:var(--green-900);transition:transform .15s;}
+.bignum.bump{transform:scale(1.16);}
+.bignum small{font-size:18px;color:var(--text-tertiary);font-family:'DM Sans';}
+.ruler-wrap{position:relative;width:100%;max-width:360px;margin-top:18px;}
+.ruler-wrap::before{content:"";position:absolute;left:50%;top:0;transform:translateX(-50%);width:3px;height:46px;background:var(--green-500);border-radius:2px;z-index:3;}
+.ruler{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding:54px 0 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.ruler::-webkit-scrollbar{display:none;}
+.ruler .sp{flex:0 0 50%;}
+.ruler .tk{flex:0 0 16px;height:22px;display:flex;align-items:flex-start;justify-content:center;scroll-snap-align:center;}
+.ruler .tk i{width:2px;height:14px;background:var(--gray-200);border-radius:2px;}
+.ruler .tk.maj i{height:22px;background:var(--gray-400);}
+
+/* ---- step 4: weight dial ---- */
+.dial{position:relative;width:230px;height:230px;border-radius:50%;margin-top:6px;touch-action:none;background:conic-gradient(var(--green-500) 0deg,var(--gray-100) 0deg);}
+.dial .hole{position:absolute;inset:20px;border-radius:50%;background:var(--surface);box-shadow:inset 0 2px 10px rgba(0,0,0,.06);display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.dial .hole .n{font-family:'DM Serif Display',serif;font-size:46px;line-height:1;color:var(--green-900);}
+.dial .hole .u{font-size:13px;color:var(--text-tertiary);margin-top:2px;}
+.dial .knob{position:absolute;top:8px;left:50%;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:#fff;border:3px solid var(--green-500);transform-origin:50% 107px;}
+.spin-hint{font-size:12px;color:var(--text-tertiary);margin-top:18px;}
+
+/* ---- step 5: goal-weight slider ---- */
+.slider{position:relative;width:100%;max-width:330px;height:46px;margin-top:24px;touch-action:none;}
+.slider .track{position:absolute;top:20px;left:0;right:0;height:6px;border-radius:999px;background:var(--gray-100);}
+.slider .fill{position:absolute;top:20px;left:0;height:6px;border-radius:999px;background:var(--green-500);}
+.slider .hd{position:absolute;top:8px;width:30px;height:30px;border-radius:50%;background:#fff;border:3px solid var(--green-500);box-shadow:0 4px 12px -4px rgba(0,0,0,.3);transform:translateX(-50%);}
+.gw-row{display:flex;gap:26px;margin-top:18px;}
+.gw-row .b{text-align:center;}
+.gw-row .b .lab{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-tertiary);}
+.gw-row .b .val{font-family:'DM Serif Display',serif;font-size:24px;}
+.gw-row .arrow{align-self:center;color:var(--green-500);font-size:22px;}
+
+/* ---- step 6: activity ---- */
+.act-face{font-size:64px;transition:transform .25s cubic-bezier(.34,1.56,.64,1);}
+.act-lab{font-weight:700;font-size:18px;margin-top:8px;}
+.act-sub{font-size:13px;color:var(--text-secondary);margin-bottom:6px;}
+
+/* ---- step 7: days ---- */
+.days{display:flex;gap:9px;margin-top:8px;}
+.day{width:42px;height:52px;border-radius:14px;border:2px solid var(--border);background:var(--surface);font-weight:700;font-size:14px;color:var(--text-secondary);display:grid;place-items:center;transition:transform .16s cubic-bezier(.34,1.56,.64,1),background .15s,color .15s,border-color .15s;}
+.day.on{background:var(--green-500);border-color:var(--green-500);color:#fff;transform:translateY(-4px) scale(1.06);}
+.day-count{margin-top:18px;font-size:14px;color:var(--text-secondary);}
+.day-count b{color:var(--green-900);}
+
+/* ---- step 8: finish ---- */
+.finish .ringbox{position:relative;width:180px;height:180px;}
+.finish svg{transform:rotate(-90deg);}
+.finish .rc{fill:none;stroke-width:14;stroke-linecap:round;}
+.finish .rc.bg{stroke:var(--gray-100);}
+.finish .rc.fg{stroke:var(--green-500);stroke-dasharray:471;stroke-dashoffset:471;transition:stroke-dashoffset 1.1s cubic-bezier(.4,0,.2,1);}
+.finish .ringbox .mid{position:absolute;inset:0;display:grid;place-items:center;font-size:42px;}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:60;}
+.confetti i{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;opacity:0;}
+@keyframes fall{0%{opacity:1;transform:translateY(-10px) rotate(0)}100%{opacity:0;transform:translateY(105vh) rotate(540deg)}}
+</style>
+</head>
+<body>
+<div class="ob">
+  <div class="ob-top">
+    <button class="ob-back" id="back" onclick="prev()">←</button>
+    <div class="ob-prog"><i id="bar"></i></div>
+  </div>
+
+  <div class="ob-view">
+    <div class="ob-track" id="track">
+
+      <!-- 1 NAME -->
+      <section class="step">
+        <div class="k">Let's get you set up</div>
+        <div class="q">What should we<br>call you?</div>
+        <div class="hint">Just your first name is fine.</div>
+        <input class="name-in" id="name" placeholder="Brian" autocomplete="given-name" oninput="syncName()">
+      </section>
+
+      <!-- 2 GOAL -->
+      <section class="step">
+        <div class="k">Your goal</div>
+        <div class="q" id="q-goal">What are you here for?</div>
+        <div class="hint">You can change this anytime.</div>
+        <div class="goal-cards">
+          <button class="gcard" data-goal="Lose fat" onclick="pickGoal(this)"><span class="em">🔥</span><span><span class="tt">Lose fat</span><br><span class="ds">Lean down, keep muscle</span></span><span class="tick"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></span></button>
+          <button class="gcard" data-goal="Build muscle" onclick="pickGoal(this)"><span class="em">💪</span><span><span class="tt">Build muscle</span><br><span class="ds">Get stronger, add size</span></span><span class="tick"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></span></button>
+          <button class="gcard" data-goal="Maintain" onclick="pickGoal(this)"><span class="em">⚖️</span><span><span class="tt">Maintain &amp; feel good</span><br><span class="ds">Stay consistent, eat well</span></span><span class="tick"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></span></button>
+        </div>
+      </section>
+
+      <!-- 3 AGE -->
+      <section class="step">
+        <div class="k">How old are you?</div>
+        <div class="q" style="margin-bottom:18px">Drag to your age</div>
+        <div class="bignum" id="ageNum">17<small> yrs</small></div>
+        <div class="ruler-wrap"><div class="ruler" id="ruler"></div></div>
+      </section>
+
+      <!-- 4 WEIGHT -->
+      <section class="step">
+        <div class="k">Current weight</div>
+        <div class="q" style="margin-bottom:18px">Spin the dial</div>
+        <div class="dial" id="dial">
+          <div class="knob" id="knob"></div>
+          <div class="hole"><div class="n" id="wNum">70.0</div><div class="u">kg</div></div>
+        </div>
+        <div class="spin-hint">↻ drag around the circle</div>
+      </section>
+
+      <!-- 5 GOAL WEIGHT -->
+      <section class="step">
+        <div class="k">Goal weight</div>
+        <div class="q" style="margin-bottom:6px">Where do you want to be?</div>
+        <div class="slider" id="slider"><div class="track"></div><div class="fill" id="sfill"></div><div class="hd" id="shd"></div></div>
+        <div class="gw-row">
+          <div class="b"><div class="lab">Now</div><div class="val" id="gwNow">70</div></div>
+          <div class="arrow">→</div>
+          <div class="b"><div class="lab">Goal</div><div class="val" id="gwGoal" style="color:var(--green-700)">66</div></div>
+        </div>
+      </section>
+
+      <!-- 6 ACTIVITY -->
+      <section class="step">
+        <div class="k">Activity level</div>
+        <div class="q" style="margin-bottom:18px">How active are you?</div>
+        <div class="act-face" id="actFace">🚶</div>
+        <div class="act-lab" id="actLab">Lightly active</div>
+        <div class="act-sub" id="actSub">A few walks / light training a week</div>
+        <div class="slider" id="aslider"><div class="track"></div><div class="fill" id="afill"></div><div class="hd" id="ahd"></div></div>
+      </section>
+
+      <!-- 7 DAYS -->
+      <section class="step">
+        <div class="k">Training</div>
+        <div class="q" style="margin-bottom:18px">Which days do you<br>want to train?</div>
+        <div class="days" id="days"></div>
+        <div class="day-count" id="dayCount"><b>4 days</b> a week — nice</div>
+      </section>
+
+      <!-- 8 FINISH -->
+      <section class="step finish">
+        <div class="k" id="finK">All set</div>
+        <div class="q" id="finQ" style="margin-bottom:24px">You're ready, Brian 👊</div>
+        <div class="ringbox">
+          <svg width="180" height="180"><circle class="rc bg" cx="90" cy="90" r="75"/><circle class="rc fg" id="finRing" cx="90" cy="90" r="75"/></svg>
+          <div class="mid">🎯</div>
+        </div>
+        <div class="hint" style="margin-top:24px">Your plan's built around <b id="finGoal">your goal</b>. Let's go.</div>
+      </section>
+
+    </div>
+  </div>
+
+  <div class="ob-foot"><button class="ob-cta" id="cta" onclick="next()">Continue</button></div>
+</div>
+<div class="confetti" id="confetti"></div>
+
+<script>
+const STEPS=8;
+let i=0, name='', goal='';
+const track=document.getElementById('track'), bar=document.getElementById('bar'),
+      back=document.getElementById('back'), cta=document.getElementById('cta');
+
+function show(){
+  track.style.transform='translateX(-'+(i*100)+'%)';
+  bar.style.width=((i+1)/STEPS*100)+'%';
+  back.classList.toggle('show', i>0);
+  cta.textContent = i===STEPS-1 ? "Let's go 🚀" : (i===0?'Continue':'Continue');
+  if(i===7) celebrate();
+}
+function next(){ if(i<STEPS-1){ i++; show(); } else { restart(); } }
+function prev(){ if(i>0){ i--; show(); } }
+function restart(){ i=0; show(); }
+
+/* step 1 name */
+function syncName(){
+  name=document.getElementById('name').value.trim();
+  const n=name||'you';
+  document.getElementById('finQ').innerHTML="You're ready, "+esc(n)+" 👊";
+}
+function esc(s){return (s+'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+/* step 2 goal */
+function pickGoal(el){
+  document.querySelectorAll('.gcard').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel'); goal=el.dataset.goal;
+  document.getElementById('finGoal').textContent=goal.toLowerCase();
+  buzz();
+}
+
+/* step 3 age ruler */
+const RMIN=14,RMAX=80,RTICK=16;
+(function buildRuler(){
+  const r=document.getElementById('ruler');
+  let h='<div class="sp"></div>';
+  for(let v=RMIN;v<=RMAX;v++){ h+='<div class="tk'+(v%5===0?' maj':'')+'"><i></i></div>'; }
+  h+='<div class="sp"></div>';
+  r.innerHTML=h;
+  let raf, last=17;
+  r.addEventListener('scroll',()=>{
+    cancelAnimationFrame(raf);
+    raf=requestAnimationFrame(()=>{
+      let v=Math.round(r.scrollLeft/RTICK)+RMIN; v=Math.max(RMIN,Math.min(RMAX,v));
+      if(v!==last){ last=v; buzz();
+        const el=document.getElementById('ageNum');
+        el.innerHTML=v+'<small> yrs</small>';
+        el.classList.add('bump'); setTimeout(()=>el.classList.remove('bump'),150);
+      }
+    });
+  });
+  // center default 17 once laid out
+  setTimeout(()=>{ r.scrollLeft=(17-RMIN)*RTICK; },60);
+})();
+
+/* step 4 weight dial */
+(function dialInit(){
+  const dial=document.getElementById('dial'), knob=document.getElementById('knob'), num=document.getElementById('wNum');
+  const WMIN=30,WMAX=200; let w=70, dragging=false, lastA=null;
+  function render(){
+    const frac=(w-WMIN)/(WMAX-WMIN);
+    dial.style.background='conic-gradient(var(--green-500) '+(frac*360)+'deg,var(--gray-100) 0deg)';
+    knob.style.transform='rotate('+(frac*360)+'deg)';
+    num.textContent=w.toFixed(1);
+  }
+  function ang(e){const r=dial.getBoundingClientRect();return Math.atan2((e.clientY-(r.top+r.height/2)),(e.clientX-(r.left+r.width/2)))*180/Math.PI;}
+  dial.addEventListener('pointerdown',e=>{dragging=true;lastA=ang(e);dial.setPointerCapture(e.pointerId);});
+  dial.addEventListener('pointermove',e=>{
+    if(!dragging)return;
+    let a=ang(e), d=a-lastA;
+    if(d>180)d-=360; if(d<-180)d+=360;
+    lastA=a;
+    const prev=Math.round(w);
+    w=Math.max(WMIN,Math.min(WMAX, w + d*0.05));
+    if(Math.round(w)!==prev) buzz();
+    render();
+  });
+  dial.addEventListener('pointerup',()=>{dragging=false;});
+  render();
+})();
+
+/* generic horizontal slider factory */
+function makeSlider(wrapId,fillId,hdId,min,max,start,onChange){
+  const wrap=document.getElementById(wrapId),fill=document.getElementById(fillId),hd=document.getElementById(hdId);
+  let val=start, dragging=false;
+  function setFrac(f){ f=Math.max(0,Math.min(1,f)); val=min+f*(max-min);
+    fill.style.width=(f*100)+'%'; hd.style.left=(f*100)+'%'; onChange(val,f); }
+  function fromEvent(e){const r=wrap.getBoundingClientRect(); setFrac((e.clientX-r.left)/r.width); buzz();}
+  wrap.addEventListener('pointerdown',e=>{dragging=true;wrap.setPointerCapture(e.pointerId);fromEvent(e);});
+  wrap.addEventListener('pointermove',e=>{if(dragging)fromEvent(e);});
+  wrap.addEventListener('pointerup',()=>{dragging=false;});
+  setFrac((start-min)/(max-min));
+}
+/* step 5 goal weight */
+makeSlider('slider','sfill','shd',45,110,66,(v)=>{
+  document.getElementById('gwGoal').textContent=Math.round(v);
+});
+/* step 6 activity */
+const ACTS=[['🛋️','Not very active','Mostly sitting / rest'],['🚶','Lightly active','A few walks / light training'],['🏃','Active','Training 3–5× a week'],['🔥','Very active','Hard training most days']];
+makeSlider('aslider','afill','ahd',0,3,1,(v)=>{
+  const idx=Math.round(v); const a=ACTS[idx];
+  const f=document.getElementById('actFace');
+  f.textContent=a[0]; f.style.transform='scale(1.15)'; setTimeout(()=>f.style.transform='scale(1)',180);
+  document.getElementById('actLab').textContent=a[1];
+  document.getElementById('actSub').textContent=a[2];
+});
+
+/* step 7 days */
+(function daysInit(){
+  const wrap=document.getElementById('days'), labels=['M','T','W','T','F','S','S'];
+  const on=[true,false,true,false,true,false,true];
+  labels.forEach((l,idx)=>{
+    const b=document.createElement('button'); b.className='day'+(on[idx]?' on':''); b.textContent=l;
+    b.onclick=()=>{on[idx]=!on[idx];b.classList.toggle('on',on[idx]);buzz();count();};
+    wrap.appendChild(b);
+  });
+  function count(){const n=on.filter(Boolean).length;
+    document.getElementById('dayCount').innerHTML='<b>'+n+(n===1?' day':' days')+'</b> a week'+(n>=3?' — nice':'');}
+  count();
+})();
+
+/* step 8 finish */
+let celebrated=false;
+function celebrate(){
+  document.getElementById('finRing').style.strokeDashoffset='0';
+  if(celebrated)return; celebrated=true;
+  const box=document.getElementById('confetti'),cols=['#1D9E75','#378ADD','#7F77DD','#BA7517','#9FE1CB'];
+  for(let n=0;n<70;n++){const s=document.createElement('i');
+    s.style.left=Math.random()*100+'%';s.style.background=cols[n%cols.length];
+    s.style.animation='fall '+(1.6+Math.random()*1.4)+'s '+(Math.random()*0.5)+'s ease-in forwards';
+    box.appendChild(s);}
+  setTimeout(()=>box.innerHTML='',3600);
+}
+
+/* haptic tick (Android web only; iOS needs the native build) */
+function buzz(){ if(navigator.vibrate) navigator.vibrate(8); }
+
+show();
+</script>
+</body>
+</html>
