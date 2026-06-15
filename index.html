@@ -179,6 +179,15 @@ html.gated, html.gated body { overflow:hidden; }
 .sigate-toggle b { color:var(--green-900); font-weight:700; cursor:pointer; }
 .sigate-fine { text-align:center; font-size:11px; color:var(--text-tertiary); line-height:1.5; margin-top:16px; }
 
+/* Desktop / tablet: centre the card instead of pinning a phone column to the top */
+@media (min-width:600px) {
+  .sigate { background:radial-gradient(900px 500px at 50% -5%, var(--green-50), var(--bg) 60%); }
+  .sigate.show { align-items:center; padding:40px 20px; }
+  .sigate-box { min-height:0; max-width:400px; border-radius:26px; overflow:hidden; box-shadow:0 30px 70px -30px rgba(0,0,0,.35); border:1px solid var(--border); }
+  .sigate-hero { min-height:200px; padding:44px 28px; }
+  .sigate-sheet { border-radius:24px 24px 0 0; }
+}
+
 /* ---------- Recipes ---------- */
 .recipe-add-btn { display:inline-flex; align-items:center; gap:8px; background:var(--green-500); color:#fff; border:none; border-radius:12px; padding:12px 18px; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:600; cursor:pointer; margin-bottom:18px; transition:background .15s,transform .1s; }
 .recipe-add-btn:hover { background:var(--green-900); }
