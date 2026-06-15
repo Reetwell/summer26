@@ -87,10 +87,11 @@ const frame=document.getElementById('frame'), deviceEl=document.getElementById('
       wrap=document.getElementById('wrap'), descEl=document.getElementById('desc'),
       openlink=document.getElementById('openlink'), stage=document.getElementById('stage');
 
-function srcFor(key){ return key==='onboarding' ? 'onboarding.html' : 'concept-'+key+'.html'; }
+function srcFor(key){ const f = key==='onboarding' ? 'onboarding.html' : 'concept-'+key+'.html'; return f+'?v='+Date.now(); }
 function render(){
-  frame.src = srcFor(c);
-  openlink.href = srcFor(c);
+  const url = srcFor(c);
+  frame.src = url;
+  openlink.href = url;
   deviceEl.className = 'device '+d;
   descEl.innerHTML = DESCS[c];
   fit();
