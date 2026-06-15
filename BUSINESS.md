@@ -45,6 +45,7 @@ all in one place, mostly free.**
 | Next | Wearables: Apple Watch, Fitbit, Whoop, Oura | Planned (from TikTok idea) | **See §7 — Apple Watch forces a native app** |
 | Next | AI meal/macro help ("what do I eat to hit my protein") | Idea | Clear premium candidate (real AI cost) |
 | Later | App Store launch (native wrapper) | Deliberately deferred | Ties in with wearables — see §7 |
+| Later | **Liquid-glass bottom nav (native only)** | Planned for the app build | When we wrap natively for iOS, rebuild the bottom tab bar as Apple's real **Liquid Glass** material (translucent/blurred, iOS 26 style). Web stays as-is for now. |
 | TBD | _(your "couple more things" — to be added)_ | — | Drop them in and we'll slot them |
 
 ---
