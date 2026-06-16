@@ -656,8 +656,13 @@ html.gated, html.gated body { overflow:hidden; }
   #sec-progress .tracker-grid, #sec-progress .card:last-child,
   #sec-plan .timeline, #sec-plan .legend { column-span: all; }
 
-  /* Meals & Shopping stay single-focus, just a touch wider & calmer */
-  #sec-meals, #sec-shopping { max-width: 760px; }
+  /* Meals: macro totals span the top, then the day's meals tile into a 2-up
+     bento grid. Row-major order keeps breakfast → dinner readable. */
+  #sec-meals .dc.show { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  #sec-meals .dc.show > .totals-grid, #sec-meals .dc.show > .tip { grid-column: 1 / -1; }
+  #sec-meals .dc.show > .card { margin-bottom: 0; }
+  /* Shopping stays a single focused column, just a calmer width */
+  #sec-shopping { max-width: 820px; }
 }
 
 /* ==================== SESSION LOGGER ==================== */
