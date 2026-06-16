@@ -808,10 +808,12 @@ html.gated, html.gated body { overflow:hidden; }
 .pt-avatar:hover { background: var(--green-50); border-color: var(--green-500); }
 .pt-avatar:active { transform: scale(.94); }
 .pt-avatar svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-@media (min-width: 1024px) { .phone-top { display: none; } }
-/* On the phone Today view the bar's avatar is the account entry point, so
-   suppress the floating account button there to avoid a duplicate icon. */
-@media (max-width: 1023px) { html.view-today .account-btn { display: none !important; } }
+/* Desktop: keep the same greeting bar (scaled up) instead of the old desk-greet,
+   so phone, tablet and desktop all share the Hello + profile header. */
+@media (min-width: 1024px) { .phone-top { margin: 0 0 24px; } .pt-hi { font-size: 30px; } .pt-date { font-size: 13.5px; } .desk-greet { display: none !important; } }
+/* The bar's avatar is the account entry point on Today, so suppress the floating
+   account button there (all sizes) to avoid a duplicate icon. */
+html.view-today .account-btn { display: none !important; }
 
 /* Summary rings / headline stats */
 .today-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
@@ -1144,7 +1146,7 @@ html.show-splash .splash.splash-done {
   <!-- Phone-only top bar: greeting + profile/settings entry -->
   <header class="phone-top">
     <div>
-      <div class="pt-hi" id="pt-hi">Hello 👋</div>
+      <div class="pt-hi" id="pt-hi">Hello</div>
       <div class="pt-date" id="pt-date"></div>
     </div>
     <button class="pt-avatar" id="pt-avatar" onclick="openAccount()" aria-label="Profile and settings" title="Profile & settings">
@@ -3405,7 +3407,7 @@ function renderTodayBento(day, tot, tgt) {
   if(gn) { gn.textContent = nm || 'there'; }
   // Phone top bar greeting + date
   const ptHi = document.getElementById('pt-hi');
-  if(ptHi){ ptHi.innerHTML = nm ? ('Hello, <span>' + esc(nm) + '</span>') : 'Hello 👋'; }
+  if(ptHi){ ptHi.innerHTML = nm ? ('Hello, <span>' + esc(nm) + '</span>') : 'Hello'; }
   const ptDate = document.getElementById('pt-date');
   if(ptDate){ ptDate.textContent = new Date().toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'}); }
 
