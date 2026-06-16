@@ -188,5 +188,33 @@ commit to the native build.
 - [ ] Lock lifetime price in the £50–£89 range (leaning ~£59) + which features are Plus-only
 - [ ] Add Anthropic API key to the worker → flip Recipes from "Coming soon" to live
 - [ ] Restore the paused Supabase project (fixes sign-in + sync)
+- [ ] **Enable Sign in with Google + Sign in with Apple** (buttons + app code already
+  built; they just need turning on in the Supabase dashboard — see below)
 - [ ] Pick the first wearable to integrate (suggest Fitbit/Oura/Whoop via web first)
 - [ ] Add Brian's remaining "couple more things" to §4
+
+### Enabling Google / Apple sign-in (config only — no app code needed)
+
+The "Continue with Google/Apple" buttons and the in-app OAuth code are already
+done. They error until each provider is switched on in Supabase. Do **Google
+first** (free, ~10 min); **defer Apple** until the App Store / native push since
+it needs the paid Apple Developer Program and is fiddly on web.
+
+**Both providers first need:**
+- Supabase project **awake** (free tier sleeps after 7 days idle — that alone
+  breaks sign-in).
+- Supabase → **Authentication → URL Configuration**: set **Site URL** to
+  `https://reetwell.github.io/summer26/` and add the same URL under **Redirect URLs**.
+
+**Google (easy, free):**
+1. Google Cloud Console → create an **OAuth client (Web application)**.
+2. Authorized redirect URI = the Supabase callback:
+   `https://owqyrgufwvqgbrpdpskx.supabase.co/auth/v1/callback`
+3. Copy **Client ID + Secret** → Supabase → **Authentication → Providers → Google**
+   → toggle on, paste both, save.
+
+**Apple (needs paid Apple Developer Program, ~£79/yr — defer):**
+1. Apple Developer: create a **Services ID** with "Sign in with Apple" enabled +
+   a **Sign in with Apple key**; set the return URL to the Supabase callback above.
+2. Supabase → Providers → Apple: paste **Services ID, Team ID, Key ID** + the key,
+   then enable.
