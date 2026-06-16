@@ -552,6 +552,15 @@ html.gated, html.gated body { overflow:hidden; }
 .dtile-rcp .b { padding: 14px 16px; }
 .dtile-rcp .b .t { font-family: 'DM Serif Display', serif; font-size: 17px; }
 .dtile-rcp .b .pr { margin-top: 8px; display: flex; gap: 6px; }
+.dtile-water .wt-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.dtile-water .wt-count b { font-family: 'DM Serif Display', serif; font-size: 28px; line-height: 1; }
+.dtile-water .wt-count span { font-size: 12px; color: var(--text-tertiary); margin-left: 6px; }
+.dtile-water .wt-btns { display: flex; gap: 8px; flex-shrink: 0; }
+.dtile-water .wt-btns button { background: var(--green-50); color: var(--green-900); border: none; border-radius: 999px; padding: 8px 14px; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; transition: transform .1s; }
+.dtile-water .wt-btns button:active { transform: scale(.95); }
+.dtile-water .wt-dots { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
+.dtile-water .wt-dots i { width: 20px; height: 20px; border-radius: 50%; background: var(--gray-100); }
+.dtile-water .wt-dots i.full { background: var(--green-500); }
 
 /* Phone / tablet (<1024px): ring + streak share the top row, the rest go full
    width, the green "up next" tile turns white (the hero above is the green one),
@@ -562,7 +571,7 @@ html.gated, html.gated body { overflow:hidden; }
   .dtile-ring, .dtile-streak { grid-column: span 1; }
   .dtile-ring svg { width: 116px; height: 116px; }
   .dtile-wt { grid-column: 1 / -1; }
-  #today-bento .dtile-log, #today-bento .dtile-rcp { display: none; }
+  #today-bento .dtile-log, #today-bento .dtile-rcp, #today-bento .dtile-water { display: none; }
   .dtile-wk { background: var(--surface); color: var(--text-primary); border: 1px solid var(--border); box-shadow: none; }
   .dtile-wk h5 { color: var(--text-tertiary); }
   .dtile-wk .ex { color: var(--text-secondary); }
@@ -1183,6 +1192,18 @@ html.show-splash .splash.splash-done {
         <button onclick="toggleCreatine()">+ Creatine</button>
         <button onclick="document.getElementById('food-input').focus()">+ Meal</button>
       </div>
+    </div>
+
+    <div class="dtile dtile-water dspan2">
+      <h5>Hydration</h5>
+      <div class="wt-row">
+        <div class="wt-count"><b id="db-water-val">0</b><span>/ 8 glasses</span></div>
+        <div class="wt-btns">
+          <button onclick="changeWater(-1)" aria-label="Remove a glass">−</button>
+          <button onclick="changeWater(1)">+ Glass</button>
+        </div>
+      </div>
+      <div class="wt-dots" id="db-water-dots"></div>
     </div>
 
     <div class="dtile dtile-rcp dspan2" id="db-rcp" style="display:none"></div>
@@ -3413,6 +3434,12 @@ function renderTodayBento(day, tot, tgt) {
   }
   const ptDate = document.getElementById('pt-date');
   if(ptDate){ ptDate.textContent = new Date().toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'}); }
+
+  // Hydration tile (desktop bento)
+  const wv = document.getElementById('db-water-val');
+  if(wv) wv.textContent = day.water;
+  const wd = document.getElementById('db-water-dots');
+  if(wd){ let s=''; for(let i=0;i<8;i++){ s += '<i class="' + (i < day.water ? 'full' : '') + '"></i>'; } wd.innerHTML = s; }
 
   // calorie goal ring
   const pct = tgt.kcal ? Math.round(tot.kcal / tgt.kcal * 100) : 0;
