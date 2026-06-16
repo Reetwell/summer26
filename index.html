@@ -4,6 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Build Your Body</title>
+<script>
+  // Paint the splash green on the very first frame, before any CSS or JS loads,
+  // so a cold PWA launch never flashes black before the animation. The inline
+  // background is cleared again when the splash dismisses (see dismissSplash).
+  (function () {
+    try {
+      var standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+      var desktop = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+      if (standalone || desktop) {
+        document.documentElement.classList.add("show-splash");
+        document.documentElement.style.background = "#0F6E56";
+      }
+    } catch (_) {}
+  })();
+</script>
 <!-- Favicons / app icons -->
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="icon" href="favicon.ico" sizes="any">
@@ -3614,6 +3629,7 @@ async function onAuth(session){
   authUser = (session && session.user) ? session.user : null;
   reflectAuth();
   if (authUser) {
+    try { localStorage.setItem('sbp-onboarded', '1'); } catch(_){}
     if (_pendingWelcome) {
       _pendingWelcome = false;
       const name = (authUser.user_metadata && authUser.user_metadata.name) || '';
@@ -3782,6 +3798,7 @@ async function authForgot(){
 
 async function authSignOut(){
   if (!sb) return;
+  try { localStorage.removeItem('sbp-onboarded'); } catch(_){}  // explicit sign-out → gate returns next launch
   await sb.auth.signOut();   // local data stays; syncing just stops
   showToast('Signed out — your data stays on this device', 'info');
 }
@@ -3814,7 +3831,12 @@ function reflectAuth(){
   // ready but nobody's signed in. If the SDK never loaded (offline / not
   // configured) sb stays null and we DON'T gate — the app stays usable.
   const devSkip = localStorage.getItem('sbp-dev-skip') === '1';
-  const showGate = !!sb && !authUser && !devSkip;
+  // Once you've signed in on this device we don't slam the front door on every
+  // cold launch — Supabase restores/refreshes the session in the background, and
+  // even if it can't (e.g. offline) the app stays usable with local data. The
+  // gate only returns for a brand-new device or after an explicit sign-out.
+  const onboarded = localStorage.getItem('sbp-onboarded') === '1';
+  const showGate = !!sb && !authUser && !devSkip && !onboarded;
   if (gate) { gate.classList.toggle('show', showGate); gate.setAttribute('aria-hidden', showGate ? 'false' : 'true'); }
   document.documentElement.classList.toggle('gated', showGate);
   // TEMP dev pill: visible only while sign-in is skipped & nobody's signed in.
@@ -4136,7 +4158,7 @@ function dismissSplash(){
     mark.style.opacity = '0';
   }
   el.classList.add('splash-done');
-  setTimeout(()=>{ document.documentElement.classList.remove('show-splash'); }, 950);
+  setTimeout(()=>{ document.documentElement.classList.remove('show-splash'); document.documentElement.style.background = ''; }, 950);
 }
 
 // ==================== NOTIFICATION DEEP-LINK ====================
