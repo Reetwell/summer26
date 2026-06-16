@@ -798,6 +798,21 @@ html.gated, html.gated body { overflow:hidden; }
 .today-hero.rest .th-go { color: #3c4650; }
 .today-hero.rest .th-go svg { fill: #3c4650; }
 
+/* Phone-only top bar: greeting (left) + profile/settings avatar (right).
+   Hidden on desktop, where the sidebar + desk-greet cover this. */
+.phone-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; order: -2; margin: 2px 0 18px; }
+.pt-hi { font-family: 'DM Serif Display', serif; font-size: 25px; line-height: 1.12; color: var(--text-primary); }
+.pt-hi span { color: var(--green-500); }
+.pt-date { font-size: 12.5px; font-weight: 500; color: var(--text-tertiary); margin-top: 4px; }
+.pt-avatar { flex: none; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--green-900); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform .1s, background .15s, border-color .15s; }
+.pt-avatar:hover { background: var(--green-50); border-color: var(--green-500); }
+.pt-avatar:active { transform: scale(.94); }
+.pt-avatar svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+@media (min-width: 1024px) { .phone-top { display: none; } }
+/* On the phone Today view the bar's avatar is the account entry point, so
+   suppress the floating account button there to avoid a duplicate icon. */
+@media (max-width: 1023px) { html.view-today .account-btn { display: none !important; } }
+
 /* Summary rings / headline stats */
 .today-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
 .tsum-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; }
@@ -1126,6 +1141,16 @@ html.show-splash .splash.splash-done {
 
 <!-- ==================== TODAY ==================== -->
 <div class="section active" id="sec-today">
+  <!-- Phone-only top bar: greeting + profile/settings entry -->
+  <header class="phone-top">
+    <div>
+      <div class="pt-hi" id="pt-hi">Hello 👋</div>
+      <div class="pt-date" id="pt-date"></div>
+    </div>
+    <button class="pt-avatar" id="pt-avatar" onclick="openAccount()" aria-label="Profile and settings" title="Profile & settings">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 19a6.5 6.5 0 0 1 13 0"/></svg>
+    </button>
+  </header>
   <div class="desk-greet" id="desk-greet">Hey, <span id="desk-greet-name">there</span></div>
 
   <!-- Desktop bento dashboard (>=1024px) -->
@@ -1961,6 +1986,7 @@ function showSection(id, el) {
   document.querySelectorAll('.desk-side button').forEach(n => n.classList.remove('active'));
   document.querySelectorAll('.desk-side [data-dside="' + id + '"]').forEach(n => n.classList.add('active'));
   if(el) el.classList.add('active');
+  document.documentElement.classList.toggle('view-today', id === 'today');
   if(id === 'shopping') { updateShopProgress('sp1'); updateShopProgress('sp2'); }
   if(id === 'progress') { renderWorkoutGrid(); renderWeightChart(); renderSessionHistory(); updateLogSessionButton(); }
   if(id === 'today') { renderToday(); }
@@ -3375,7 +3401,13 @@ function renderTodayBento(day, tot, tgt) {
   if(!document.getElementById('today-bento')) return;
 
   const gn = document.getElementById('desk-greet-name');
-  if(gn) { const nm = (typeof authUser !== 'undefined' && authUser && authUser.user_metadata && authUser.user_metadata.name) || ''; gn.textContent = nm || 'there'; }
+  const nm = (typeof authUser !== 'undefined' && authUser && authUser.user_metadata && authUser.user_metadata.name) || '';
+  if(gn) { gn.textContent = nm || 'there'; }
+  // Phone top bar greeting + date
+  const ptHi = document.getElementById('pt-hi');
+  if(ptHi){ ptHi.innerHTML = nm ? ('Hello, <span>' + esc(nm) + '</span>') : 'Hello 👋'; }
+  const ptDate = document.getElementById('pt-date');
+  if(ptDate){ ptDate.textContent = new Date().toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'}); }
 
   // calorie goal ring
   const pct = tgt.kcal ? Math.round(tot.kcal / tgt.kcal * 100) : 0;
@@ -4221,6 +4253,7 @@ updateShopProgress('sp2');
 renderSessionHistory();
 updateLogSessionButton();
 initSessionCardGlow();
+document.documentElement.classList.add('view-today');
 renderToday();
 initReminders();
 initAuth();
