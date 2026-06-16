@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Summer Body Plan</title>
+<title>Build Your Body</title>
 <!-- Favicons / app icons -->
+<link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="icon-16.png">
@@ -14,7 +15,7 @@
 <meta name="theme-color" content="#0F6E56">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="SummerBody">
+<meta name="apple-mobile-web-app-title" content="Build Body">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -248,6 +249,38 @@ html.gated, html.gated body { overflow:hidden; }
 .bnav-item span { font-size: 10px; font-weight: 500; }
 .bnav-item.active { color: var(--green-500); }
 
+/* Center ＋ FAB (mobile bottom nav) */
+.bnav-fab {
+  flex: 0 0 auto; width: 58px; height: 58px; margin: 0 4px; margin-top: -26px;
+  border-radius: 50%; border: 4px solid var(--bg); background: var(--green-500);
+  color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 10px 22px -8px rgba(29,158,117,.7); transition: transform .15s, background .15s;
+}
+.bnav-fab:active { transform: scale(.92); }
+.bnav-fab svg { width: 26px; height: 26px; stroke: #fff; stroke-width: 2.4; stroke-linecap: round; fill: none; transition: transform .2s; }
+.bnav-fab.open { background: var(--green-700); }
+.bnav-fab.open svg { transform: rotate(45deg); }
+
+.quick-menu-backdrop { display: none; position: fixed; inset: 0; z-index: 110; background: rgba(26,26,24,.28); }
+.quick-menu-backdrop.show { display: block; }
+.quick-menu {
+  position: fixed; z-index: 120; left: 50%; transform: translateX(-50%) translateY(12px);
+  bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + 14px);
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  box-shadow: 0 18px 44px -18px rgba(0,0,0,.4); padding: 8px; min-width: 200px;
+  display: flex; flex-direction: column; gap: 2px;
+  opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s;
+}
+.quick-menu.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+.quick-menu button {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  padding: 13px 14px; border: none; background: none; border-radius: var(--radius-md);
+  font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; color: var(--text-primary); cursor: pointer;
+}
+.quick-menu button:hover { background: var(--gray-100); }
+.quick-menu button i { width: 20px; text-align: center; color: var(--green-700); font-size: 15px; }
+@media (min-width: 1024px) { .quick-menu, .quick-menu-backdrop { display: none !important; } }
+
 /* Custom outline nav icons (consistent thin stroke, inherit colour) */
 .nav-icon { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .nav-link .nav-icon { width: 15px; height: 15px; margin-right: 6px; vertical-align: -2px; }
@@ -462,7 +495,66 @@ html.gated, html.gated body { overflow:hidden; }
 /* ==================== DESKTOP DASHBOARD (>=1024px) ==================== */
 .desk-side { display: none; }
 .desk-greet { display: none; }
-#today-bento { display: none; }
+
+/* ==================== BENTO DASHBOARD ====================
+   Tile *appearance* is shared by phone & desktop; only the grid LAYOUT
+   (column count + spans) changes per breakpoint. Phone = 2 columns. */
+#today-bento { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+.dtile { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; display: flex; flex-direction: column; }
+.dtile h5 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-tertiary); margin-bottom: 10px; }
+.dspan2 { grid-column: 1 / -1; }
+.dtile-ring { align-items: center; justify-content: center; text-align: center; }
+.dtile-ring .ringbox { position: relative; width: 116px; height: 116px; }
+.dtile-ring svg { transform: rotate(-90deg); }
+.dtile-ring .rt { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.dtile-ring .rt b { font-family: 'DM Serif Display', serif; font-size: 24px; line-height: 1; }
+.dtile-ring .rt span { font-size: 10px; color: var(--text-tertiary); margin-top: 2px; }
+.dtile-ring .cap { font-weight: 600; font-size: 12px; margin-top: 10px; }
+.dtile-streak { background: linear-gradient(135deg, var(--amber-50), #fff); }
+.dtile-streak .big { font-family: 'DM Serif Display', serif; font-size: 38px; line-height: 1; color: var(--amber-900); }
+.dtile-streak .tiny { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+.dtile-wt .n { font-family: 'DM Serif Display', serif; font-size: 28px; line-height: 1; }
+.dtile-wt .delta { font-weight: 600; font-size: 13px; margin-top: 3px; }
+.dtile-wt svg { width: 100%; margin-top: auto; }
+.dtile-wk { background: linear-gradient(150deg, var(--green-700), var(--green-900)); color: #fff; border: none; box-shadow: 0 16px 34px -18px rgba(15,110,86,.7); }
+.dtile-wk h5 { color: var(--green-100); }
+.dtile-wk .t { font-family: 'DM Serif Display', serif; font-size: 20px; line-height: 1.1; }
+.dtile-wk .ex { font-size: 13px; color: rgba(255,255,255,.82); margin-top: 8px; line-height: 1.6; }
+.dtile-wk .btn { align-self: flex-start; background: #fff; color: var(--green-900); border: none; border-radius: 999px; padding: 11px 20px; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 14px; }
+.dtile-mac .row { display: flex; align-items: center; gap: 12px; margin-bottom: 13px; font-size: 13px; }
+.dtile-mac .row:last-child { margin-bottom: 0; }
+.dtile-mac .row .k { width: 58px; font-weight: 600; }
+.dtile-mac .row .bar { flex: 1; height: 8px; background: var(--gray-100); border-radius: 4px; overflow: hidden; }
+.dtile-mac .row .bar i { display: block; height: 100%; border-radius: 4px; }
+.dtile-mac .row .v { width: 84px; text-align: right; color: var(--text-tertiary); font-size: 12px; }
+.dtile-log { background: var(--green-900); border: none; color: #fff; }
+.dtile-log h5 { color: rgba(255,255,255,.6); }
+.dtile-log .q { font-family: 'DM Serif Display', serif; font-size: 20px; color: #fff; }
+.dtile-log .qb { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.dtile-log .qb button { background: rgba(255,255,255,.14); color: #fff; border: none; border-radius: 999px; padding: 8px 15px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; }
+.dtile-rcp { padding: 0; overflow: hidden; }
+.dtile-rcp img { width: 100%; height: 130px; object-fit: cover; background: var(--gray-100); display: block; }
+.dtile-rcp .b { padding: 14px 16px; }
+.dtile-rcp .b .t { font-family: 'DM Serif Display', serif; font-size: 17px; }
+.dtile-rcp .b .pr { margin-top: 8px; display: flex; gap: 6px; }
+
+/* Phone / tablet (<1024px): ring + streak share the top row, the rest go full
+   width, the green "up next" tile turns white (the hero above is the green one),
+   and the bento replaces the old calorie/macro strips. */
+@media (max-width: 1023px) {
+  #sec-today.active { display: flex; flex-direction: column; }
+  #sec-today .today-hero { order: -1; }            /* hero sits above the bento */
+  .dtile-ring, .dtile-streak { grid-column: span 1; }
+  .dtile-ring svg { width: 116px; height: 116px; }
+  .dtile-wt { grid-column: 1 / -1; }
+  #today-bento .dtile-log, #today-bento .dtile-rcp { display: none; }
+  .dtile-wk { background: var(--surface); color: var(--text-primary); border: 1px solid var(--border); box-shadow: none; }
+  .dtile-wk h5 { color: var(--text-tertiary); }
+  .dtile-wk .ex { color: var(--text-secondary); }
+  .dtile-wk .btn { background: var(--green-500); color: #fff; }
+  #sec-today .today-summary, #sec-today .today-macros { display: none; }
+}
+
 @media (min-width: 1024px) {
   .top-nav { display: none; }
   .desk-side { display: flex; position: fixed; top: 0; left: 0; bottom: 0; width: 240px; background: var(--surface); border-right: 1px solid var(--border); padding: 22px 16px; flex-direction: column; gap: 6px; z-index: 30; }
@@ -899,7 +991,7 @@ html.show-splash .splash.splash-done {
 <div class="sigate" id="signin-gate" aria-hidden="true">
   <div class="sigate-box">
     <div class="sigate-hero">
-      <div class="sigate-logo"><span class="sun"></span>SummerBody</div>
+      <div class="sigate-logo"><span class="sun"></span>Build Your Body</div>
       <div class="sigate-tag">Train, eat and track — built for how you actually live. Mostly free, always yours.</div>
     </div>
     <div class="sigate-sheet">
@@ -964,7 +1056,7 @@ html.show-splash .splash.splash-done {
 </button>
 
 <nav class="top-nav">
-  <div class="nav-brand">Summer<span>Body</span></div>
+  <div class="nav-brand">Build Your <span>Body</span></div>
   <div class="nav-links">
     <button class="nav-link active" onclick="showSection('today',this)"><svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="5" y1="5" x2="7" y2="7"/><line x1="17" y1="17" x2="19" y2="19"/><line x1="19" y1="5" x2="17" y2="7"/><line x1="7" y1="17" x2="5" y2="19"/></svg> Today</button>
     <button class="nav-link" onclick="showSection('plan',this)"><svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="3" x2="8" y2="6"/><line x1="16" y1="3" x2="16" y2="6"/></svg> Training Plan</button>
@@ -981,25 +1073,32 @@ html.show-splash .splash.splash-done {
     <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="5" y1="5" x2="7" y2="7"/><line x1="17" y1="17" x2="19" y2="19"/><line x1="19" y1="5" x2="17" y2="7"/><line x1="7" y1="17" x2="5" y2="19"/></svg><span>Today</span>
   </button>
   <button class="bnav-item" onclick="showSection('plan',this)" data-bnav>
-    <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="3" x2="8" y2="6"/><line x1="16" y1="3" x2="16" y2="6"/></svg><span>Plan</span>
+    <svg class="nav-icon" viewBox="0 0 24 24"><path d="M6 7v10M18 7v10M4 9h4M16 9h4M8 12h8"/></svg><span>Train</span>
   </button>
-  <button class="bnav-item" onclick="showSection('meals',this)" data-bnav>
-    <svg class="nav-icon" viewBox="0 0 24 24"><line x1="3" y1="11" x2="21" y2="11"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M9 4c.7 1 .7 2 0 3"/><path d="M13 4c.7 1 .7 2 0 3"/></svg><span>Meals</span>
-  </button>
-  <button class="bnav-item" onclick="showRecipesSoon()" data-bnav>
-    <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><polygon points="10 8 16 12 10 16"/></svg><span>Recipes</span>
-  </button>
-  <button class="bnav-item" onclick="showSection('shopping',this)" data-bnav>
-    <svg class="nav-icon" viewBox="0 0 24 24"><path d="M6 8h12v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></svg><span>Shopping</span>
+  <button class="bnav-fab" id="bnav-fab" onclick="toggleQuickMenu()" aria-label="Quick add" aria-expanded="false">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg>
   </button>
   <button class="bnav-item" onclick="showSection('progress',this)" data-bnav>
     <svg class="nav-icon" viewBox="0 0 24 24"><path d="M4 4v16h16"/><path d="M7 15l3-3 3 2 4-5"/></svg><span>Progress</span>
   </button>
+  <button class="bnav-item" onclick="showRecipesSoon()" data-bnav>
+    <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><polygon points="10 8 16 12 10 16"/></svg><span>Recipes</span>
+  </button>
 </nav>
+
+<!-- Quick-add menu opened by the center ＋ FAB. Keeps Meals & Shopping reachable
+     on mobile now that the bottom nav matches the 5-slot mockup. -->
+<div class="quick-menu-backdrop" id="quick-menu-backdrop" onclick="closeQuickMenu()"></div>
+<div class="quick-menu" id="quick-menu" role="menu" aria-hidden="true">
+  <button role="menuitem" onclick="qmGo('logfood')"><i class="fa-solid fa-utensils"></i> Log food</button>
+  <button role="menuitem" onclick="qmGo('weight')"><i class="fa-solid fa-weight-scale"></i> Log weight</button>
+  <button role="menuitem" onclick="qmGo('meals')"><i class="fa-solid fa-bowl-food"></i> Meal plan</button>
+  <button role="menuitem" onclick="qmGo('shopping')"><i class="fa-solid fa-basket-shopping"></i> Shopping list</button>
+</div>
 
 <!-- Desktop sidebar (>=1024px) -->
 <nav class="desk-side">
-  <div class="logo">Summer<span>Body</span></div>
+  <div class="logo">Build Your <span>Body</span></div>
   <button class="active" data-dside="today" onclick="showSection('today',this)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg> Home</button>
   <button data-dside="plan" onclick="showSection('plan',this)"><svg viewBox="0 0 24 24"><path d="M6 7v10M18 7v10M4 9h4M16 9h4M8 12h8"/></svg> Train</button>
   <button data-dside="meals" onclick="showSection('meals',this)"><svg viewBox="0 0 24 24"><path d="M4 4h16v6a8 8 0 0 1-16 0z"/><path d="M9 4V2M15 4V2"/></svg> Meals</button>
@@ -2007,6 +2106,43 @@ function showRecipesSoon() {
 function closeRecipesSoon() {
   document.getElementById('recipe-soon-modal').style.display = 'none';
   document.body.style.overflow = '';
+}
+
+/* ---- Center ＋ FAB quick-add menu (mobile) ---- */
+function toggleQuickMenu() {
+  const menu = document.getElementById('quick-menu');
+  menu.classList.contains('show') ? closeQuickMenu() : openQuickMenu();
+}
+function openQuickMenu() {
+  document.getElementById('quick-menu').classList.add('show');
+  document.getElementById('quick-menu').setAttribute('aria-hidden', 'false');
+  document.getElementById('quick-menu-backdrop').classList.add('show');
+  const fab = document.getElementById('bnav-fab');
+  fab.classList.add('open'); fab.setAttribute('aria-expanded', 'true');
+}
+function closeQuickMenu() {
+  document.getElementById('quick-menu').classList.remove('show');
+  document.getElementById('quick-menu').setAttribute('aria-hidden', 'true');
+  document.getElementById('quick-menu-backdrop').classList.remove('show');
+  const fab = document.getElementById('bnav-fab');
+  fab.classList.remove('open'); fab.setAttribute('aria-expanded', 'false');
+}
+function qmGo(action) {
+  closeQuickMenu();
+  if (action === 'logfood') {
+    showSection('today');
+    document.querySelector('.bottom-nav .bnav-item').classList.add('active');
+    const fi = document.getElementById('food-input');
+    if (fi) { fi.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => fi.focus(), 350); }
+  } else if (action === 'weight') {
+    showSection('progress');
+    const wi = document.getElementById('weight-input');
+    if (wi) { wi.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => wi.focus(), 350); }
+  } else if (action === 'meals') {
+    showSection('meals');
+  } else if (action === 'shopping') {
+    showSection('shopping');
+  }
 }
 
 function openAddRecipe() {

@@ -1,7 +1,7 @@
 {
-  "name": "SummerBody Plan",
-  "short_name": "SummerBody",
-  "description": "10-week summer body plan — training, meals, shopping and progress.",
+  "name": "Build Your Body",
+  "short_name": "Build Body",
+  "description": "Train, eat and track — built for how you actually live. Mostly free, always yours.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -9,6 +9,7 @@
   "background_color": "#F7F6F3",
   "theme_color": "#0F6E56",
   "icons": [
+    { "src": "icon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any" },
     { "src": "icon-192.png", "type": "image/png", "sizes": "192x192" },
     { "src": "icon-512.png", "type": "image/png", "sizes": "512x512" },
     { "src": "icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
