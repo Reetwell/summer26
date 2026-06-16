@@ -1146,7 +1146,7 @@ html.show-splash .splash.splash-done {
   <!-- Phone-only top bar: greeting + profile/settings entry -->
   <header class="phone-top">
     <div>
-      <div class="pt-hi" id="pt-hi">Hello</div>
+      <div class="pt-hi" id="pt-hi" style="display:none"></div>
       <div class="pt-date" id="pt-date"></div>
     </div>
     <button class="pt-avatar" id="pt-avatar" onclick="openAccount()" aria-label="Profile and settings" title="Profile & settings">
@@ -3407,7 +3407,10 @@ function renderTodayBento(day, tot, tgt) {
   if(gn) { gn.textContent = nm || 'there'; }
   // Phone top bar greeting + date
   const ptHi = document.getElementById('pt-hi');
-  if(ptHi){ ptHi.innerHTML = nm ? ('Hello, <span>' + esc(nm) + '</span>') : 'Hello'; }
+  if(ptHi){
+    if(nm){ ptHi.innerHTML = 'Hello, <span>' + esc(nm) + '</span>'; ptHi.style.display = ''; }
+    else { ptHi.textContent = ''; ptHi.style.display = 'none'; }   // no name → just the date, no bare "Hello"
+  }
   const ptDate = document.getElementById('pt-date');
   if(ptDate){ ptDate.textContent = new Date().toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'}); }
 
