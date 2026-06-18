@@ -374,6 +374,26 @@ select.food-input { width: 100%; }
 .mp-macros { display: flex; gap: 10px; margin-top: 4px; }
 .mp-macros label { flex: 1; font-size: 12px; font-weight: 600; color: var(--text-tertiary); }
 .mp-macros label input { width: 100%; margin-top: 4px; }
+
+/* Meal-plan onboarding */
+.onb-q { font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 6px 0 16px; }
+.onb-hint { font-weight: 500; font-size: 12.5px; color: var(--text-tertiary); }
+.onb-goals { display: flex; flex-direction: column; gap: 10px; }
+.onb-goal { display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 16px 18px; border: 1.5px solid var(--border); border-radius: var(--radius-md); background: var(--surface); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: border-color .12s, background .12s; }
+.onb-goal b { font-size: 16px; color: var(--text-primary); }
+.onb-goal span { font-size: 13px; color: var(--text-secondary); }
+.onb-goal:hover { border-color: var(--green-100); background: var(--green-50); }
+.onb-goal.on { border-color: var(--green-500); background: var(--green-50); }
+.onb-chips { display: flex; flex-wrap: wrap; gap: 9px; }
+.onb-chip { padding: 10px 16px; border: 1.5px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text-secondary); font-size: 14px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all .12s; }
+.onb-chip:hover { border-color: var(--green-100); }
+.onb-chip.on { border-color: var(--green-500); background: var(--green-50); color: var(--green-900); }
+.onb-nav { display: flex; align-items: center; gap: 12px; margin-top: 26px; }
+.onb-next { flex: 1; margin: 0 !important; }
+.onb-back { background: none; border: none; color: var(--text-secondary); font-size: 14px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; padding: 8px; }
+.onb-skip { text-align: center; margin-top: 16px; font-size: 13px; color: var(--text-tertiary); cursor: pointer; text-decoration: underline dotted; }
+.mp-reset-link { margin-top: 10px; background: none; border: 1px solid var(--border); border-radius: 999px; padding: 6px 13px; font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: all .12s; }
+.mp-reset-link:hover { border-color: var(--green-500); color: var(--green-900); background: var(--green-50); }
 .tip2 { border-left: 2px solid var(--blue-500); padding: 8px 12px; margin-top: 10px; background: var(--blue-50); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 12px; color: var(--blue-900); line-height: 1.6; }
 
 /* METRICS ROW */
@@ -1476,11 +1496,12 @@ html.show-splash .splash.splash-done {
   <div class="page-header">
     <h1>Meal Plan</h1>
     <p>Personalised around your preferences · Mexican · Italian · British · Wraps · Sweet potato</p>
+    <button class="mp-reset-link" onclick="resetMealPlan()">↻ Redo setup</button>
   </div>
 
   <div class="phase-toggle">
-    <button class="ptoggle on" onclick="switchMealPhase('mp1',this)">Phase 1 — fat loss (~2,100 kcal)</button>
-    <button class="ptoggle" onclick="switchMealPhase('mp2',this)">Phase 2 — muscle build (~2,700 kcal)</button>
+    <button class="ptoggle on" onclick="switchMealPhase('mp1',this)">Phase 1 — Fat loss</button>
+    <button class="ptoggle" onclick="switchMealPhase('mp2',this)">Phase 2 — Muscle build</button>
   </div>
 
   <!-- MEAL PHASE 1 -->
@@ -1956,6 +1977,64 @@ html.show-splash .splash.splash-done {
   </div>
 </div>
 
+<!-- ==================== MEAL-PLAN ONBOARDING ==================== -->
+<div id="onb-modal" style="display:none;position:fixed;inset:0;z-index:210;">
+  <div class="modal-overlay"></div>
+  <div class="modal-panel">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Let's build your meal plan</div>
+        <div class="modal-sub">A few taps and we'll set one up — you can change anything after.</div>
+      </div>
+      <button class="modal-close" onclick="onbSkip()" title="Skip"><i class="fa-regular fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <!-- Step 1: goal -->
+      <div id="onb-step-1">
+        <div class="onb-q">What's your main goal?</div>
+        <div class="onb-goals">
+          <button class="onb-goal" onclick="onbSetGoal('fatloss',this)"><b>Lose fat</b><span>Lean down, keep muscle</span></button>
+          <button class="onb-goal" onclick="onbSetGoal('muscle',this)"><b>Build muscle</b><span>Eat to grow</span></button>
+          <button class="onb-goal" onclick="onbSetGoal('maintain',this)"><b>Maintain</b><span>Stay where I am</span></button>
+        </div>
+      </div>
+      <!-- Step 2: cuisines -->
+      <div id="onb-step-2" style="display:none">
+        <div class="onb-q">Which foods do you like? <span class="onb-hint">(pick any — or none for a mix)</span></div>
+        <div class="onb-chips">
+          <button class="onb-chip" onclick="onbToggle('cuisines','british',this)">🇬🇧 British</button>
+          <button class="onb-chip" onclick="onbToggle('cuisines','italian',this)">🍝 Italian</button>
+          <button class="onb-chip" onclick="onbToggle('cuisines','mexican',this)">🌮 Mexican</button>
+          <button class="onb-chip" onclick="onbToggle('cuisines','american',this)">🍔 American</button>
+          <button class="onb-chip" onclick="onbToggle('cuisines','asian',this)">🍜 Asian</button>
+        </div>
+        <div class="onb-nav">
+          <button class="onb-back" onclick="onbStep(1)">← Back</button>
+          <button class="sigate-cta onb-next" onclick="onbStep(3)">Next</button>
+        </div>
+      </div>
+      <!-- Step 3: avoid -->
+      <div id="onb-step-3" style="display:none">
+        <div class="onb-q">Anything to leave out?</div>
+        <div class="onb-chips">
+          <button class="onb-chip" onclick="onbToggle('veg',null,this)">🥗 Vegetarian</button>
+          <button class="onb-chip" onclick="onbToggle('avoid','dairy',this)">Dairy</button>
+          <button class="onb-chip" onclick="onbToggle('avoid','gluten',this)">Gluten</button>
+          <button class="onb-chip" onclick="onbToggle('avoid','egg',this)">Egg</button>
+          <button class="onb-chip" onclick="onbToggle('avoid','fish',this)">Fish</button>
+          <button class="onb-chip" onclick="onbToggle('avoid','nuts',this)">Nuts</button>
+          <button class="onb-chip" onclick="onbToggle('avoid','spicy',this)">Spicy</button>
+        </div>
+        <div class="onb-nav">
+          <button class="onb-back" onclick="onbStep(2)">← Back</button>
+          <button class="sigate-cta onb-next" id="onb-build-btn" onclick="onbBuild()">Build my plan</button>
+        </div>
+        <div class="onb-skip" onclick="onbSkip()">Skip for now — I'll set it up myself</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ==================== ADD RECIPE MODAL ==================== -->
 <div id="recipe-modal" style="display:none;position:fixed;inset:0;z-index:200;">
   <div class="modal-overlay" onclick="closeRecipeModal()"></div>
@@ -2148,8 +2227,14 @@ function seedMealPlanFromDOM(){
 function mpSave(){ localStorage.setItem('sbp-mealplan', JSON.stringify(MP_DATA)); }
 function mpInit(){
   MP_DATA = loadStore('sbp-mealplan', null);
-  if(!MP_DATA || !MP_DATA.phases){ MP_DATA = seedMealPlanFromDOM(); mpSave(); }
+  if(MP_DATA && MP_DATA.phases){ renderMealPlan(); return; }
+  // No plan yet. Seed a sensible default so the page isn't empty, then — if this
+  // is a genuine first run (not just a returning user who skipped) — offer the
+  // friendly onboarding that builds a personalised plan from the recipe library.
+  MP_DATA = seedMealPlanFromDOM();
+  mpSave();
   renderMealPlan();
+  if(localStorage.getItem('sbp-mealplan-onboarded') !== '1'){ setTimeout(openMealOnboarding, 600); }
 }
 function mpTbox(label, val){ return '<div class="tbox"><div class="tbox-label">' + label + '</div><div class="tbox-val">' + esc(String(val)) + '</div></div>'; }
 function mpCardHtml(pid, dayKey, m){
@@ -2226,6 +2311,151 @@ function mpDeleteMeal(pid, dayKey, id){
   day.meals = day.meals.filter(x => x.id !== id);
   mpSave(); renderMealPlan();
   showToast('Meal removed', 'info');
+}
+
+// ==================== RECIPE LIBRARY + MEAL ONBOARDING ====================
+// The pickable catalog lives in Supabase (table `recipe_library`, public read).
+// This bundled set is a fallback so onboarding works offline / while the project
+// is paused — it's also the exact data seeded by backend/recipe-library.sql.
+const RECIPE_LIBRARY = [
+  // breakfasts
+  { id:'rb1', type:'breakfast', name:'Overnight weetabix', kcal:440, p:46, c:54, f:8, veg:true, cuisines:['british','simple'], tags:['dairy','gluten'], body:'3 weetabix · 200ml semi-skimmed milk · 150g Greek yogurt (0%) · 1 scoop whey · 1 tbsp honey · blueberries', note:'Mix the night before, fridge overnight, top with honey and berries.' },
+  { id:'rb2', type:'breakfast', name:'Scrambled eggs on toast', kcal:380, p:28, c:30, f:16, veg:true, cuisines:['british','simple'], tags:['egg','gluten','dairy'], body:'3 eggs · 2 slices wholemeal toast · splash of milk · knob of butter', note:'Scramble low and slow for creamy eggs.' },
+  { id:'rb3', type:'breakfast', name:'Greek yogurt protein bowl', kcal:350, p:30, c:40, f:6, veg:true, cuisines:['simple'], tags:['dairy'], body:'250g Greek yogurt · 1 scoop whey · 40g granola · honey · berries', note:'Stir whey into the yogurt, top with granola + fruit.' },
+  { id:'rb4', type:'breakfast', name:'Peanut butter banana oats', kcal:420, p:18, c:60, f:14, veg:true, cuisines:['american'], tags:['nuts','gluten'], body:'60g oats · 250ml milk · 1 banana · 1 tbsp peanut butter', note:'Microwave the oats, stir in PB, slice banana on top.' },
+  { id:'rb5', type:'breakfast', name:'Veggie breakfast burrito', kcal:450, p:26, c:45, f:18, veg:true, cuisines:['mexican'], tags:['egg','gluten','dairy'], body:'2 eggs · 1 tortilla · black beans · cheese · salsa · peppers', note:'Scramble eggs with peppers, wrap with beans, cheese and salsa.' },
+  // snacks
+  { id:'rs1', type:'snack', name:'Cottage cheese + apple', kcal:180, p:18, c:20, f:2, veg:true, cuisines:['simple'], tags:['dairy'], body:'150g cottage cheese · 1 tbsp honey · 1 apple (sliced)', note:'' },
+  { id:'rs2', type:'snack', name:'Protein shake + banana', kcal:190, p:25, c:20, f:2, veg:true, cuisines:['simple'], tags:['dairy'], body:'1 scoop whey in water · 1 banana', note:'' },
+  { id:'rs3', type:'snack', name:'Rice cakes + tuna', kcal:200, p:22, c:18, f:4, veg:false, cuisines:['simple'], tags:['fish'], body:'2 rice cakes · 1 tin tuna · squeeze of lemon', note:'' },
+  { id:'rs4', type:'snack', name:'Nuts + dark chocolate', kcal:220, p:6, c:16, f:16, veg:true, cuisines:['simple'], tags:['nuts'], body:'30g mixed nuts · 2 squares dark chocolate', note:'' },
+  { id:'rs5', type:'snack', name:'Hummus + veg sticks', kcal:160, p:6, c:18, f:8, veg:true, cuisines:['simple'], tags:[], body:'80g hummus · carrot + cucumber + pepper sticks', note:'' },
+  // lunches
+  { id:'rl1', type:'lunch', name:'Chicken honey wrap', kcal:490, p:52, c:48, f:10, veg:false, cuisines:['british'], tags:['gluten','meat'], body:'2 wholemeal wraps · 180g chicken · honey mustard · lettuce + cucumber + sweetcorn', note:'' },
+  { id:'rl2', type:'lunch', name:'Tuna pasta', kcal:520, p:40, c:70, f:10, veg:false, cuisines:['italian'], tags:['fish','gluten'], body:'90g pasta · 1 tin tuna · sweetcorn · light mayo · black pepper', note:'Cook pasta, mix through tuna, sweetcorn and a little mayo.' },
+  { id:'rl3', type:'lunch', name:'Chicken burrito bowl', kcal:560, p:48, c:62, f:14, veg:false, cuisines:['mexican'], tags:['meat','dairy'], body:'150g chicken · 120g rice · black beans · salsa · cheese · lettuce', note:'' },
+  { id:'rl4', type:'lunch', name:'Halloumi couscous salad', kcal:480, p:24, c:50, f:20, veg:true, cuisines:['simple'], tags:['dairy','gluten'], body:'100g halloumi · 80g couscous · cherry tomatoes · cucumber · olive oil', note:'Fry halloumi, toss through couscous and salad.' },
+  { id:'rl5', type:'lunch', name:'Beef + rice stir fry', kcal:580, p:45, c:65, f:14, veg:false, cuisines:['asian'], tags:['meat','beef','gluten','spicy'], body:'150g beef strips · 120g rice · mixed veg · soy sauce · chilli', note:'Stir fry beef and veg, serve over rice.' },
+  // dinners
+  { id:'rd1', type:'dinner', name:'Proper chicken fajitas', kcal:790, p:54, c:78, f:18, veg:false, cuisines:['mexican'], tags:['meat','gluten','dairy','spicy'], body:'220g chicken strips · 3 tortillas · peppers + onion · fajita seasoning · salsa · yogurt', note:'Fry chicken with peppers + seasoning ~15 mins, serve in warm tortillas.' },
+  { id:'rd2', type:'dinner', name:'Spaghetti bolognese', kcal:720, p:45, c:80, f:20, veg:false, cuisines:['italian'], tags:['beef','meat','gluten'], body:'150g beef mince · 100g spaghetti · tomato sauce · onion + garlic', note:'Brown mince, simmer in sauce, serve over spaghetti.' },
+  { id:'rd3', type:'dinner', name:'Salmon + sweet potato', kcal:620, p:42, c:50, f:24, veg:false, cuisines:['british'], tags:['fish'], body:'1 salmon fillet · 1 sweet potato · broccoli · olive oil', note:'Bake salmon + sweet potato ~25 mins, steam the broccoli.' },
+  { id:'rd4', type:'dinner', name:'Chicken curry + rice', kcal:700, p:48, c:75, f:18, veg:false, cuisines:['asian'], tags:['meat','dairy','spicy'], body:'180g chicken · 120g rice · curry sauce · onion · yogurt', note:'Simmer chicken in sauce, serve over rice.' },
+  { id:'rd5', type:'dinner', name:'Veggie chilli + rice', kcal:560, p:22, c:90, f:10, veg:true, cuisines:['mexican'], tags:['spicy'], body:'kidney beans + black beans · 120g rice · peppers · tomato · chilli + cumin', note:'Simmer beans, tomato and spices ~20 mins, serve over rice.' }
+];
+
+let RECIPE_LIB_CACHE = null;
+function normalizeRecipe(r){
+  const arr = v => Array.isArray(v) ? v : (v ? String(v).split(',').map(s=>s.trim()).filter(Boolean) : []);
+  return { id:r.id, type:r.type, name:r.name, kcal:+r.kcal||0, p:+r.p||0, c:+r.c||0, f:+r.f||0, body:r.body||'', note:r.note||'', veg:!!r.veg, cuisines:arr(r.cuisines), tags:arr(r.tags) };
+}
+async function loadRecipeLibrary(){
+  if(RECIPE_LIB_CACHE) return RECIPE_LIB_CACHE;
+  try {
+    if(typeof sb !== 'undefined' && sb){
+      const { data, error } = await sb.from('recipe_library').select('*');
+      if(!error && data && data.length){ RECIPE_LIB_CACHE = data.map(normalizeRecipe); return RECIPE_LIB_CACHE; }
+    }
+  } catch(_){}
+  RECIPE_LIB_CACHE = RECIPE_LIBRARY.map(normalizeRecipe);   // bundled fallback
+  return RECIPE_LIB_CACHE;
+}
+
+// ---- Onboarding: preferences → auto-built plan ----
+let _onb = { goal:'fatloss', cuisines:[], avoid:[], veg:false };
+function recipeAllowed(r, prefs){
+  if(prefs.veg && !r.veg) return false;
+  for(const a of (prefs.avoid||[])){ if(r.tags.includes(a)) return false; }
+  return true;
+}
+function recipeCuisineOk(r, prefs){
+  if(!prefs.cuisines || !prefs.cuisines.length) return true;
+  if(r.cuisines.includes('simple')) return true;
+  return r.cuisines.some(c => prefs.cuisines.includes(c));
+}
+function mpPool(lib, type, prefs){
+  let p = lib.filter(r => r.type===type && recipeAllowed(r,prefs) && recipeCuisineOk(r,prefs));
+  if(p.length < 2) p = lib.filter(r => r.type===type && recipeAllowed(r,prefs));
+  if(p.length === 0) p = lib.filter(r => r.type===type);
+  return p;
+}
+function mpRecipeToMeal(r){ return { id:mpUid(), type:r.type, name:r.name, kcal:r.kcal, body:r.body, note:r.note||'', p:r.p, c:r.c, f:r.f }; }
+function buildPlanFromPrefs(lib, prefs){
+  const days = ['mon','tue','wed','thu','fri','sat','sun'];
+  const phaseDefs = [
+    { id:'mp1', label:'Phase 1 — Fat loss', snacks:1 },
+    { id:'mp2', label:'Phase 2 — Muscle build', snacks:2 }
+  ];
+  const data = { v:1, phases:{} };
+  phaseDefs.forEach(pd => {
+    const bp = mpPool(lib,'breakfast',prefs), sn = mpPool(lib,'snack',prefs), ln = mpPool(lib,'lunch',prefs), dn = mpPool(lib,'dinner',prefs);
+    const pick = (arr, off) => arr.length ? mpRecipeToMeal(arr[((off % arr.length) + arr.length) % arr.length]) : null;
+    const dayObjs = {};
+    days.forEach((d, i) => {
+      const meals = [];
+      const add = m => { if(m) meals.push(m); };
+      add(pick(bp, i));
+      add(pick(sn, i));
+      add(pick(ln, i));
+      if(pd.snacks > 1) add(pick(sn, i + 3));
+      add(pick(dn, i));
+      dayObjs[d] = { meals, tip:'' };
+    });
+    data.phases[pd.id] = { label: pd.label, days: dayObjs };
+  });
+  return data;
+}
+
+function onbChipText(kind){ return kind === 'cuisines' ? (_onb.cuisines.length ? _onb.cuisines.length + ' selected' : 'any') : ''; }
+function openMealOnboarding(){
+  _onb = { goal:'fatloss', cuisines:[], avoid:[], veg:false };
+  document.querySelectorAll('#onb-modal .onb-chip, #onb-modal .onb-goal').forEach(c => c.classList.remove('on'));
+  onbStep(1);
+  document.getElementById('onb-modal').style.display = 'block';
+}
+function closeMealOnboarding(){ document.getElementById('onb-modal').style.display = 'none'; }
+function onbStep(n){
+  [1,2,3].forEach(i => { const s = document.getElementById('onb-step-' + i); if(s) s.style.display = (i === n) ? 'block' : 'none'; });
+}
+function onbSetGoal(g, el){ _onb.goal = g; el.parentElement.querySelectorAll('.onb-goal').forEach(b => b.classList.remove('on')); el.classList.add('on'); onbStep(2); }
+function onbToggle(kind, val, el){
+  if(kind === 'veg'){ _onb.veg = !_onb.veg; el.classList.toggle('on', _onb.veg); return; }
+  const arr = _onb[kind];
+  const idx = arr.indexOf(val);
+  if(idx >= 0){ arr.splice(idx,1); el.classList.remove('on'); } else { arr.push(val); el.classList.add('on'); }
+}
+async function onbBuild(){
+  const btn = document.getElementById('onb-build-btn');
+  if(btn){ btn.disabled = true; btn.textContent = 'Building your plan…'; }
+  try {
+    const lib = await loadRecipeLibrary();
+    MP_DATA = buildPlanFromPrefs(lib, _onb);
+    mpSave();
+    localStorage.setItem('sbp-mealplan-onboarded', '1');
+    renderMealPlan();
+    closeMealOnboarding();
+    showSection('meals');
+    // open the phase that matches their goal
+    const target = (_onb.goal === 'muscle') ? 'mp2' : 'mp1';
+    const tabBtn = document.querySelector('.ptoggle[onclick*="' + target + '"]');
+    if(tabBtn) switchMealPhase(target, tabBtn);
+    showToast('Your meal plan is ready — tweak anything you like', 'success');
+  } catch(e){ showToast('Could not build the plan — try again', 'error'); }
+  finally { if(btn){ btn.disabled = false; btn.textContent = 'Build my plan'; } }
+}
+function onbSkip(){ localStorage.setItem('sbp-mealplan-onboarded', '1'); closeMealOnboarding(); }
+
+// ---- Reset: wipe the user's plan (local + synced) and re-run onboarding ----
+async function resetMealPlan(){
+  if(!confirm('Reset your meal plan and set it up again? This clears your current plan.')) return;
+  try { localStorage.removeItem('sbp-mealplan'); } catch(_){}
+  localStorage.removeItem('sbp-mealplan-onboarded');
+  try {
+    if(typeof sb !== 'undefined' && sb && authUser){ await sb.from('app_data').delete().eq('user_id', authUser.id).eq('key', 'sbp-mealplan'); }
+  } catch(_){}
+  MP_DATA = seedMealPlanFromDOM();   // keep a default visible behind the modal
+  renderMealPlan();
+  openMealOnboarding();
 }
 
 // ==================== SHOPPING ====================
