@@ -443,6 +443,22 @@ select.food-input { width: 100%; }
 .tonb-day-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
 .tonb-day-row .tonb-day { width: 42px; font-weight: 700; font-size: 14px; color: var(--text-primary); flex-shrink: 0; }
 .tonb-day-row .tonb-focus { flex: 1; }
+
+/* Exercise detail (WorkoutX demo + muscle map) */
+.exd-top { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-start; }
+.exd-gif { flex: 1; min-width: 220px; background: var(--gray-50); border: 1px solid var(--border); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; min-height: 220px; overflow: hidden; }
+.exd-gif img { width: 100%; height: auto; display: block; }
+.exd-gif .ph { color: var(--text-tertiary); font-size: 13px; padding: 24px; text-align: center; line-height: 1.6; }
+.exd-body { width: 150px; flex-shrink: 0; text-align: center; }
+.ex-m { fill: var(--gray-100); stroke: var(--border); stroke-width: 1; transition: fill .3s ease; transform-box: fill-box; transform-origin: center; }
+.ex-m.sec { fill: var(--green-100); stroke: var(--green-500); }
+.ex-m.on { fill: var(--green-500); stroke: var(--green-900); animation: exmp .5s ease; }
+@keyframes exmp { 0% { transform: scale(1); } 45% { transform: scale(1.16); } 100% { transform: scale(1); } }
+.exd-targets-lbl { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-tertiary); margin-top: 6px; }
+.exd-targets { font-size: 13px; color: var(--text-primary); font-weight: 500; margin-top: 3px; line-height: 1.5; }
+.exd-steps { margin-top: 18px; display: flex; flex-direction: column; gap: 10px; }
+.exd-step { display: flex; gap: 12px; font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+.exd-step-n { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--green-50); color: var(--green-900); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 .tip2 { border-left: 2px solid var(--blue-500); padding: 8px 12px; margin-top: 10px; background: var(--blue-50); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 12px; color: var(--blue-900); line-height: 1.6; }
 
 /* METRICS ROW */
@@ -2174,6 +2190,49 @@ html.show-splash .splash.splash-done {
   </div>
 </div>
 
+<!-- ==================== EXERCISE DETAIL MODAL ==================== -->
+<div id="exercise-detail-modal" style="display:none;position:fixed;inset:0;z-index:210;">
+  <div class="modal-overlay" onclick="exClose()"></div>
+  <div class="modal-panel">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="exd-name">Exercise</div>
+        <div class="modal-sub"><span id="exd-sets"></span></div>
+      </div>
+      <button class="modal-close" onclick="exClose()"><i class="fa-regular fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="exd-top">
+        <div class="exd-gif" id="exd-gif"><div class="ph">Loading…</div></div>
+        <div class="exd-body" id="exd-body">
+          <svg width="130" viewBox="0 0 220 360" aria-label="Worked muscles">
+            <circle cx="110" cy="30" r="20" fill="var(--gray-100)" stroke="var(--border)" stroke-width="1"/>
+            <rect x="103" y="48" width="14" height="12" rx="3" fill="var(--gray-100)" stroke="var(--border)" stroke-width="1"/>
+            <ellipse class="ex-m" data-m="shoulders" cx="76" cy="80" rx="20" ry="13"/>
+            <ellipse class="ex-m" data-m="shoulders" cx="144" cy="80" rx="20" ry="13"/>
+            <ellipse class="ex-m" data-m="chest" cx="96" cy="106" rx="17" ry="14"/>
+            <ellipse class="ex-m" data-m="chest" cx="124" cy="106" rx="17" ry="14"/>
+            <ellipse class="ex-m" data-m="arms" cx="58" cy="120" rx="11" ry="32"/>
+            <ellipse class="ex-m" data-m="arms" cx="162" cy="120" rx="11" ry="32"/>
+            <ellipse class="ex-m" data-m="arms" cx="52" cy="178" rx="9" ry="28"/>
+            <ellipse class="ex-m" data-m="arms" cx="168" cy="178" rx="9" ry="28"/>
+            <ellipse class="ex-m" data-m="back" cx="84" cy="140" rx="8" ry="24"/>
+            <ellipse class="ex-m" data-m="back" cx="136" cy="140" rx="8" ry="24"/>
+            <rect class="ex-m" data-m="core" x="93" y="126" width="34" height="56" rx="9"/>
+            <rect class="ex-m" data-m="legs" x="86" y="190" width="20" height="74" rx="9"/>
+            <rect class="ex-m" data-m="legs" x="114" y="190" width="20" height="74" rx="9"/>
+            <rect x="88" y="270" width="16" height="64" rx="8" fill="var(--gray-100)" stroke="var(--border)" stroke-width="1"/>
+            <rect x="116" y="270" width="16" height="64" rx="8" fill="var(--gray-100)" stroke="var(--border)" stroke-width="1"/>
+          </svg>
+          <div class="exd-targets-lbl">Targets</div>
+          <div id="exd-targets" class="exd-targets"></div>
+        </div>
+      </div>
+      <div id="exd-steps" class="exd-steps"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ==================== ADD RECIPE MODAL ==================== -->
 <div id="recipe-modal" style="display:none;position:fixed;inset:0;z-index:200;">
   <div class="modal-overlay" onclick="closeRecipeModal()"></div>
@@ -2847,7 +2906,7 @@ function tpRenderWeek(el, plan, ctx){
   const sum = '<div class="tp-week-sum"><b>' + esc(GOAL_LABEL[plan.goal] || '') + '</b> · ' + plan.days.length + ' days/week · ' + esc(LOC_LABEL[plan.location] || '') + '</div>';
   const cards = plan.days.map((d, di) => {
     const exs = (d.exercises || []).map((e, ei) =>
-      '<div class="tp-ex"><div class="tp-ex-info"><span class="tp-ex-name">' + esc(e.name) + '</span><span class="tp-ex-sets">' + esc(e.sets || '') + '</span></div>'
+      '<div class="tp-ex"><div class="tp-ex-info" onclick="exOpen(\'' + ctx + '\',' + di + ',' + ei + ')" style="cursor:pointer"><span class="tp-ex-name">' + esc(e.name) + '</span><span class="tp-ex-sets">' + esc(e.sets || '') + '</span></div>'
       + '<button class="mp-icon" title="Swap exercise" aria-label="Swap exercise" onclick="tpSwap(\'' + ctx + '\',' + di + ',' + ei + ')">↻</button></div>'
     ).join('');
     return '<div class="tp-day-card"><div class="tp-day-head"><span class="tp-day-name">' + esc(d.day) + '</span><span class="tp-day-focus">' + esc(d.focus) + '</span></div><div class="tp-ex-list">' + exs + '</div></div>';
@@ -2919,6 +2978,78 @@ function tonbSave(){
   showSection('plan');
   showToast('Your training plan is ready 💪', 'success');
 }
+
+// ==================== EXERCISE DETAIL (WorkoutX) ====================
+// Tap an exercise → animated demo GIF + instructions from WorkoutX, with the
+// worked muscles highlighted on the body map. Falls back to just the muscle
+// map (driven by our own muscle tag) when no key is set or the API is down.
+const WORKOUTX_KEY = '';   // ← paste your free WorkoutX key (workoutxapp.com → Developer Dashboard)
+const WORKOUTX_BASE = 'https://api.workoutxapp.com/v1';
+function workoutxConfigured(){ return typeof WORKOUTX_KEY === 'string' && WORKOUTX_KEY.indexOf('wx_') === 0; }
+let _exCache = {};
+try { _exCache = JSON.parse(localStorage.getItem('bb-ex-cache')) || {}; } catch(_){}
+async function workoutxByName(name){
+  const key = (name || '').toLowerCase().trim();
+  if(_exCache[key]) return _exCache[key];
+  if(!workoutxConfigured()) return null;
+  try {
+    const res = await fetch(WORKOUTX_BASE + '/exercises/name/' + encodeURIComponent(key) + '?api-key=' + encodeURIComponent(WORKOUTX_KEY));
+    if(!res.ok) return null;
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : (data.data || data.exercises || data.results || []);
+    const ex = list[0] || (data.gifUrl ? data : null);
+    if(!ex) return null;
+    const gif = ex.gifUrl ? (ex.gifUrl + (ex.gifUrl.indexOf('?') < 0 ? '?' : '&') + 'api-key=' + encodeURIComponent(WORKOUTX_KEY)) : null;
+    const rec = { name: ex.name || name, gif, target: ex.target || '', secondary: ex.secondaryMuscles || [], steps: ex.instructions || [] };
+    _exCache[key] = rec;
+    try { localStorage.setItem('bb-ex-cache', JSON.stringify(_exCache)); } catch(_){}
+    return rec;
+  } catch(_){ return null; }
+}
+// Map a muscle name (ours or WorkoutX's) → a body-map region id.
+function exMuscleGroup(m){
+  const n = (m || '').toLowerCase();
+  if(/pec|chest/.test(n)) return 'chest';
+  if(/delt|shoulder/.test(n)) return 'shoulders';
+  if(/bicep|tricep|forearm|brachi|arm/.test(n)) return 'arms';
+  if(/lat|trap|\bback\b|rhomboid|spinae|erector/.test(n)) return 'back';
+  if(/ab|core|oblique/.test(n)) return 'core';
+  if(/quad|hamstring|glute|calf|leg|adductor/.test(n)) return 'legs';
+  return null;
+}
+function exHighlight(primary, secondary){
+  document.querySelectorAll('#exd-body .ex-m').forEach(el => { el.classList.remove('on'); el.classList.remove('sec'); });
+  (secondary || []).forEach(g => { if(g) document.querySelectorAll('#exd-body .ex-m[data-m="' + g + '"]').forEach(el => { void el.offsetWidth; el.classList.add('sec'); }); });
+  if(primary) document.querySelectorAll('#exd-body .ex-m[data-m="' + primary + '"]').forEach(el => { void el.offsetWidth; el.classList.add('on'); });
+}
+function exOpen(ctx, di, ei){
+  const plan = (ctx === 'preview') ? (_tonb && _tonb.plan) : TP_DATA;
+  if(!plan || !plan.days[di]) return;
+  const ex = plan.days[di].exercises[ei]; if(!ex) return;
+  document.getElementById('exd-name').textContent = ex.name;
+  document.getElementById('exd-sets').textContent = ex.sets || '';
+  const primary = exMuscleGroup(ex.muscle);
+  exHighlight(primary, []);
+  document.getElementById('exd-targets').textContent = '';
+  const gifWrap = document.getElementById('exd-gif');
+  const steps = document.getElementById('exd-steps');
+  steps.innerHTML = '';
+  gifWrap.innerHTML = workoutxConfigured()
+    ? '<div class="ph">Loading demo…</div>'
+    : '<div class="ph">Add your free WorkoutX key in the code to show the animated demo. Muscles are mapped from your plan.</div>';
+  document.getElementById('exercise-detail-modal').style.display = 'block';
+  workoutxByName(ex.name).then(rec => {
+    if(!rec){ if(workoutxConfigured()) gifWrap.innerHTML = '<div class="ph">No demo found for this one.</div>'; return; }
+    if(rec.gif){ gifWrap.innerHTML = '<img src="' + rec.gif + '" alt="' + esc(rec.name) + ' demo" loading="lazy">'; }
+    else gifWrap.innerHTML = '<div class="ph">No demo found for this one.</div>';
+    const sec = (rec.secondary || []).map(exMuscleGroup).filter(Boolean);
+    exHighlight(primary || exMuscleGroup(rec.target), sec);
+    const tg = [rec.target].concat(rec.secondary || []).filter(Boolean).join(' · ');
+    document.getElementById('exd-targets').textContent = tg;
+    if(rec.steps && rec.steps.length){ steps.innerHTML = rec.steps.map((s, i) => '<div class="exd-step"><span class="exd-step-n">' + (i + 1) + '</span><span>' + esc(s) + '</span></div>').join(''); }
+  });
+}
+function exClose(){ document.getElementById('exercise-detail-modal').style.display = 'none'; }
 
 // ==================== SHOPPING ====================
 function switchShopPhase(id, el) {
