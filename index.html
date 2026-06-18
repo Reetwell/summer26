@@ -2983,25 +2983,43 @@ function tonbSave(){
 // Tap an exercise → animated demo GIF + instructions from WorkoutX, with the
 // worked muscles highlighted on the body map. Falls back to just the muscle
 // map (driven by our own muscle tag) when no key is set or the API is down.
-const WORKOUTX_KEY = '';   // ← paste your free WorkoutX key (workoutxapp.com → Developer Dashboard)
+const WORKOUTX_KEY = 'wx_5964653f7338f5d1e316118bf2ad272b72c935cf6ec1fa7dc5641362';   // free WorkoutX key (workoutxapp.com)
 const WORKOUTX_BASE = 'https://api.workoutxapp.com/v1';
 function workoutxConfigured(){ return typeof WORKOUTX_KEY === 'string' && WORKOUTX_KEY.indexOf('wx_') === 0; }
 let _exCache = {};
 try { _exCache = JSON.parse(localStorage.getItem('bb-ex-cache')) || {}; } catch(_){}
+// WorkoutX uses US/singular naming; map our names to a search term that hits.
+const WX_ALIASES = {
+  'press-ups':'push up', 'close-grip press-ups':'close grip push up', 'pike press-ups':'pike push up',
+  'lateral raises':'lateral raise', 'walking lunges':'walking lunge', 'chest press machine':'machine chest press',
+  'skull crushers':'skull crusher', 'overhead extension':'tricep extension', 'bent-over row':'bent over row',
+  'seated cable row':'cable row', 'face pulls':'face pull', 'chin-ups':'chin up', 'pull-ups':'pull up',
+  'dips':'tricep dips', 'bodyweight squat':'squat', 'hanging leg raise':'hanging leg raise', 'press-ups':'push-up'
+};
+function wxSearchTerm(name){
+  const k = (name || '').toLowerCase().trim();
+  if(WX_ALIASES[k]) return WX_ALIASES[k];
+  return k.replace(/press-ups?/g, 'push up').replace(/-/g, ' ');
+}
+async function wxQuery(term){
+  const res = await fetch(WORKOUTX_BASE + '/exercises/name/' + encodeURIComponent(term) + '?api-key=' + encodeURIComponent(WORKOUTX_KEY));
+  if(!res.ok) return null;
+  const data = await res.json();
+  const list = Array.isArray(data) ? data : (data.data || data.exercises || data.results || []);
+  return list[0] || (data && data.gifUrl ? data : null);
+}
 async function workoutxByName(name){
-  const key = (name || '').toLowerCase().trim();
-  if(_exCache[key]) return _exCache[key];
+  const cacheKey = (name || '').toLowerCase().trim();
+  if(_exCache[cacheKey]) return _exCache[cacheKey];
   if(!workoutxConfigured()) return null;
   try {
-    const res = await fetch(WORKOUTX_BASE + '/exercises/name/' + encodeURIComponent(key) + '?api-key=' + encodeURIComponent(WORKOUTX_KEY));
-    if(!res.ok) return null;
-    const data = await res.json();
-    const list = Array.isArray(data) ? data : (data.data || data.exercises || data.results || []);
-    const ex = list[0] || (data.gifUrl ? data : null);
+    const term = wxSearchTerm(name);
+    let ex = await wxQuery(term);
+    if(!ex){ const simpler = term.replace(/s$/, ''); if(simpler && simpler !== term) ex = await wxQuery(simpler); }
     if(!ex) return null;
     const gif = ex.gifUrl ? (ex.gifUrl + (ex.gifUrl.indexOf('?') < 0 ? '?' : '&') + 'api-key=' + encodeURIComponent(WORKOUTX_KEY)) : null;
     const rec = { name: ex.name || name, gif, target: ex.target || '', secondary: ex.secondaryMuscles || [], steps: ex.instructions || [] };
-    _exCache[key] = rec;
+    _exCache[cacheKey] = rec;
     try { localStorage.setItem('bb-ex-cache', JSON.stringify(_exCache)); } catch(_){}
     return rec;
   } catch(_){ return null; }
