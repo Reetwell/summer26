@@ -392,6 +392,27 @@ select.food-input { width: 100%; }
 .onb-next { flex: 1; margin: 0 !important; }
 .onb-back { background: none; border: none; color: var(--text-secondary); font-size: 14px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; padding: 8px; }
 .onb-skip { text-align: center; margin-top: 16px; font-size: 13px; color: var(--text-tertiary); cursor: pointer; text-decoration: underline dotted; }
+/* Onboarding polish: progress dots, animated steps, goal icons, build spinner */
+.onb-dots { display: flex; gap: 7px; justify-content: center; margin: 2px 0 22px; }
+.onb-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); transition: background .25s, width .25s; }
+.onb-dot.on { background: var(--green-500); width: 22px; border-radius: 4px; }
+.onb-step.onb-anim { animation: onbIn .34s cubic-bezier(.4,0,.2,1); }
+@keyframes onbIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.onb-goal { display: flex; flex-direction: row; align-items: center; gap: 14px; position: relative; }
+.onb-goal-ico { font-size: 26px; line-height: 1; flex-shrink: 0; transition: transform .15s; }
+.onb-goal-txt { display: flex; flex-direction: column; gap: 2px; }
+.onb-goal-tick { margin-left: auto; width: 24px; height: 24px; border-radius: 50%; background: var(--green-500); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; opacity: 0; transform: scale(.5); transition: opacity .15s, transform .15s; }
+.onb-goal.on .onb-goal-tick { opacity: 1; transform: scale(1); }
+.onb-goal.on .onb-goal-ico { transform: scale(1.12); }
+.onb-chip { transition: transform .1s, border-color .12s, background .12s, color .12s; }
+.onb-chip:active { transform: scale(.94); }
+.onb-chip.on { animation: onbPop .22s ease; }
+@keyframes onbPop { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
+.onb-building { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 46px 0 40px; gap: 16px; }
+.onb-spinner { width: 46px; height: 46px; border-radius: 50%; border: 4px solid var(--green-50); border-top-color: var(--green-500); animation: onbSpin .8s linear infinite; }
+@keyframes onbSpin { to { transform: rotate(360deg); } }
+.onb-build-text { font-family: 'DM Serif Display', serif; font-size: 19px; color: var(--text-primary); text-align: center; }
+.onb-build-sub { font-size: 13px; color: var(--text-tertiary); }
 .mp-reset-link { margin-top: 10px; background: none; border: 1px solid var(--border); border-radius: 999px; padding: 6px 13px; font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: all .12s; }
 .mp-reset-link:hover { border-color: var(--green-500); color: var(--green-900); background: var(--green-50); }
 
@@ -2004,26 +2025,28 @@ html.show-splash .splash.splash-done {
 <!-- ==================== MEAL-PLAN ONBOARDING ==================== -->
 <div id="onb-modal" style="display:none;position:fixed;inset:0;z-index:210;">
   <div class="modal-overlay"></div>
-  <div class="modal-panel">
+  <div class="modal-panel onb-panel">
     <div class="modal-header">
       <div>
-        <div class="modal-title">Let's build your meal plan</div>
-        <div class="modal-sub">A few taps and we'll set one up — you can change anything after.</div>
+        <div class="modal-title" id="onb-title">Let's build your meal plan</div>
+        <div class="modal-sub">A few taps and we'll set one up — change anything after.</div>
       </div>
       <button class="modal-close" onclick="onbSkip()" title="Skip"><i class="fa-regular fa-xmark"></i></button>
     </div>
     <div class="modal-body">
+      <div class="onb-dots" id="onb-dots"><span class="onb-dot"></span><span class="onb-dot"></span><span class="onb-dot"></span></div>
+
       <!-- Step 1: goal -->
-      <div id="onb-step-1">
+      <div id="onb-step-1" class="onb-step">
         <div class="onb-q">What's your main goal?</div>
         <div class="onb-goals">
-          <button class="onb-goal" onclick="onbSetGoal('fatloss',this)"><b>Lose fat</b><span>Lean down, keep muscle</span></button>
-          <button class="onb-goal" onclick="onbSetGoal('muscle',this)"><b>Build muscle</b><span>Eat to grow</span></button>
-          <button class="onb-goal" onclick="onbSetGoal('maintain',this)"><b>Maintain</b><span>Stay where I am</span></button>
+          <button class="onb-goal" onclick="onbSetGoal('fatloss',this)"><span class="onb-goal-ico">🔥</span><span class="onb-goal-txt"><b>Lose fat</b><span>Lean down, keep muscle</span></span><span class="onb-goal-tick">✓</span></button>
+          <button class="onb-goal" onclick="onbSetGoal('muscle',this)"><span class="onb-goal-ico">💪</span><span class="onb-goal-txt"><b>Build muscle</b><span>Eat to grow</span></span><span class="onb-goal-tick">✓</span></button>
+          <button class="onb-goal" onclick="onbSetGoal('maintain',this)"><span class="onb-goal-ico">⚖️</span><span class="onb-goal-txt"><b>Maintain</b><span>Stay where I am</span></span><span class="onb-goal-tick">✓</span></button>
         </div>
       </div>
       <!-- Step 2: cuisines -->
-      <div id="onb-step-2" style="display:none">
+      <div id="onb-step-2" class="onb-step" style="display:none">
         <div class="onb-q">Which foods do you like? <span class="onb-hint">(pick any — or none for a mix)</span></div>
         <div class="onb-chips">
           <button class="onb-chip" onclick="onbToggle('cuisines','british',this)">🇬🇧 British</button>
@@ -2038,7 +2061,7 @@ html.show-splash .splash.splash-done {
         </div>
       </div>
       <!-- Step 3: avoid -->
-      <div id="onb-step-3" style="display:none">
+      <div id="onb-step-3" class="onb-step" style="display:none">
         <div class="onb-q">Anything to leave out?</div>
         <div class="onb-chips">
           <button class="onb-chip" onclick="onbToggle('veg',null,this)">🥗 Vegetarian</button>
@@ -2051,9 +2074,17 @@ html.show-splash .splash.splash-done {
         </div>
         <div class="onb-nav">
           <button class="onb-back" onclick="onbStep(2)">← Back</button>
-          <button class="sigate-cta onb-next" id="onb-build-btn" onclick="onbBuild()">Build my plan</button>
+          <button class="sigate-cta onb-next" id="onb-build-btn" onclick="onbBuild()">Build my plan ✨</button>
         </div>
         <div class="onb-skip" onclick="onbSkip()">Skip for now — I'll set it up myself</div>
+      </div>
+      <!-- Building -->
+      <div id="onb-step-build" class="onb-step" style="display:none">
+        <div class="onb-building">
+          <div class="onb-spinner"></div>
+          <div class="onb-build-text" id="onb-build-text">Building your plan…</div>
+          <div class="onb-build-sub">Picking meals around what you love</div>
+        </div>
       </div>
     </div>
   </div>
@@ -2430,18 +2461,25 @@ function buildPlanFromPrefs(lib, prefs){
   return data;
 }
 
-function onbChipText(kind){ return kind === 'cuisines' ? (_onb.cuisines.length ? _onb.cuisines.length + ' selected' : 'any') : ''; }
 function openMealOnboarding(){
   _onb = { goal:'fatloss', cuisines:[], avoid:[], veg:false };
   document.querySelectorAll('#onb-modal .onb-chip, #onb-modal .onb-goal').forEach(c => c.classList.remove('on'));
+  const nm = (typeof authUser !== 'undefined' && authUser && authUser.user_metadata && authUser.user_metadata.name) || '';
+  const t = document.getElementById('onb-title'); if(t) t.textContent = nm ? ("Let's build your plan, " + nm) : "Let's build your meal plan";
   onbStep(1);
   document.getElementById('onb-modal').style.display = 'block';
 }
 function closeMealOnboarding(){ document.getElementById('onb-modal').style.display = 'none'; }
 function onbStep(n){
-  [1,2,3].forEach(i => { const s = document.getElementById('onb-step-' + i); if(s) s.style.display = (i === n) ? 'block' : 'none'; });
+  const bs = document.getElementById('onb-step-build'); if(bs) bs.style.display = 'none';
+  [1,2,3].forEach(i => {
+    const s = document.getElementById('onb-step-' + i); if(!s) return;
+    if(i === n){ s.style.display = 'block'; s.classList.remove('onb-anim'); void s.offsetWidth; s.classList.add('onb-anim'); }
+    else s.style.display = 'none';
+  });
+  document.querySelectorAll('#onb-dots .onb-dot').forEach((d, idx) => d.classList.toggle('on', idx < n));
 }
-function onbSetGoal(g, el){ _onb.goal = g; el.parentElement.querySelectorAll('.onb-goal').forEach(b => b.classList.remove('on')); el.classList.add('on'); onbStep(2); }
+function onbSetGoal(g, el){ _onb.goal = g; el.parentElement.querySelectorAll('.onb-goal').forEach(b => b.classList.remove('on')); el.classList.add('on'); setTimeout(() => onbStep(2), 260); }
 function onbToggle(kind, val, el){
   if(kind === 'veg'){ _onb.veg = !_onb.veg; el.classList.toggle('on', _onb.veg); return; }
   const arr = _onb[kind];
@@ -2449,23 +2487,29 @@ function onbToggle(kind, val, el){
   if(idx >= 0){ arr.splice(idx,1); el.classList.remove('on'); } else { arr.push(val); el.classList.add('on'); }
 }
 async function onbBuild(){
-  const btn = document.getElementById('onb-build-btn');
-  if(btn){ btn.disabled = true; btn.textContent = 'Building your plan…'; }
+  // Show the animated "building…" screen with a line personalised to their picks
+  ['onb-step-1','onb-step-2','onb-step-3'].forEach(id => { const s = document.getElementById(id); if(s) s.style.display = 'none'; });
+  const bs = document.getElementById('onb-step-build');
+  if(bs){ bs.style.display = 'block'; bs.classList.remove('onb-anim'); void bs.offsetWidth; bs.classList.add('onb-anim'); }
+  document.querySelectorAll('#onb-dots .onb-dot').forEach(d => d.classList.add('on'));
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+  const goalTxt = _onb.goal === 'muscle' ? 'muscle-build' : (_onb.goal === 'maintain' ? 'maintenance' : 'fat-loss');
+  const cuisTxt = _onb.cuisines.length ? (' ' + _onb.cuisines.map(cap).join(' & ') + '-leaning') : '';
+  const bt = document.getElementById('onb-build-text'); if(bt) bt.textContent = 'Building your' + cuisTxt + ' ' + goalTxt + ' week…';
   try {
     const lib = await loadRecipeLibrary();
     MP_DATA = buildPlanFromPrefs(lib, _onb);
+    await new Promise(r => setTimeout(r, 1100));   // let the build animation breathe
     mpSave();
     localStorage.setItem('sbp-mealplan-onboarded', '1');
     renderMealPlan();
     closeMealOnboarding();
     showSection('meals');
-    // open the phase that matches their goal
     const target = (_onb.goal === 'muscle') ? 'mp2' : 'mp1';
     const tabBtn = document.querySelector('.ptoggle[onclick*="' + target + '"]');
     if(tabBtn) switchMealPhase(target, tabBtn);
     showToast('Your meal plan is ready — tweak anything you like', 'success');
-  } catch(e){ showToast('Could not build the plan — try again', 'error'); }
-  finally { if(btn){ btn.disabled = false; btn.textContent = 'Build my plan'; } }
+  } catch(e){ showToast('Could not build the plan — try again', 'error'); onbStep(3); }
 }
 function onbSkip(){ localStorage.setItem('sbp-mealplan-onboarded', '1'); closeMealOnboarding(); }
 
