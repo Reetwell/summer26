@@ -421,6 +421,28 @@ select.food-input { width: 100%; }
 .tp-controls { display: flex; gap: 6px; flex-shrink: 0; }
 .tp-controls .mp-icon { width: 24px; height: 24px; font-size: 12px; }
 .tp-add { margin-top: 8px; }
+
+/* Personalised "your week" view (split mode) */
+#tp-myweek { display: none; }
+#sec-plan.tp-split #tp-myweek { display: block; }
+#sec-plan.tp-split .timeline, #sec-plan.tp-split .phase-card, #sec-plan.tp-split .page-header p { display: none; }
+@media (min-width: 1024px) { #sec-plan.tp-split { column-count: 1; } }
+.tp-week-sum { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
+.tp-week-sum b { color: var(--text-primary); }
+.tp-week { display: flex; flex-direction: column; gap: 12px; }
+@media (min-width: 1024px) { .tp-week { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; } }
+.tp-day-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; }
+.tp-day-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.tp-day-name { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--text-primary); }
+.tp-day-focus { font-size: 12px; font-weight: 600; color: var(--green-900); background: var(--green-50); padding: 3px 10px; border-radius: 999px; }
+.tp-ex-list { display: flex; flex-direction: column; gap: 7px; }
+.tp-ex { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: var(--gray-50); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.tp-ex-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.tp-ex-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.tp-ex-sets { font-size: 11px; color: var(--text-tertiary); }
+.tonb-day-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.tonb-day-row .tonb-day { width: 42px; font-weight: 700; font-size: 14px; color: var(--text-primary); flex-shrink: 0; }
+.tonb-day-row .tonb-focus { flex: 1; }
 .tip2 { border-left: 2px solid var(--blue-500); padding: 8px 12px; margin-top: 10px; background: var(--blue-50); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 12px; color: var(--blue-900); line-height: 1.6; }
 
 /* METRICS ROW */
@@ -1395,7 +1417,11 @@ html.show-splash .splash.splash-done {
   <div class="page-header">
     <h1>Training Plan</h1>
     <p>10 weeks · June 1 → August 8 · Three phases</p>
+    <button class="mp-reset-link" onclick="openTrainOnboarding()">✦ Build my plan</button>
   </div>
+
+  <!-- Personalised "your week" (shown when the user has built their own split) -->
+  <div id="tp-myweek"></div>
 
   <div class="timeline">
     <div class="tl-seg tl-a">Phase 1a — Fat loss + football<div class="tl-sub">June 1–20</div></div>
@@ -2090,6 +2116,64 @@ html.show-splash .splash.splash-done {
   </div>
 </div>
 
+<!-- ==================== TRAINING ONBOARDING ==================== -->
+<div id="tonb-modal" style="display:none;position:fixed;inset:0;z-index:210;">
+  <div class="modal-overlay"></div>
+  <div class="modal-panel onb-panel">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Build your training plan</div>
+        <div class="modal-sub">Answer a few things — we'll draft your week and you swap anything.</div>
+      </div>
+      <button class="modal-close" onclick="tonbClose()" title="Close"><i class="fa-regular fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="onb-dots" id="tonb-dots"><span class="onb-dot"></span><span class="onb-dot"></span><span class="onb-dot"></span><span class="onb-dot"></span><span class="onb-dot"></span></div>
+
+      <div id="tonb-step-1" class="onb-step">
+        <div class="onb-q">What's your main goal?</div>
+        <div class="onb-goals">
+          <button class="onb-goal" onclick="tonbSetGoal('fatloss',this)"><span class="onb-goal-ico">🔥</span><span class="onb-goal-txt"><b>Lose fat</b><span>Lean down, keep muscle</span></span><span class="onb-goal-tick">✓</span></button>
+          <button class="onb-goal" onclick="tonbSetGoal('muscle',this)"><span class="onb-goal-ico">💪</span><span class="onb-goal-txt"><b>Build muscle</b><span>Get bigger and stronger</span></span><span class="onb-goal-tick">✓</span></button>
+          <button class="onb-goal" onclick="tonbSetGoal('maintain',this)"><span class="onb-goal-ico">⚖️</span><span class="onb-goal-txt"><b>Stay fit</b><span>Maintain and feel good</span></span><span class="onb-goal-tick">✓</span></button>
+        </div>
+      </div>
+
+      <div id="tonb-step-2" class="onb-step" style="display:none">
+        <div class="onb-q">How many days a week can you train?</div>
+        <div class="onb-chips">
+          <button class="onb-chip" onclick="tonbSetDays(3,this)">3 days</button>
+          <button class="onb-chip" onclick="tonbSetDays(4,this)">4 days</button>
+          <button class="onb-chip" onclick="tonbSetDays(5,this)">5 days</button>
+          <button class="onb-chip" onclick="tonbSetDays(6,this)">6 days</button>
+        </div>
+        <div class="onb-nav"><button class="onb-back" onclick="tonbStep(1)">← Back</button></div>
+      </div>
+
+      <div id="tonb-step-3" class="onb-step" style="display:none">
+        <div class="onb-q">Where will you train?</div>
+        <div class="onb-goals">
+          <button class="onb-goal" onclick="tonbSetLoc('gym',this)"><span class="onb-goal-ico">🏋️</span><span class="onb-goal-txt"><b>Full gym</b><span>Machines, barbells, cables</span></span><span class="onb-goal-tick">✓</span></button>
+          <button class="onb-goal" onclick="tonbSetLoc('home',this)"><span class="onb-goal-ico">🏠</span><span class="onb-goal-txt"><b>Home + dumbbells</b><span>Dumbbells and basics</span></span><span class="onb-goal-tick">✓</span></button>
+          <button class="onb-goal" onclick="tonbSetLoc('bodyweight',this)"><span class="onb-goal-ico">🤸</span><span class="onb-goal-txt"><b>Bodyweight only</b><span>No equipment needed</span></span><span class="onb-goal-tick">✓</span></button>
+        </div>
+      </div>
+
+      <div id="tonb-step-4" class="onb-step" style="display:none">
+        <div class="onb-q">What are you training each day? <span class="onb-hint">(tap to change)</span></div>
+        <div id="tonb-days"></div>
+        <div class="onb-nav"><button class="onb-back" onclick="tonbStep(3)">← Back</button><button class="sigate-cta onb-next" onclick="tonbPreview()">See my week →</button></div>
+      </div>
+
+      <div id="tonb-step-5" class="onb-step" style="display:none">
+        <div class="onb-q">Your week <span class="onb-hint">(tap ↻ to swap an exercise)</span></div>
+        <div id="tonb-preview"></div>
+        <div class="onb-nav"><button class="onb-back" onclick="tonbStep(4)">← Back</button><button class="sigate-cta onb-next" onclick="tonbSave()">Save my plan ✨</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ==================== ADD RECIPE MODAL ==================== -->
 <div id="recipe-modal" style="display:none;position:fixed;inset:0;z-index:200;">
   <div class="modal-overlay" onclick="closeRecipeModal()"></div>
@@ -2559,6 +2643,7 @@ function seedTrainingFromDOM(){
 function tpSave(){ localStorage.setItem('sbp-trainingplan', JSON.stringify(TP_DATA)); }
 function tpInit(){
   TP_DATA = loadStore('sbp-trainingplan', null);
+  if(TP_DATA && TP_DATA.mode === 'split'){ renderTrainingPlan(); return; }
   if(!TP_DATA || !Array.isArray(TP_DATA.phases) || !TP_DATA.phases.length){ TP_DATA = seedTrainingFromDOM(); tpSave(); }
   renderTrainingPlan();
 }
@@ -2574,6 +2659,9 @@ function tpSessionHtml(pi, s){
 }
 function renderTrainingPlan(){
   if(!TP_DATA) return;
+  const sec = document.getElementById('sec-plan');
+  if(TP_DATA.mode === 'split'){ if(sec) sec.classList.add('tp-split'); tpRenderWeek(document.getElementById('tp-myweek'), TP_DATA, 'live'); return; }
+  if(sec) sec.classList.remove('tp-split');
   const cards = document.querySelectorAll('#sec-plan .phase-card');
   TP_DATA.phases.forEach((ph, i) => {
     const card = cards[i]; if(!card) return;
@@ -2739,6 +2827,87 @@ function swapAlternative(lib, current, location, usedIds){
   const pool = lib.filter(e => e.muscle === current.muscle && ok(e) && e.id !== current.id);
   const fresh = pool.filter(e => !usedIds.includes(e.id));
   return (fresh[0] || pool[0] || current);
+}
+
+// ---- "Your week" renderer (shared by onboarding preview + saved plan) ----
+const LOC_LABEL = { gym:'Full gym', home:'Home + dumbbells', bodyweight:'Bodyweight' };
+const GOAL_LABEL = { fatloss:'Fat loss', muscle:'Muscle build', maintain:'Stay fit' };
+function tpRenderWeek(el, plan, ctx){
+  if(!el || !plan || !plan.days) return;
+  const sum = '<div class="tp-week-sum"><b>' + esc(GOAL_LABEL[plan.goal] || '') + '</b> · ' + plan.days.length + ' days/week · ' + esc(LOC_LABEL[plan.location] || '') + '</div>';
+  const cards = plan.days.map((d, di) => {
+    const exs = (d.exercises || []).map((e, ei) =>
+      '<div class="tp-ex"><div class="tp-ex-info"><span class="tp-ex-name">' + esc(e.name) + '</span><span class="tp-ex-sets">' + esc(e.sets || '') + '</span></div>'
+      + '<button class="mp-icon" title="Swap exercise" aria-label="Swap exercise" onclick="tpSwap(\'' + ctx + '\',' + di + ',' + ei + ')">↻</button></div>'
+    ).join('');
+    return '<div class="tp-day-card"><div class="tp-day-head"><span class="tp-day-name">' + esc(d.day) + '</span><span class="tp-day-focus">' + esc(d.focus) + '</span></div><div class="tp-ex-list">' + exs + '</div></div>';
+  }).join('');
+  el.innerHTML = (ctx === 'live' ? sum : '') + '<div class="tp-week">' + cards + '</div>';
+}
+function tpSwap(ctx, di, ei){
+  const plan = (ctx === 'preview') ? (_tonb && _tonb.plan) : TP_DATA;
+  if(!plan || !plan.days[di]) return;
+  if(!EX_LIB_CACHE) return;
+  const day = plan.days[di];
+  const ex = day.exercises[ei]; if(!ex) return;
+  const used = day.exercises.map(e => e.id);
+  const alt = swapAlternative(EX_LIB_CACHE, { id:ex.id, muscle:ex.muscle }, plan.location, used);
+  day.exercises[ei] = { id:alt.id, name:alt.name, muscle:alt.muscle, sets:alt.sets };
+  if(ctx === 'preview'){ tpRenderWeek(document.getElementById('tonb-preview'), _tonb.plan, 'preview'); }
+  else { tpSave(); tpRenderWeek(document.getElementById('tp-myweek'), TP_DATA, 'live'); showToast('Swapped', 'info'); }
+}
+
+// ---- Training onboarding: goal → days → location → per-day focus → preview ----
+let _tonb = { goal:'muscle', days:4, location:'gym', split:[], plan:null };
+function openTrainOnboarding(){
+  _tonb = { goal:'muscle', days:4, location:'gym', split:[], plan:null };
+  document.querySelectorAll('#tonb-modal .onb-chip, #tonb-modal .onb-goal').forEach(c => c.classList.remove('on'));
+  tonbStep(1);
+  document.getElementById('tonb-modal').style.display = 'block';
+}
+function tonbClose(){ document.getElementById('tonb-modal').style.display = 'none'; }
+function tonbStep(n){
+  for(let i=1;i<=5;i++){ const s=document.getElementById('tonb-step-'+i); if(!s) continue; if(i===n){ s.style.display='block'; s.classList.remove('onb-anim'); void s.offsetWidth; s.classList.add('onb-anim'); } else s.style.display='none'; }
+  document.querySelectorAll('#tonb-dots .onb-dot').forEach((d, idx) => d.classList.toggle('on', idx < n));
+}
+function tonbSetGoal(g, el){ _tonb.goal = g; el.parentElement.querySelectorAll('.onb-goal').forEach(b => b.classList.remove('on')); el.classList.add('on'); setTimeout(() => tonbStep(2), 240); }
+function tonbSetDays(d, el){ _tonb.days = d; el.parentElement.querySelectorAll('.onb-chip').forEach(b => b.classList.remove('on')); el.classList.add('on'); buildDefaultSplit(); setTimeout(() => tonbStep(3), 200); }
+function tonbSetLoc(loc, el){ _tonb.location = loc; el.parentElement.querySelectorAll('.onb-goal').forEach(b => b.classList.remove('on')); el.classList.add('on'); renderDayRows(); setTimeout(() => tonbStep(4), 240); }
+function buildDefaultSplit(){
+  const wk = spreadTrainingDays(_tonb.days);
+  const focuses = DEFAULT_SPLITS[_tonb.days] || DEFAULT_SPLITS[3];
+  _tonb.split = wk.map((day, i) => ({ day, focus: focuses[i] || 'Full body' }));
+}
+function renderDayRows(){
+  const opts = FOCUS_OPTIONS.map(f => '<option value="' + f + '">' + f + '</option>').join('');
+  document.getElementById('tonb-days').innerHTML = _tonb.split.map((s, i) =>
+    '<div class="tonb-day-row"><span class="tonb-day">' + esc(s.day) + '</span><select class="food-input tonb-focus" onchange="tonbSetFocus(' + i + ',this.value)">' + opts + '</select></div>'
+  ).join('');
+  // set each select to its current focus
+  _tonb.split.forEach((s, i) => { const sel = document.querySelectorAll('#tonb-days .tonb-focus')[i]; if(sel) sel.value = s.focus; });
+}
+function tonbSetFocus(i, val){ if(_tonb.split[i]) _tonb.split[i].focus = val; }
+async function tonbPreview(){
+  const lib = await loadExerciseLibrary();
+  _tonb.plan = {
+    v:2, mode:'split', goal:_tonb.goal, location:_tonb.location,
+    days: _tonb.split.map(s => ({
+      day: s.day, focus: s.focus,
+      exercises: recommendExercises(lib, s.focus, _tonb.location, 5).map(e => ({ id:e.id, name:e.name, muscle:e.muscle, sets:e.sets }))
+    }))
+  };
+  tonbStep(5);
+  tpRenderWeek(document.getElementById('tonb-preview'), _tonb.plan, 'preview');
+}
+function tonbSave(){
+  if(!_tonb.plan) return;
+  TP_DATA = _tonb.plan;
+  tpSave();
+  localStorage.setItem('sbp-train-onboarded', '1');
+  renderTrainingPlan();
+  tonbClose();
+  showSection('plan');
+  showToast('Your training plan is ready 💪', 'success');
 }
 
 // ==================== SHOPPING ====================
