@@ -2806,17 +2806,27 @@ function spreadTrainingDays(n){
   return (layouts[n] || layouts[3]).map(i => WEEKDAYS[i]);
 }
 // Pick `count` exercises for a focus + location, prioritising the focus muscles.
-function recommendExercises(lib, focus, location, count){
+function recommendExercises(lib, focus, location, count, offset){
+  offset = offset || 0;   // shifts which exercise is picked first → variety across same-focus days
   const muscles = FOCUS_MAP[focus] || ['fullbody'];
   const ok = ex => location === 'gym' ? true : ex.location.includes(location);
+  const byMuscle = {};
+  muscles.forEach(m => { byMuscle[m] = lib.filter(e => e.muscle === m && ok(e)); });
   const picks = [];
-  let mi = 0, guard = 0;
   const used = new Set();
+  const rounds = {};
+  let mi = 0, guard = 0;
   // round-robin across the focus muscles so the session is balanced
-  while(picks.length < count && guard < count * 6){
+  while(picks.length < count && guard < count * 8){
     const m = muscles[mi % muscles.length];
-    const pool = lib.filter(e => e.muscle === m && ok(e) && !used.has(e.id));
-    if(pool.length){ const e = pool[0]; picks.push(e); used.add(e.id); }
+    const pool = byMuscle[m] || [];
+    if(pool.length){
+      let idx = (offset + (rounds[m] || 0)) % pool.length;
+      let tries = 0;
+      while(used.has(pool[idx].id) && tries < pool.length){ idx = (idx + 1) % pool.length; tries++; }
+      if(!used.has(pool[idx].id)){ picks.push(pool[idx]); used.add(pool[idx].id); }
+      rounds[m] = (rounds[m] || 0) + 1;
+    }
     mi++; guard++;
   }
   return picks;
@@ -2891,9 +2901,9 @@ async function tonbPreview(){
   const lib = await loadExerciseLibrary();
   _tonb.plan = {
     v:2, mode:'split', goal:_tonb.goal, location:_tonb.location,
-    days: _tonb.split.map(s => ({
+    days: _tonb.split.map((s, i) => ({
       day: s.day, focus: s.focus,
-      exercises: recommendExercises(lib, s.focus, _tonb.location, 5).map(e => ({ id:e.id, name:e.name, muscle:e.muscle, sets:e.sets }))
+      exercises: recommendExercises(lib, s.focus, _tonb.location, 5, i).map(e => ({ id:e.id, name:e.name, muscle:e.muscle, sets:e.sets }))
     }))
   };
   tonbStep(5);

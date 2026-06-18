@@ -188,6 +188,12 @@ commit to the native build.
 - [ ] Lock lifetime price in the £50–£89 range (leaning ~£59) + which features are Plus-only
 - [ ] Add Anthropic API key to the worker → flip Recipes from "Coming soon" to live
 - [ ] Restore the paused Supabase project (fixes sign-in + sync)
+- [ ] **Seed the meal + exercise libraries in Supabase** — run `backend/recipe-library.sql`
+  and `backend/exercise-library.sql` in the Supabase SQL editor (Dashboard → SQL →
+  New query → paste → Run). These create public-read tables `recipe_library` and
+  `exercise_library` that power the meal/training onboarding. Until run, the app uses
+  the bundled fallback copies in `index.html`, so nothing breaks — the SQL just makes
+  the catalogs editable server-side without an app update. Safe to re-run (they upsert).
 - [ ] **Enable Sign in with Google + Sign in with Apple** (buttons + app code already
   built; they just need turning on in the Supabase dashboard — see below)
 - [ ] Pick the first wearable to integrate (suggest Fitbit/Oura/Whoop via web first)
