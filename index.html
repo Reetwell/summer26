@@ -2619,6 +2619,128 @@ function tpDelete(pi, id){
   showToast('Session removed', 'info');
 }
 
+// ==================== EXERCISE LIBRARY + ENGINE ====================
+// Catalog lives in Supabase (table `exercise_library`, public read) with this
+// bundled fallback (= backend/exercise-library.sql) so onboarding + swaps work
+// offline / while the project is paused. location: which settings it suits.
+const EXERCISE_LIBRARY = [
+  // chest
+  { id:'ex_ch1', name:'Barbell bench press', muscle:'chest', location:['gym'], sets:'4×8–10' },
+  { id:'ex_ch2', name:'Dumbbell bench press', muscle:'chest', location:['gym','home'], sets:'4×8–12' },
+  { id:'ex_ch3', name:'Incline dumbbell press', muscle:'chest', location:['gym','home'], sets:'3×10–12' },
+  { id:'ex_ch4', name:'Press-ups', muscle:'chest', location:['home','bodyweight'], sets:'3×max' },
+  { id:'ex_ch5', name:'Cable fly', muscle:'chest', location:['gym'], sets:'3×12–15' },
+  { id:'ex_ch6', name:'Chest press machine', muscle:'chest', location:['gym'], sets:'3×10–12' },
+  // back
+  { id:'ex_bk1', name:'Lat pulldown', muscle:'back', location:['gym'], sets:'4×10–12' },
+  { id:'ex_bk2', name:'Pull-ups', muscle:'back', location:['gym','bodyweight'], sets:'4×max' },
+  { id:'ex_bk3', name:'Bent-over row', muscle:'back', location:['gym','home'], sets:'4×8–10' },
+  { id:'ex_bk4', name:'Seated cable row', muscle:'back', location:['gym'], sets:'3×10–12' },
+  { id:'ex_bk5', name:'Dumbbell row', muscle:'back', location:['gym','home'], sets:'3×10–12' },
+  { id:'ex_bk6', name:'Inverted row', muscle:'back', location:['home','bodyweight'], sets:'3×max' },
+  // shoulders
+  { id:'ex_sh1', name:'Overhead press', muscle:'shoulders', location:['gym','home'], sets:'4×8–10' },
+  { id:'ex_sh2', name:'Dumbbell shoulder press', muscle:'shoulders', location:['gym','home'], sets:'3×10–12' },
+  { id:'ex_sh3', name:'Lateral raises', muscle:'shoulders', location:['gym','home'], sets:'3×12–15' },
+  { id:'ex_sh4', name:'Face pulls', muscle:'shoulders', location:['gym'], sets:'3×15' },
+  { id:'ex_sh5', name:'Pike press-ups', muscle:'shoulders', location:['home','bodyweight'], sets:'3×max' },
+  // biceps
+  { id:'ex_bi1', name:'Barbell curl', muscle:'biceps', location:['gym'], sets:'3×10–12' },
+  { id:'ex_bi2', name:'Dumbbell curl', muscle:'biceps', location:['gym','home'], sets:'3×10–12' },
+  { id:'ex_bi3', name:'Hammer curl', muscle:'biceps', location:['gym','home'], sets:'3×10–12' },
+  { id:'ex_bi4', name:'Cable curl', muscle:'biceps', location:['gym'], sets:'3×12–15' },
+  { id:'ex_bi5', name:'Chin-ups', muscle:'biceps', location:['gym','bodyweight'], sets:'3×max' },
+  // triceps
+  { id:'ex_tr1', name:'Tricep pushdown', muscle:'triceps', location:['gym'], sets:'3×12–15' },
+  { id:'ex_tr2', name:'Overhead extension', muscle:'triceps', location:['gym','home'], sets:'3×10–12' },
+  { id:'ex_tr3', name:'Dips', muscle:'triceps', location:['gym','bodyweight'], sets:'3×max' },
+  { id:'ex_tr4', name:'Close-grip press-ups', muscle:'triceps', location:['home','bodyweight'], sets:'3×max' },
+  { id:'ex_tr5', name:'Skull crushers', muscle:'triceps', location:['gym','home'], sets:'3×10–12' },
+  // legs
+  { id:'ex_lg1', name:'Barbell squat', muscle:'legs', location:['gym'], sets:'4×8–10' },
+  { id:'ex_lg2', name:'Leg press', muscle:'legs', location:['gym'], sets:'4×10–12' },
+  { id:'ex_lg3', name:'Romanian deadlift', muscle:'legs', location:['gym','home'], sets:'3×10–12' },
+  { id:'ex_lg4', name:'Walking lunges', muscle:'legs', location:['gym','home','bodyweight'], sets:'3×12 each' },
+  { id:'ex_lg5', name:'Leg extension', muscle:'legs', location:['gym'], sets:'3×12–15' },
+  { id:'ex_lg6', name:'Goblet squat', muscle:'legs', location:['home'], sets:'3×12–15' },
+  { id:'ex_lg7', name:'Bodyweight squat', muscle:'legs', location:['bodyweight'], sets:'3×20' },
+  // core
+  { id:'ex_co1', name:'Plank', muscle:'core', location:['gym','home','bodyweight'], sets:'3×45s' },
+  { id:'ex_co2', name:'Hanging leg raise', muscle:'core', location:['gym','bodyweight'], sets:'3×12' },
+  { id:'ex_co3', name:'Cable crunch', muscle:'core', location:['gym'], sets:'3×15' },
+  { id:'ex_co4', name:'Bicycle crunch', muscle:'core', location:['home','bodyweight'], sets:'3×20' },
+  { id:'ex_co5', name:'Russian twist', muscle:'core', location:['home','bodyweight'], sets:'3×20' }
+];
+let EX_LIB_CACHE = null;
+function normalizeExercise(r){
+  const arr = v => Array.isArray(v) ? v : (v ? String(v).split(',').map(s=>s.trim()).filter(Boolean) : []);
+  return { id:r.id, name:r.name, muscle:r.muscle, location:arr(r.location), sets:r.sets || '3×10–12' };
+}
+async function loadExerciseLibrary(){
+  if(EX_LIB_CACHE) return EX_LIB_CACHE;
+  try {
+    if(typeof sb !== 'undefined' && sb){
+      const { data, error } = await sb.from('exercise_library').select('*');
+      if(!error && data && data.length){ EX_LIB_CACHE = data.map(normalizeExercise); return EX_LIB_CACHE; }
+    }
+  } catch(_){}
+  EX_LIB_CACHE = EXERCISE_LIBRARY.map(normalizeExercise);
+  return EX_LIB_CACHE;
+}
+
+// Focus (what a day trains) → muscle groups, in priority order.
+const FOCUS_MAP = {
+  'Push':            ['chest','shoulders','triceps'],
+  'Pull':            ['back','biceps'],
+  'Legs':            ['legs','core'],
+  'Upper body':      ['chest','back','shoulders','biceps','triceps'],
+  'Lower body':      ['legs','core'],
+  'Full body':       ['legs','chest','back','shoulders'],
+  'Chest & triceps': ['chest','triceps'],
+  'Back & biceps':   ['back','biceps'],
+  'Shoulders & arms':['shoulders','biceps','triceps'],
+  'Core & abs':      ['core']
+};
+const FOCUS_OPTIONS = Object.keys(FOCUS_MAP);
+// Sensible default split per training-days-per-week (mapped onto weekdays).
+const DEFAULT_SPLITS = {
+  3: ['Push','Pull','Legs'],
+  4: ['Upper body','Lower body','Upper body','Lower body'],
+  5: ['Push','Pull','Legs','Upper body','Lower body'],
+  6: ['Push','Pull','Legs','Push','Pull','Legs']
+};
+const WEEKDAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+// Spread N training days across the week leaving rest days gaps where possible.
+function spreadTrainingDays(n){
+  const layouts = {
+    3: [0,2,4], 4: [0,1,3,4], 5: [0,1,2,4,5], 6: [0,1,2,3,4,5]
+  };
+  return (layouts[n] || layouts[3]).map(i => WEEKDAYS[i]);
+}
+// Pick `count` exercises for a focus + location, prioritising the focus muscles.
+function recommendExercises(lib, focus, location, count){
+  const muscles = FOCUS_MAP[focus] || ['fullbody'];
+  const ok = ex => location === 'gym' ? true : ex.location.includes(location);
+  const picks = [];
+  let mi = 0, guard = 0;
+  const used = new Set();
+  // round-robin across the focus muscles so the session is balanced
+  while(picks.length < count && guard < count * 6){
+    const m = muscles[mi % muscles.length];
+    const pool = lib.filter(e => e.muscle === m && ok(e) && !used.has(e.id));
+    if(pool.length){ const e = pool[0]; picks.push(e); used.add(e.id); }
+    mi++; guard++;
+  }
+  return picks;
+}
+// Next alternative for an exercise (same muscle, valid location, not already used).
+function swapAlternative(lib, current, location, usedIds){
+  const ok = ex => location === 'gym' ? true : ex.location.includes(location);
+  const pool = lib.filter(e => e.muscle === current.muscle && ok(e) && e.id !== current.id);
+  const fresh = pool.filter(e => !usedIds.includes(e.id));
+  return (fresh[0] || pool[0] || current);
+}
+
 // ==================== SHOPPING ====================
 function switchShopPhase(id, el) {
   document.getElementById('sp1').style.display = 'none';
