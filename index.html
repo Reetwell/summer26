@@ -394,6 +394,12 @@ select.food-input { width: 100%; }
 .onb-skip { text-align: center; margin-top: 16px; font-size: 13px; color: var(--text-tertiary); cursor: pointer; text-decoration: underline dotted; }
 .mp-reset-link { margin-top: 10px; background: none; border: 1px solid var(--border); border-radius: 999px; padding: 6px 13px; font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: all .12s; }
 .mp-reset-link:hover { border-color: var(--green-500); color: var(--green-900); background: var(--green-50); }
+
+/* Editable training sessions */
+.workout-item .wf-content { flex: 1; min-width: 0; }
+.tp-controls { display: flex; gap: 6px; flex-shrink: 0; }
+.tp-controls .mp-icon { width: 24px; height: 24px; font-size: 12px; }
+.tp-add { margin-top: 8px; }
 .tip2 { border-left: 2px solid var(--blue-500); padding: 8px 12px; margin-top: 10px; background: var(--blue-50); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 12px; color: var(--blue-900); line-height: 1.6; }
 
 /* METRICS ROW */
@@ -1977,6 +1983,24 @@ html.show-splash .splash.splash-done {
   </div>
 </div>
 
+<!-- ==================== EDIT TRAINING SESSION MODAL ==================== -->
+<div id="train-edit-modal" style="display:none;position:fixed;inset:0;z-index:200;">
+  <div class="modal-overlay" onclick="tpCloseEdit()"></div>
+  <div class="modal-panel">
+    <div class="modal-header">
+      <div><div class="modal-title" id="tp-edit-title">Edit session</div></div>
+      <button class="modal-close" onclick="tpCloseEdit()"><i class="fa-regular fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <label class="mp-lbl" for="tp-f-name">Session</label>
+      <input type="text" id="tp-f-name" class="food-input" placeholder="e.g. Monday — upper body" autocomplete="off">
+      <label class="mp-lbl" for="tp-f-detail">Exercises / details</label>
+      <textarea id="tp-f-detail" class="food-input" placeholder="Bench press, rows, curls · 3×10–12"></textarea>
+      <button class="sigate-cta" style="margin-top:22px" onclick="tpSaveEdit()" id="tp-save-btn">Save session</button>
+    </div>
+  </div>
+</div>
+
 <!-- ==================== MEAL-PLAN ONBOARDING ==================== -->
 <div id="onb-modal" style="display:none;position:fixed;inset:0;z-index:210;">
   <div class="modal-overlay"></div>
@@ -2456,6 +2480,99 @@ async function resetMealPlan(){
   MP_DATA = seedMealPlanFromDOM();   // keep a default visible behind the modal
   renderMealPlan();
   openMealOnboarding();
+}
+
+// ==================== EDITABLE TRAINING PLAN ====================
+// The "Workout focus" list in each phase becomes editable (add/edit/delete
+// sessions), seeded from the static cards and synced. The rest of each phase
+// card (metrics, schedule, macros, tip) stays as designed.
+let TP_DATA = null;
+let _tpEdit = null;   // { pi, id }  — id null = adding
+const TP_COLORS = ['#378ADD','#1D9E75','#7F77DD','#BA7517','#D1518A'];
+function tpUid(){ return 't' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function seedTrainingFromDOM(){
+  const phases = [];
+  document.querySelectorAll('#sec-plan .phase-card').forEach((card) => {
+    const list = card.querySelector('.workout-list');
+    const sessions = [];
+    if(list){
+      list.querySelectorAll('.workout-item').forEach(it => {
+        const dot = it.querySelector('.workout-dot');
+        const nameEl = it.querySelector('.workout-name');
+        const detEl = it.querySelector('.workout-detail');
+        sessions.push({
+          id: tpUid(),
+          name: nameEl ? nameEl.textContent.trim() : '',
+          detail: detEl ? detEl.textContent.trim() : '',
+          color: (dot && dot.style.background) ? dot.style.background : TP_COLORS[sessions.length % TP_COLORS.length]
+        });
+      });
+    }
+    phases.push({ sessions });
+  });
+  return { v:1, phases };
+}
+function tpSave(){ localStorage.setItem('sbp-trainingplan', JSON.stringify(TP_DATA)); }
+function tpInit(){
+  TP_DATA = loadStore('sbp-trainingplan', null);
+  if(!TP_DATA || !Array.isArray(TP_DATA.phases) || !TP_DATA.phases.length){ TP_DATA = seedTrainingFromDOM(); tpSave(); }
+  renderTrainingPlan();
+}
+function tpSessionHtml(pi, s){
+  return '<div class="workout-item">'
+    + '<div class="workout-dot" style="background:' + esc(s.color || '#378ADD') + '"></div>'
+    + '<div class="wf-content"><div class="workout-name">' + esc(s.name || 'Session') + '</div>'
+    + (s.detail ? '<div class="workout-detail">' + esc(s.detail) + '</div>' : '') + '</div>'
+    + '<div class="tp-controls">'
+    + '<button class="mp-icon" title="Edit" aria-label="Edit session" onclick="tpEdit(' + pi + ',\'' + s.id + '\')">✎</button>'
+    + '<button class="mp-icon" title="Delete" aria-label="Delete session" onclick="tpDelete(' + pi + ',\'' + s.id + '\')">✕</button>'
+    + '</div></div>';
+}
+function renderTrainingPlan(){
+  if(!TP_DATA) return;
+  const cards = document.querySelectorAll('#sec-plan .phase-card');
+  TP_DATA.phases.forEach((ph, i) => {
+    const card = cards[i]; if(!card) return;
+    const list = card.querySelector('.workout-list'); if(!list) return;
+    list.innerHTML = (ph.sessions || []).map(s => tpSessionHtml(i, s)).join('')
+      + '<button class="mp-add tp-add" onclick="tpAdd(' + i + ')">+ Add session</button>';
+  });
+}
+function tpEdit(pi, id){
+  const ph = TP_DATA.phases[pi]; if(!ph) return;
+  const s = ph.sessions.find(x => x.id === id); if(!s) return;
+  _tpEdit = { pi, id };
+  document.getElementById('tp-edit-title').textContent = 'Edit session';
+  document.getElementById('tp-f-name').value = s.name || '';
+  document.getElementById('tp-f-detail').value = s.detail || '';
+  document.getElementById('train-edit-modal').style.display = 'block';
+}
+function tpAdd(pi){
+  _tpEdit = { pi, id:null };
+  document.getElementById('tp-edit-title').textContent = 'Add session';
+  document.getElementById('tp-f-name').value = '';
+  document.getElementById('tp-f-detail').value = '';
+  document.getElementById('train-edit-modal').style.display = 'block';
+  document.getElementById('tp-f-name').focus();
+}
+function tpCloseEdit(){ document.getElementById('train-edit-modal').style.display = 'none'; _tpEdit = null; }
+function tpSaveEdit(){
+  if(!_tpEdit) return;
+  const ph = TP_DATA.phases[_tpEdit.pi]; if(!ph) return;
+  const name = (document.getElementById('tp-f-name').value || '').trim();
+  const detail = (document.getElementById('tp-f-detail').value || '').trim();
+  if(!name){ showToast('Give the session a name.', 'error'); return; }
+  if(_tpEdit.id){ const s = ph.sessions.find(x => x.id === _tpEdit.id); if(s){ s.name = name; s.detail = detail; } }
+  else { ph.sessions.push({ id: tpUid(), name, detail, color: TP_COLORS[ph.sessions.length % TP_COLORS.length] }); }
+  tpSave(); renderTrainingPlan(); tpCloseEdit();
+  showToast('Session saved', 'success');
+}
+function tpDelete(pi, id){
+  const ph = TP_DATA.phases[pi]; if(!ph) return;
+  if(!confirm('Delete this session?')) return;
+  ph.sessions = ph.sessions.filter(x => x.id !== id);
+  tpSave(); renderTrainingPlan();
+  showToast('Session removed', 'info');
 }
 
 // ==================== SHOPPING ====================
@@ -4040,7 +4157,7 @@ let remState = loadStore('sbp-reminders', { enabled:false, protein:'09:00', crea
 const SUPABASE_URL = 'https://owqyrgufwvqgbrpdpskx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93cXlyZ3Vmd3ZxZ2JycGRwc2t4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MzczOTQsImV4cCI6MjA5NjMxMzM5NH0.Z_zUJbKvO6-FBbKheDmlVu46XjT9toFaVlct12IY8zU';
 
-const SYNC_KEYS = ['sbp-today','sbp-weight','sbp-workouts','sbp-session-logs','sbp-shop','sbp-mealplan','sbp-recipes'];
+const SYNC_KEYS = ['sbp-today','sbp-weight','sbp-workouts','sbp-session-logs','sbp-shop','sbp-mealplan','sbp-trainingplan','sbp-recipes'];
 const SYNC_KEY_SET = new Set(SYNC_KEYS);
 
 // Capture the real setter BEFORE patching, so our own sync writes don't recurse.
@@ -4700,6 +4817,7 @@ initSessionCardGlow();
 document.documentElement.classList.add('view-today');
 renderToday();
 mpInit();
+tpInit();
 initReminders();
 initAuth();
 playSplash();
