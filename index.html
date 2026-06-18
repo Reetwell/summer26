@@ -361,6 +361,19 @@ html.gated, html.gated body { overflow:hidden; }
 
 /* TIP BOXES */
 .tip { border-left: 2px solid var(--green-500); padding: 8px 12px; margin-top: 10px; background: var(--green-50); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 12px; color: var(--green-900); line-height: 1.6; }
+
+/* Editable meal-plan controls */
+.mp-card-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.mp-icon { background: var(--gray-100); border: none; border-radius: 8px; width: 28px; height: 28px; cursor: pointer; color: var(--text-secondary); font-size: 13px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; transition: background .12s, color .12s; }
+.mp-icon:hover { background: var(--green-50); color: var(--green-900); }
+.mp-add { width: 100%; padding: 11px; border: 1px dashed var(--border-strong); border-radius: var(--radius-md); background: transparent; color: var(--text-secondary); font-weight: 600; font-size: 13px; cursor: pointer; margin-bottom: 10px; font-family: 'DM Sans', sans-serif; transition: border-color .12s, color .12s; }
+.mp-add:hover { border-color: var(--green-500); color: var(--green-900); }
+.mp-lbl { display: block; font-size: 12px; font-weight: 600; color: var(--text-tertiary); margin: 14px 0 5px; }
+textarea.food-input { min-height: 70px; resize: vertical; width: 100%; line-height: 1.6; }
+select.food-input { width: 100%; }
+.mp-macros { display: flex; gap: 10px; margin-top: 4px; }
+.mp-macros label { flex: 1; font-size: 12px; font-weight: 600; color: var(--text-tertiary); }
+.mp-macros label input { width: 100%; margin-top: 4px; }
 .tip2 { border-left: 2px solid var(--blue-500); padding: 8px 12px; margin-top: 10px; background: var(--blue-50); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 12px; color: var(--blue-900); line-height: 1.6; }
 
 /* METRICS ROW */
@@ -659,7 +672,7 @@ html.gated, html.gated body { overflow:hidden; }
   /* Meals: macro totals span the top, then the day's meals tile into a 2-up
      bento grid. Row-major order keeps breakfast → dinner readable. */
   #sec-meals .dc.show { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
-  #sec-meals .dc.show > .totals-grid, #sec-meals .dc.show > .tip { grid-column: 1 / -1; }
+  #sec-meals .dc.show > .totals-grid, #sec-meals .dc.show > .tip, #sec-meals .dc.show > .mp-add { grid-column: 1 / -1; }
   #sec-meals .dc.show > .card { margin-bottom: 0; }
   /* Shopping stays a single focused column, just a calmer width */
   #sec-shopping { max-width: 820px; }
@@ -1909,6 +1922,40 @@ html.show-splash .splash.splash-done {
   </div>
 </div>
 
+<!-- ==================== EDIT MEAL MODAL ==================== -->
+<div id="meal-edit-modal" style="display:none;position:fixed;inset:0;z-index:200;">
+  <div class="modal-overlay" onclick="mpCloseEdit()"></div>
+  <div class="modal-panel">
+    <div class="modal-header">
+      <div><div class="modal-title" id="mp-edit-title">Edit meal</div></div>
+      <button class="modal-close" onclick="mpCloseEdit()"><i class="fa-regular fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <label class="mp-lbl" for="mp-f-type">Meal</label>
+      <select id="mp-f-type" class="food-input">
+        <option value="breakfast">Breakfast</option>
+        <option value="snack">Snack</option>
+        <option value="lunch">Lunch</option>
+        <option value="dinner">Dinner</option>
+      </select>
+      <label class="mp-lbl" for="mp-f-name">Name</label>
+      <input type="text" id="mp-f-name" class="food-input" placeholder="e.g. Chicken honey wrap" autocomplete="off">
+      <label class="mp-lbl" for="mp-f-body">Ingredients</label>
+      <textarea id="mp-f-body" class="food-input" placeholder="2 wholemeal wraps · 180g chicken · …"></textarea>
+      <label class="mp-lbl" for="mp-f-note">Method / note (optional)</label>
+      <textarea id="mp-f-note" class="food-input" placeholder="How to make it, or a tip"></textarea>
+      <label class="mp-lbl">Macros</label>
+      <div class="mp-macros">
+        <label>kcal<input type="number" id="mp-f-kcal" class="food-input" min="0" inputmode="numeric"></label>
+        <label>Protein<input type="number" id="mp-f-p" class="food-input" min="0" inputmode="numeric"></label>
+        <label>Carbs<input type="number" id="mp-f-c" class="food-input" min="0" inputmode="numeric"></label>
+        <label>Fat<input type="number" id="mp-f-f" class="food-input" min="0" inputmode="numeric"></label>
+      </div>
+      <button class="sigate-cta" style="margin-top:22px" onclick="mpSaveEdit()" id="mp-save-btn">Save meal</button>
+    </div>
+  </div>
+</div>
+
 <!-- ==================== ADD RECIPE MODAL ==================== -->
 <div id="recipe-modal" style="display:none;position:fixed;inset:0;z-index:200;">
   <div class="modal-overlay" onclick="closeRecipeModal()"></div>
@@ -2049,6 +2096,136 @@ function switchMealDay(phase, day, el) {
   document.getElementById(phase + '-' + day).classList.add('show');
   document.querySelectorAll('#' + phase + ' .dtab').forEach(t => t.classList.remove('on'));
   el.classList.add('on');
+}
+
+// ==================== EDITABLE MEAL PLAN ====================
+// The static meal cards are the seed. On first run we parse them into a data
+// model (sbp-mealplan, auto-synced per user), then render every day from data
+// with edit/add/delete controls. Each user edits their own copy.
+let MP_DATA = null;
+let _mpEdit = null;   // { pid, dayKey, id }  — id null = adding a new meal
+const MP_TYPES = { breakfast:{cls:'tag-b',label:'Breakfast'}, snack:{cls:'tag-s',label:'Snack'}, lunch:{cls:'tag-l',label:'Lunch'}, dinner:{cls:'tag-d',label:'Dinner'} };
+function mpUid(){ return 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function mpTypeFromTag(cls){ if(/tag-b/.test(cls)) return 'breakfast'; if(/tag-l/.test(cls)) return 'lunch'; if(/tag-d/.test(cls)) return 'dinner'; return 'snack'; }
+function mpDigits(el){ if(!el) return 0; const n = parseInt((el.textContent||'').replace(/[^0-9]/g,''),10); return isNaN(n) ? 0 : n; }
+
+function seedMealPlanFromDOM(){
+  const data = { v:1, phases:{} };
+  document.querySelectorAll('#sec-meals .meal-phase').forEach(ph => {
+    const pid = ph.id;
+    const btn = document.querySelector('.ptoggle[onclick*="' + pid + '"]');
+    const days = {};
+    ph.querySelectorAll('.dc').forEach(dc => {
+      const dayKey = dc.id.replace(pid + '-', '');
+      const meals = [];
+      dc.querySelectorAll('.card').forEach(card => {
+        const tagEl = card.querySelector('.tag');
+        const titleEl = card.querySelector('.card-title');
+        let name = '';
+        if(titleEl){
+          name = Array.from(titleEl.childNodes).filter(n => n.nodeType === 3).map(n => n.textContent).join(' ').replace(/\s+/g,' ').trim();
+          if(!name) name = titleEl.textContent.replace(tagEl ? tagEl.textContent : '', '').trim();
+        }
+        const noteEl = card.querySelector('.card-note');
+        const bodyEl = card.querySelector('.card-body');
+        meals.push({
+          id: mpUid(),
+          type: tagEl ? mpTypeFromTag(tagEl.className) : 'snack',
+          name,
+          kcal: mpDigits(card.querySelector('.card-kcal')),
+          body: bodyEl ? bodyEl.textContent.trim() : '',
+          note: noteEl ? noteEl.textContent.trim() : '',
+          p: mpDigits(card.querySelector('.pill-p')), c: mpDigits(card.querySelector('.pill-c')), f: mpDigits(card.querySelector('.pill-f'))
+        });
+      });
+      const tipEl = dc.querySelector('.tip');
+      days[dayKey] = { meals, tip: tipEl ? tipEl.textContent.trim() : '' };
+    });
+    data.phases[pid] = { label: btn ? btn.textContent.trim() : pid, days };
+  });
+  return data;
+}
+function mpSave(){ localStorage.setItem('sbp-mealplan', JSON.stringify(MP_DATA)); }
+function mpInit(){
+  MP_DATA = loadStore('sbp-mealplan', null);
+  if(!MP_DATA || !MP_DATA.phases){ MP_DATA = seedMealPlanFromDOM(); mpSave(); }
+  renderMealPlan();
+}
+function mpTbox(label, val){ return '<div class="tbox"><div class="tbox-label">' + label + '</div><div class="tbox-val">' + esc(String(val)) + '</div></div>'; }
+function mpCardHtml(pid, dayKey, m){
+  const t = MP_TYPES[m.type] || MP_TYPES.snack;
+  return '<div class="card mp-card">'
+    + '<div class="card-header"><div class="card-title"><span class="tag ' + t.cls + '">' + t.label + '</span>' + esc(m.name || 'Untitled') + '</div>'
+    + '<div class="mp-card-right"><span class="card-kcal">~' + (+m.kcal||0) + ' kcal</span>'
+    + '<button class="mp-icon" title="Edit" aria-label="Edit meal" onclick="mpEditMeal(\'' + pid + '\',\'' + dayKey + '\',\'' + m.id + '\')">✎</button>'
+    + '<button class="mp-icon" title="Delete" aria-label="Delete meal" onclick="mpDeleteMeal(\'' + pid + '\',\'' + dayKey + '\',\'' + m.id + '\')">✕</button>'
+    + '</div></div>'
+    + (m.body ? '<div class="card-body">' + esc(m.body) + '</div>' : '')
+    + (m.note ? '<div class="card-note">' + esc(m.note) + '</div>' : '')
+    + '<div class="mpills"><span class="pill pill-p">P: ' + (+m.p||0) + 'g</span><span class="pill pill-c">C: ' + (+m.c||0) + 'g</span><span class="pill pill-f">F: ' + (+m.f||0) + 'g</span></div>'
+    + '</div>';
+}
+function renderMealPlan(){
+  if(!MP_DATA) return;
+  Object.keys(MP_DATA.phases).forEach(pid => {
+    const phase = MP_DATA.phases[pid];
+    Object.keys(phase.days).forEach(dayKey => {
+      const dc = document.getElementById(pid + '-' + dayKey);
+      if(!dc) return;
+      const day = phase.days[dayKey];
+      const tot = day.meals.reduce((a,m) => ({ kcal:a.kcal+(+m.kcal||0), p:a.p+(+m.p||0), c:a.c+(+m.c||0), f:a.f+(+m.f||0) }), {kcal:0,p:0,c:0,f:0});
+      let h = '<div class="totals-grid">' + mpTbox('Calories', tot.kcal.toLocaleString()) + mpTbox('Protein', tot.p+'g') + mpTbox('Carbs', tot.c+'g') + mpTbox('Fats', tot.f+'g') + '</div>';
+      day.meals.forEach(m => h += mpCardHtml(pid, dayKey, m));
+      h += '<button class="mp-add" onclick="mpAddMeal(\'' + pid + '\',\'' + dayKey + '\')">+ Add meal</button>';
+      if(day.tip) h += '<div class="tip">' + esc(day.tip) + '</div>';
+      dc.innerHTML = h;
+    });
+  });
+}
+function mpFindDay(pid, dayKey){ return MP_DATA && MP_DATA.phases[pid] && MP_DATA.phases[pid].days[dayKey]; }
+function mpEditMeal(pid, dayKey, id){
+  const day = mpFindDay(pid, dayKey); if(!day) return;
+  const m = day.meals.find(x => x.id === id); if(!m) return;
+  _mpEdit = { pid, dayKey, id };
+  document.getElementById('mp-edit-title').textContent = 'Edit meal';
+  document.getElementById('mp-f-type').value = m.type || 'snack';
+  document.getElementById('mp-f-name').value = m.name || '';
+  document.getElementById('mp-f-body').value = m.body || '';
+  document.getElementById('mp-f-note').value = m.note || '';
+  document.getElementById('mp-f-kcal').value = m.kcal || 0;
+  document.getElementById('mp-f-p').value = m.p || 0;
+  document.getElementById('mp-f-c').value = m.c || 0;
+  document.getElementById('mp-f-f').value = m.f || 0;
+  document.getElementById('meal-edit-modal').style.display = 'block';
+}
+function mpAddMeal(pid, dayKey){
+  _mpEdit = { pid, dayKey, id:null };
+  document.getElementById('mp-edit-title').textContent = 'Add meal';
+  document.getElementById('mp-f-type').value = 'snack';
+  ['name','body','note','kcal','p','c','f'].forEach(k => document.getElementById('mp-f-' + k).value = '');
+  document.getElementById('meal-edit-modal').style.display = 'block';
+  document.getElementById('mp-f-name').focus();
+}
+function mpCloseEdit(){ document.getElementById('meal-edit-modal').style.display = 'none'; _mpEdit = null; }
+function mpSaveEdit(){
+  if(!_mpEdit) return;
+  const day = mpFindDay(_mpEdit.pid, _mpEdit.dayKey); if(!day) return;
+  const v = id => document.getElementById('mp-f-' + id).value;
+  const num = id => { const n = parseInt(v(id),10); return (isNaN(n) || n < 0) ? 0 : n; };
+  const name = (v('name') || '').trim();
+  if(!name){ showToast('Give the meal a name.', 'error'); return; }
+  const fields = { type:v('type'), name, body:(v('body')||'').trim(), note:(v('note')||'').trim(), kcal:num('kcal'), p:num('p'), c:num('c'), f:num('f') };
+  if(_mpEdit.id){ Object.assign(day.meals.find(x => x.id === _mpEdit.id), fields); }
+  else { day.meals.push(Object.assign({ id: mpUid() }, fields)); }
+  mpSave(); renderMealPlan(); mpCloseEdit();
+  showToast('Meal saved', 'success');
+}
+function mpDeleteMeal(pid, dayKey, id){
+  const day = mpFindDay(pid, dayKey); if(!day) return;
+  if(!confirm('Delete this meal?')) return;
+  day.meals = day.meals.filter(x => x.id !== id);
+  mpSave(); renderMealPlan();
+  showToast('Meal removed', 'info');
 }
 
 // ==================== SHOPPING ====================
@@ -4292,6 +4469,7 @@ updateLogSessionButton();
 initSessionCardGlow();
 document.documentElement.classList.add('view-today');
 renderToday();
+mpInit();
 initReminders();
 initAuth();
 playSplash();
