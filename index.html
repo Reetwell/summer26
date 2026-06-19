@@ -420,6 +420,21 @@ select.food-input { width: 100%; }
 .onb-next { flex: 1; margin: 0 !important; }
 .onb-back { background: none; border: none; color: var(--text-secondary); font-size: 14px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; padding: 8px; }
 .onb-skip { text-align: center; margin-top: 16px; font-size: 13px; color: var(--text-tertiary); cursor: pointer; text-decoration: underline dotted; }
+
+/* Bold (Option A) onboarding — green hero header, progress bar, chunky cards */
+.tonb-bold .modal-header { background: var(--green-900); border-bottom: none; padding: 18px 20px 20px; }
+.tonb-bold .modal-title { color: #fff; font-size: 22px; margin-top: 4px; }
+.tonb-bold .modal-close { color: #fff; background: rgba(255,255,255,.15); border: none; }
+.tonb-prog { display: flex; gap: 5px; margin-bottom: 14px; }
+.tonb-prog span { height: 4px; flex: 1; border-radius: 2px; background: rgba(255,255,255,.28); transition: background .3s; }
+.tonb-prog span.on { background: #fff; }
+.tonb-step-n { color: var(--green-100); font-size: 12px; font-weight: 600; }
+.onb-sublabel { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 10px; }
+.tonb-bold .onb-goal { border-width: 2px; border-radius: 14px; }
+.tonb-bold .onb-goal.on { border-color: var(--green-500); background: var(--green-50); }
+.tonb-bold .onb-chip { padding: 12px 18px; border-radius: 12px; }
+.tonb-bold .onb-chip.on { border-color: var(--green-500); background: var(--green-50); color: var(--green-900); }
+.tonb-bold .sigate-cta { border-radius: 14px; }
 /* Onboarding polish: progress dots, animated steps, goal icons, build spinner */
 .onb-dots { display: flex; gap: 7px; justify-content: center; margin: 2px 0 22px; }
 .onb-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); transition: background .25s, width .25s; }
@@ -2160,19 +2175,17 @@ html.show-splash .splash.splash-done {
 <!-- ==================== TRAINING ONBOARDING ==================== -->
 <div id="tonb-modal" style="display:none;position:fixed;inset:0;z-index:210;">
   <div class="modal-overlay"></div>
-  <div class="modal-panel onb-panel">
+  <div class="modal-panel onb-panel tonb-bold">
     <div class="modal-header">
-      <div>
-        <div class="modal-title">Build your training plan</div>
-        <div class="modal-sub">Answer a few things — we'll draft your week and you swap anything.</div>
+      <div style="flex:1">
+        <div class="tonb-prog" id="tonb-prog"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="tonb-step-n" id="tonb-stepn">Step 1 of 6</div>
+        <div class="modal-title" id="tonb-title">What's your main goal?</div>
       </div>
       <button class="modal-close" onclick="tonbClose()" title="Close"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="modal-body">
-      <div class="onb-dots" id="tonb-dots"><span class="onb-dot"></span><span class="onb-dot"></span><span class="onb-dot"></span><span class="onb-dot"></span><span class="onb-dot"></span></div>
-
       <div id="tonb-step-1" class="onb-step">
-        <div class="onb-q">What's your main goal?</div>
         <div class="onb-goals">
           <button class="onb-goal" onclick="tonbSetGoal('fatloss',this)"><span class="onb-goal-ico">🔥</span><span class="onb-goal-txt"><b>Lose fat</b><span>Lean down, keep muscle</span></span><span class="onb-goal-tick">✓</span></button>
           <button class="onb-goal" onclick="tonbSetGoal('muscle',this)"><span class="onb-goal-ico">💪</span><span class="onb-goal-txt"><b>Build muscle</b><span>Get bigger and stronger</span></span><span class="onb-goal-tick">✓</span></button>
@@ -2181,35 +2194,51 @@ html.show-splash .splash.splash-done {
       </div>
 
       <div id="tonb-step-2" class="onb-step" style="display:none">
-        <div class="onb-q">How many days a week can you train?</div>
+        <div class="onb-sublabel">How many phases?</div>
+        <div class="onb-chips">
+          <button class="onb-chip" onclick="tonbSetPhases(1,this)">1</button>
+          <button class="onb-chip" onclick="tonbSetPhases(2,this)">2</button>
+          <button class="onb-chip" onclick="tonbSetPhases(3,this)">3</button>
+        </div>
+        <div class="onb-sublabel" style="margin-top:20px">How long, in total?</div>
+        <div class="onb-chips">
+          <button class="onb-chip" onclick="tonbSetWeeks(6,this)">6 weeks</button>
+          <button class="onb-chip" onclick="tonbSetWeeks(8,this)">8 weeks</button>
+          <button class="onb-chip" onclick="tonbSetWeeks(10,this)">10 weeks</button>
+          <button class="onb-chip" onclick="tonbSetWeeks(12,this)">12 weeks</button>
+        </div>
+        <div class="onb-nav"><button class="onb-back" onclick="tonbStep(1)">← Back</button><button class="sigate-cta onb-next" onclick="tonbStep(3)">Next</button></div>
+      </div>
+
+      <div id="tonb-step-3" class="onb-step" style="display:none">
         <div class="onb-chips">
           <button class="onb-chip" onclick="tonbSetDays(3,this)">3 days</button>
           <button class="onb-chip" onclick="tonbSetDays(4,this)">4 days</button>
           <button class="onb-chip" onclick="tonbSetDays(5,this)">5 days</button>
           <button class="onb-chip" onclick="tonbSetDays(6,this)">6 days</button>
         </div>
-        <div class="onb-nav"><button class="onb-back" onclick="tonbStep(1)">← Back</button></div>
+        <div class="onb-nav"><button class="onb-back" onclick="tonbStep(2)">← Back</button></div>
       </div>
 
-      <div id="tonb-step-3" class="onb-step" style="display:none">
-        <div class="onb-q">Where will you train?</div>
+      <div id="tonb-step-4" class="onb-step" style="display:none">
         <div class="onb-goals">
           <button class="onb-goal" onclick="tonbSetLoc('gym',this)"><span class="onb-goal-ico">🏋️</span><span class="onb-goal-txt"><b>Full gym</b><span>Machines, barbells, cables</span></span><span class="onb-goal-tick">✓</span></button>
           <button class="onb-goal" onclick="tonbSetLoc('home',this)"><span class="onb-goal-ico">🏠</span><span class="onb-goal-txt"><b>Home + dumbbells</b><span>Dumbbells and basics</span></span><span class="onb-goal-tick">✓</span></button>
           <button class="onb-goal" onclick="tonbSetLoc('bodyweight',this)"><span class="onb-goal-ico">🤸</span><span class="onb-goal-txt"><b>Bodyweight only</b><span>No equipment needed</span></span><span class="onb-goal-tick">✓</span></button>
         </div>
-      </div>
-
-      <div id="tonb-step-4" class="onb-step" style="display:none">
-        <div class="onb-q">What are you training each day? <span class="onb-hint">(tap to change)</span></div>
-        <div id="tonb-days"></div>
-        <div class="onb-nav"><button class="onb-back" onclick="tonbStep(3)">← Back</button><button class="sigate-cta onb-next" onclick="tonbPreview()">See my week →</button></div>
+        <div class="onb-nav"><button class="onb-back" onclick="tonbStep(3)">← Back</button></div>
       </div>
 
       <div id="tonb-step-5" class="onb-step" style="display:none">
-        <div class="onb-q">Your week <span class="onb-hint">(tap ↻ to swap an exercise)</span></div>
+        <div class="onb-hint" style="margin-bottom:12px">Tap any day to change what it trains.</div>
+        <div id="tonb-days"></div>
+        <div class="onb-nav"><button class="onb-back" onclick="tonbStep(4)">← Back</button><button class="sigate-cta onb-next" onclick="tonbPreview()">See my plan →</button></div>
+      </div>
+
+      <div id="tonb-step-6" class="onb-step" style="display:none">
+        <div class="onb-hint" style="margin-bottom:12px">Tap ↻ to swap an exercise.</div>
         <div id="tonb-preview"></div>
-        <div class="onb-nav"><button class="onb-back" onclick="tonbStep(4)">← Back</button><button class="sigate-cta onb-next" onclick="tonbSave()">Save my plan ✨</button></div>
+        <div class="onb-nav"><button class="onb-back" onclick="tonbStep(5)">← Back</button><button class="sigate-cta onb-next" onclick="tonbSave()">Save my plan ✨</button></div>
       </div>
     </div>
   </div>
@@ -2996,21 +3025,26 @@ function tpSwap(ctx, di, ei){
 }
 
 // ---- Training onboarding: goal → days → location → per-day focus → preview ----
-let _tonb = { goal:'muscle', days:4, location:'gym', split:[], plan:null };
+let _tonb = { goal:'muscle', phaseCount:2, weeks:8, days:4, location:'gym', split:[], plan:null };
+const TONB_TITLES = { 1:"What's your main goal?", 2:"How's your plan structured?", 3:"How many days a week?", 4:"Where will you train?", 5:"What are you training each day?", 6:"Your plan" };
 function openTrainOnboarding(){
-  _tonb = { goal:'muscle', days:4, location:'gym', split:[], plan:null };
+  _tonb = { goal:'muscle', phaseCount:2, weeks:8, days:4, location:'gym', split:[], plan:null };
   document.querySelectorAll('#tonb-modal .onb-chip, #tonb-modal .onb-goal').forEach(c => c.classList.remove('on'));
   tonbStep(1);
   document.getElementById('tonb-modal').style.display = 'block';
 }
 function tonbClose(){ document.getElementById('tonb-modal').style.display = 'none'; }
 function tonbStep(n){
-  for(let i=1;i<=5;i++){ const s=document.getElementById('tonb-step-'+i); if(!s) continue; if(i===n){ s.style.display='block'; s.classList.remove('onb-anim'); void s.offsetWidth; s.classList.add('onb-anim'); } else s.style.display='none'; }
-  document.querySelectorAll('#tonb-dots .onb-dot').forEach((d, idx) => d.classList.toggle('on', idx < n));
+  for(let i=1;i<=6;i++){ const s=document.getElementById('tonb-step-'+i); if(!s) continue; if(i===n){ s.style.display='block'; s.classList.remove('onb-anim'); void s.offsetWidth; s.classList.add('onb-anim'); } else s.style.display='none'; }
+  document.querySelectorAll('#tonb-prog span').forEach((d, idx) => d.classList.toggle('on', idx < n));
+  const sn = document.getElementById('tonb-stepn'); if(sn) sn.textContent = 'Step ' + n + ' of 6';
+  const tt = document.getElementById('tonb-title'); if(tt) tt.textContent = TONB_TITLES[n] || '';
 }
 function tonbSetGoal(g, el){ _tonb.goal = g; el.parentElement.querySelectorAll('.onb-goal').forEach(b => b.classList.remove('on')); el.classList.add('on'); setTimeout(() => tonbStep(2), 240); }
-function tonbSetDays(d, el){ _tonb.days = d; el.parentElement.querySelectorAll('.onb-chip').forEach(b => b.classList.remove('on')); el.classList.add('on'); buildDefaultSplit(); setTimeout(() => tonbStep(3), 200); }
-function tonbSetLoc(loc, el){ _tonb.location = loc; el.parentElement.querySelectorAll('.onb-goal').forEach(b => b.classList.remove('on')); el.classList.add('on'); renderDayRows(); setTimeout(() => tonbStep(4), 240); }
+function tonbSetPhases(n, el){ _tonb.phaseCount = n; el.parentElement.querySelectorAll('.onb-chip').forEach(b => b.classList.remove('on')); el.classList.add('on'); }
+function tonbSetWeeks(w, el){ _tonb.weeks = w; el.parentElement.querySelectorAll('.onb-chip').forEach(b => b.classList.remove('on')); el.classList.add('on'); }
+function tonbSetDays(d, el){ _tonb.days = d; el.parentElement.querySelectorAll('.onb-chip').forEach(b => b.classList.remove('on')); el.classList.add('on'); buildDefaultSplit(); setTimeout(() => tonbStep(4), 200); }
+function tonbSetLoc(loc, el){ _tonb.location = loc; el.parentElement.querySelectorAll('.onb-goal').forEach(b => b.classList.remove('on')); el.classList.add('on'); renderDayRows(); setTimeout(() => tonbStep(5), 240); }
 function buildDefaultSplit(){
   const wk = spreadTrainingDays(_tonb.days);
   const focuses = DEFAULT_SPLITS[_tonb.days] || DEFAULT_SPLITS[3];
@@ -3034,7 +3068,7 @@ async function tonbPreview(){
       exercises: recommendExercises(lib, s.focus, _tonb.location, 5, i).map(e => ({ id:e.id, name:e.name, muscle:e.muscle, sets:e.sets }))
     }))
   };
-  tonbStep(5);
+  tonbStep(6);
   tpRenderWeek(document.getElementById('tonb-preview'), _tonb.plan, 'preview');
 }
 function tonbSave(){
