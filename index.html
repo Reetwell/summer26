@@ -468,8 +468,21 @@ select.food-input { width: 100%; }
 /* Personalised "your week" view (split mode) */
 #tp-myweek { display: none; }
 #sec-plan.tp-split #tp-myweek { display: block; }
-#sec-plan.tp-split .timeline, #sec-plan.tp-split .phase-card, #sec-plan.tp-split .page-header p { display: none; }
-@media (min-width: 1024px) { #sec-plan.tp-split { column-count: 1; } }
+#sec-plan.tp-split > .timeline, #sec-plan.tp-split > .phase-card, #sec-plan.tp-split .page-header p { display: none; }
+@media (min-width: 1024px) {
+  #sec-plan.tp-split { column-count: 1; }
+  #sec-plan.tp-split #tp-myweek { column-count: 2; column-gap: 18px; }
+  #sec-plan.tp-split #tp-myweek > .phase-card { break-inside: avoid; }
+}
+/* Rich phase: sessions + fade-in animation */
+.tp-session { margin-bottom: 10px; }
+.tp-session-head { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.tp-session-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.tp-session-name { font-weight: 600; font-size: 13px; color: var(--text-primary); }
+#tp-myweek .phase-card.tp-anim { animation: tpFade .4s cubic-bezier(.4,0,.2,1) both; }
+#tp-myweek .phase-card:nth-child(2) { animation-delay: .08s; }
+#tp-myweek .phase-card:nth-child(3) { animation-delay: .16s; }
+@keyframes tpFade { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 .tp-week-sum { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
 .tp-week-sum b { color: var(--text-primary); }
 .tp-week { display: flex; flex-direction: column; gap: 12px; }
@@ -2800,7 +2813,7 @@ function seedTrainingFromDOM(){
 function tpSave(){ localStorage.setItem('sbp-trainingplan', JSON.stringify(TP_DATA)); }
 function tpInit(){
   TP_DATA = loadStore('sbp-trainingplan', null);
-  if(TP_DATA && TP_DATA.mode === 'split'){ renderTrainingPlan(); return; }
+  if(TP_DATA && (TP_DATA.mode === 'split' || TP_DATA.mode === 'phases')){ renderTrainingPlan(); return; }
   if(!TP_DATA || !Array.isArray(TP_DATA.phases) || !TP_DATA.phases.length){ TP_DATA = seedTrainingFromDOM(); tpSave(); }
   renderTrainingPlan();
 }
@@ -2817,6 +2830,7 @@ function tpSessionHtml(pi, s){
 function renderTrainingPlan(){
   if(!TP_DATA) return;
   const sec = document.getElementById('sec-plan');
+  if(TP_DATA.mode === 'phases'){ if(sec) sec.classList.add('tp-split'); renderRichPhases(document.getElementById('tp-myweek'), TP_DATA, 'live'); return; }
   if(TP_DATA.mode === 'split'){ if(sec) sec.classList.add('tp-split'); tpRenderWeek(document.getElementById('tp-myweek'), TP_DATA, 'live'); return; }
   if(sec) sec.classList.remove('tp-split');
   const cards = document.querySelectorAll('#sec-plan .phase-card');
@@ -3059,17 +3073,71 @@ function renderDayRows(){
   _tonb.split.forEach((s, i) => { const sel = document.querySelectorAll('#tonb-days .tonb-focus')[i]; if(sel) sel.value = s.focus; });
 }
 function tonbSetFocus(i, val){ if(_tonb.split[i]) _tonb.split[i].focus = val; }
+// ---- Rich multi-phase plan: generate from onboarding answers ----
+function tpFocusCls(f){
+  if(/push|chest/i.test(f)) return 'd-lift';
+  if(/pull|back/i.test(f)) return 'd-card';
+  if(/leg|lower/i.test(f)) return 'd-foot';
+  return 'd-lift';
+}
+function buildPhasesPlan(lib, t){
+  const base = t.goal === 'muscle' ? 2700 : (t.goal === 'maintain' ? 2400 : 2100);
+  const goalLabel = GOAL_LABEL[t.goal] || 'Training';
+  const protein = t.goal === 'muscle' ? 180 : 160;
+  const wk = spreadTrainingDays(t.days);
+  const trainMap = {}; t.split.forEach(s => trainMap[s.day] = s.focus);
+  const weeksEach = Math.max(1, Math.round(t.weeks / t.phaseCount));
+  const phases = [];
+  let weekStart = 1;
+  for(let p = 0; p < t.phaseCount; p++){
+    const cal = t.goal === 'muscle' ? base + p * 150 : (t.goal === 'fatloss' ? base - p * 50 : base);
+    const wEnd = (p === t.phaseCount - 1) ? t.weeks : Math.min(t.weeks, weekStart + weeksEach - 1);
+    const sessions = t.split.map((s, i) => ({
+      id: tpUid(), name: s.day + ' — ' + s.focus, focus: s.focus, color: TP_COLORS[i % TP_COLORS.length],
+      exercises: recommendExercises(lib, s.focus, t.location, 5, p + i).map(e => ({ id:e.id, name:e.name, muscle:e.muscle, sets:e.sets }))
+    }));
+    const schedule = WEEKDAYS.map(d => trainMap[d] ? { day:d, type:trainMap[d], cls:tpFocusCls(trainMap[d]) } : { day:d, type:'Rest', cls:'d-rest' });
+    const fatsG = Math.round(cal * 0.27 / 9), carbsG = Math.max(0, Math.round((cal - protein * 4 - fatsG * 9) / 4));
+    const mx = Math.max(protein, carbsG, fatsG);
+    const macros = [
+      { name:'Protein', val:protein + 'g', pct:Math.round(protein / mx * 100), color:'#378ADD' },
+      { name:'Carbs', val:carbsG + 'g', pct:Math.round(carbsG / mx * 100), color:'#7F77DD' },
+      { name:'Fats', val:fatsG + 'g', pct:Math.round(fatsG / mx * 100), color:'#1D9E75' }
+    ];
+    const metrics = [
+      { label:'Daily calories', val:'~' + cal.toLocaleString(), sub: t.goal === 'fatloss' ? 'Below maintenance' : (t.goal === 'muscle' ? 'Above maintenance' : 'At maintenance') },
+      { label:'Protein', val:protein + 'g', sub:'Every day' },
+      { label:'Gym days', val:t.days + '×/week', sub:wk.join(' · ') },
+      { label:'Where', val:LOC_LABEL[t.location] || '', sub:'' }
+    ];
+    phases.push({ id:tpUid(), badge:'Phase ' + (p + 1), name: goalLabel + (t.phaseCount > 1 ? ' · block ' + (p + 1) : ''), dates:'Weeks ' + weekStart + '–' + wEnd, daysPerWeek:t.days, location:t.location, metrics, schedule, sessions, macros, tip:'' });
+    weekStart = wEnd + 1;
+  }
+  return { v:3, mode:'phases', goal:t.goal, location:t.location, weeks:t.weeks, phases };
+}
+function tpExItemHtml(ctx, pi, si, ei, e){
+  return '<div class="tp-ex"><div class="tp-ex-info" onclick="exOpenRich(\'' + ctx + '\',' + pi + ',' + si + ',' + ei + ')" style="cursor:pointer"><span class="tp-ex-name">' + esc(e.name) + '</span><span class="tp-ex-sets">' + esc(e.sets || '') + '</span></div>'
+    + '<button class="mp-icon" title="Swap" aria-label="Swap exercise" onclick="tpSwapRich(\'' + ctx + '\',' + pi + ',' + si + ',' + ei + ')">↻</button></div>';
+}
+function renderRichPhases(el, plan, ctx){
+  if(!el || !plan || !plan.phases) return;
+  el.innerHTML = plan.phases.map((ph, pi) => {
+    let h = '<div class="phase-card tp-anim">';
+    h += '<div class="phase-header"><span class="phase-badge pb1">' + esc(ph.badge) + '</span><span class="phase-title">' + esc(ph.name) + '</span><span class="phase-dates">' + esc(ph.dates) + '</span></div>';
+    h += '<div class="metrics-row">' + ph.metrics.map(m => '<div class="metric-box"><div class="metric-label">' + esc(m.label) + '</div><div class="metric-val">' + esc(m.val) + '</div>' + (m.sub ? '<div class="metric-sub">' + esc(m.sub) + '</div>' : '') + '</div>').join('') + '</div>';
+    h += '<div class="section-label">Weekly schedule</div><div class="week-grid">' + ph.schedule.map(d => '<div class="day-box ' + d.cls + '"><div class="day-box-name">' + esc(d.day) + '</div><div class="day-box-type">' + esc(d.type) + '</div></div>').join('') + '</div>';
+    h += '<div class="section-label">Workout focus</div>';
+    h += ph.sessions.map((s, si) => '<div class="tp-session"><div class="tp-session-head"><span class="tp-session-dot" style="background:' + esc(s.color) + '"></span><span class="tp-session-name">' + esc(s.name) + '</span></div><div class="tp-ex-list">' + s.exercises.map((e, ei) => tpExItemHtml(ctx, pi, si, ei, e)).join('') + '</div></div>').join('');
+    h += '<div class="section-label">Macros</div>' + ph.macros.map(m => '<div class="macro-bar-row"><span class="macro-bar-name">' + esc(m.name) + '</span><div class="macro-bar-bg"><div class="macro-bar-fill" style="width:' + m.pct + '%;background:' + m.color + '"></div></div><span class="macro-bar-val">' + esc(m.val) + '</span></div>').join('');
+    h += '</div>';
+    return h;
+  }).join('');
+}
 async function tonbPreview(){
   const lib = await loadExerciseLibrary();
-  _tonb.plan = {
-    v:2, mode:'split', goal:_tonb.goal, location:_tonb.location,
-    days: _tonb.split.map((s, i) => ({
-      day: s.day, focus: s.focus,
-      exercises: recommendExercises(lib, s.focus, _tonb.location, 5, i).map(e => ({ id:e.id, name:e.name, muscle:e.muscle, sets:e.sets }))
-    }))
-  };
+  _tonb.plan = buildPhasesPlan(lib, _tonb);
   tonbStep(6);
-  tpRenderWeek(document.getElementById('tonb-preview'), _tonb.plan, 'preview');
+  renderRichPhases(document.getElementById('tonb-preview'), _tonb.plan, 'preview');
 }
 function tonbSave(){
   if(!_tonb.plan) return;
@@ -3145,8 +3213,29 @@ function exHighlight(primary, secondary){
 }
 function exOpen(ctx, di, ei){
   const plan = (ctx === 'preview') ? (_tonb && _tonb.plan) : TP_DATA;
-  if(!plan || !plan.days[di]) return;
+  if(!plan || !plan.days || !plan.days[di]) return;
   const ex = plan.days[di].exercises[ei]; if(!ex) return;
+  exShow(ex);
+}
+// Rich multi-phase: resolve exercise from phases[pi].sessions[si].exercises[ei]
+function exPlanFor(ctx){ return (ctx === 'preview') ? (_tonb && _tonb.plan) : TP_DATA; }
+function exOpenRich(ctx, pi, si, ei){
+  const plan = exPlanFor(ctx); if(!plan || !plan.phases) return;
+  const s = plan.phases[pi] && plan.phases[pi].sessions[si]; if(!s) return;
+  const ex = s.exercises[ei]; if(!ex) return;
+  exShow(ex);
+}
+function tpSwapRich(ctx, pi, si, ei){
+  const plan = exPlanFor(ctx); if(!plan || !plan.phases || !EX_LIB_CACHE) return;
+  const s = plan.phases[pi] && plan.phases[pi].sessions[si]; if(!s) return;
+  const ex = s.exercises[ei]; if(!ex) return;
+  const used = s.exercises.map(e => e.id);
+  const alt = swapAlternative(EX_LIB_CACHE, { id:ex.id, muscle:ex.muscle }, plan.location || 'gym', used);
+  s.exercises[ei] = { id:alt.id, name:alt.name, muscle:alt.muscle, sets:alt.sets };
+  if(ctx === 'preview'){ renderRichPhases(document.getElementById('tonb-preview'), _tonb.plan, 'preview'); }
+  else { tpSave(); renderRichPhases(document.getElementById('tp-myweek'), TP_DATA, 'live'); showToast('Swapped', 'info'); }
+}
+function exShow(ex){
   document.getElementById('exd-name').textContent = ex.name;
   document.getElementById('exd-sets').textContent = ex.sets || '';
   const primary = exMuscleGroup(ex.muscle);
