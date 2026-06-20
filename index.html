@@ -509,6 +509,25 @@ select.food-input { width: 100%; }
 .tpt-wk.rest { opacity: .55; cursor: default; }
 .tpt-wk .d { display: block; font-size: 11px; font-weight: 600; color: var(--text-primary); }
 .tpt-wk .f { display: block; font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+.tpt-wk { position: relative; }
+.tpt-wk .ck { position: absolute; top: 3px; right: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--green-500); color: #fff; font-size: 8px; display: flex; align-items: center; justify-content: center; }
+.tpt-done { margin-top: 14px; width: 100%; background: rgba(255,255,255,.16); color: #fff; border: none; border-radius: 12px; padding: 12px; font-weight: 600; font-size: 14px; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background .12s, transform .1s; }
+.tpt-done:hover { background: rgba(255,255,255,.26); }
+.tpt-done:active { transform: scale(.98); }
+.tpt-done.is-done { background: #fff; color: var(--green-900); }
+.tpt-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.tpt-tile { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px 14px; }
+.tpt-tile .l { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-tertiary); }
+.tpt-tile .v { font-family: 'DM Serif Display', serif; font-size: 20px; margin-top: 3px; color: var(--text-primary); }
+.tpt-tile .s { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+.tpt-prog { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 16px; }
+.tpt-prog-row { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.tpt-prog-bar { height: 8px; background: var(--gray-100); border-radius: 4px; margin: 8px 0 10px; overflow: hidden; }
+.tpt-prog-bar > div { height: 100%; background: var(--green-500); border-radius: 4px; transition: width .3s; }
+.tpt-streak { font-size: 12.5px; color: var(--amber-900); font-weight: 600; }
+.tpt-streak i { color: var(--amber-500); }
+.tpt-tip { background: var(--green-50); border-radius: var(--radius-md); padding: 12px 14px; font-size: 12.5px; color: var(--green-900); line-height: 1.55; margin-top: 14px; }
+.tpt-tip i { color: var(--green-700); margin-right: 6px; }
 /* Rich phase: sessions + fade-in animation */
 .tp-session { margin-bottom: 10px; }
 .tp-session-head { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
@@ -3181,6 +3200,13 @@ function tpFocusCls(f){
   if(/leg|lower/i.test(f)) return 'd-foot';
   return 'd-lift';
 }
+function tpTip(goal){
+  return ({
+    fatloss: "Two cardio sessions a week keeps you in a fat-burning zone — hit your protein every day and don't skip rest.",
+    muscle: "Add a little weight or a rep most weeks. Progressive overload is the whole game — eat slightly above maintenance.",
+    maintain: "Consistency beats intensity. Just keep showing up and eat around maintenance."
+  })[goal] || "Show up, train hard, recover well.";
+}
 function buildPhasesPlan(lib, t){
   const base = t.goal === 'muscle' ? 2700 : (t.goal === 'maintain' ? 2400 : 2100);
   const goalLabel = GOAL_LABEL[t.goal] || 'Training';
@@ -3211,7 +3237,7 @@ function buildPhasesPlan(lib, t){
       { label:'Gym days', val:t.days + '×/week', sub:wk.join(' · ') },
       { label:'Where', val:LOC_LABEL[t.location] || '', sub:'' }
     ];
-    phases.push({ id:tpUid(), badge:'Phase ' + (p + 1), name: goalLabel + (t.phaseCount > 1 ? ' · block ' + (p + 1) : ''), dates:'Weeks ' + weekStart + '–' + wEnd, daysPerWeek:t.days, location:t.location, metrics, schedule, sessions, macros, tip:'' });
+    phases.push({ id:tpUid(), badge:'Phase ' + (p + 1), name: goalLabel + (t.phaseCount > 1 ? ' · block ' + (p + 1) : ''), dates:'Weeks ' + weekStart + '–' + wEnd, daysPerWeek:t.days, location:t.location, metrics, schedule, sessions, macros, tip: tpTip(t.goal) });
     weekStart = wEnd + 1;
   }
   return { v:3, mode:'phases', goal:t.goal, location:t.location, weeks:t.weeks, phases };
@@ -3225,7 +3251,7 @@ function migrateSplit(sp){
   const goalLabel = GOAL_LABEL[sp.goal] || 'Training';
   const phase = { id: tpUid(), badge:'Phase 1', name:goalLabel, dates:'', daysPerWeek:days.length, location:sp.location,
     metrics:[ {label:'Focus', val:goalLabel, sub:''}, {label:'Gym days', val:days.length + '×/week', sub:''}, {label:'Where', val:LOC_LABEL[sp.location] || '', sub:''} ],
-    schedule, sessions, macros:[], tip:'' };
+    schedule, sessions, macros:[], tip: tpTip(sp.goal) };
   return { v:3, mode:'phases', goal:sp.goal, location:sp.location, weeks:0, phases:[phase] };
 }
 function tpExItemHtml(ctx, pi, si, ei, e){
@@ -3254,6 +3280,12 @@ function renderRichPhases(el, plan, ctx){
 // ---- Today-forward training view (default): today hero + up next + week strip ----
 let _tpSelDay = null, _tpActivePhase = 0;
 function tpDayOf(s){ return s.day || (s.name || '').split(' — ')[0]; }
+let _tpProg = loadStore('sbp-tp-progress', {});
+function tpDateKey(short){ const now = new Date(); const ti = (now.getDay() + 6) % 7; const t = WEEKDAYS.indexOf(short); const d = new Date(now); d.setDate(now.getDate() + (t - ti)); return d.toISOString().slice(0, 10); }
+function tpIsDone(short){ return !!_tpProg[tpDateKey(short)]; }
+function tpToggleDone(short){ const k = tpDateKey(short); if(_tpProg[k]) delete _tpProg[k]; else _tpProg[k] = true; localStorage.setItem('sbp-tp-progress', JSON.stringify(_tpProg)); renderTrainingToday(document.getElementById('tp-myweek'), TP_DATA); }
+function tpWeekStat(phase){ const tr = phase.schedule.filter(d => d.type !== 'Rest'); return { done: tr.filter(d => tpIsDone(d.day)).length, total: tr.length }; }
+function tpStreak(phase){ let n = 0; const now = new Date(); for(let k = 0; k < 60; k++){ const d = new Date(now); d.setDate(now.getDate() - k); const short = WEEKDAYS[(d.getDay() + 6) % 7]; const sd = phase.schedule.find(x => x.day === short); if(!sd || sd.type === 'Rest') continue; if(_tpProg[d.toISOString().slice(0, 10)]) n++; else break; } return n; }
 function renderTrainingToday(el, plan){
   if(!el || !plan || !plan.phases || !plan.phases.length) return;
   const pi = Math.min(_tpActivePhase, plan.phases.length - 1);
@@ -3266,19 +3298,25 @@ function renderTrainingToday(el, plan){
   let hero;
   if(sess){
     const exs = sess.exercises.map((e, ei) => '<div class="tpt-ex" onclick="exOpenRich(\'live\',' + pi + ',' + sIdx + ',' + ei + ')"><span class="tpt-ex-n">' + esc(e.name) + '</span><span class="tpt-ex-s">' + esc(e.sets || '') + '</span></div>').join('');
+    const done = tpIsDone(selDay);
     hero = '<div class="tpt-hero"><div class="tpt-hero-top"><span class="tpt-lbl">' + (isToday ? 'Today · ' : '') + esc(selDay) + '</span><span class="tpt-focus">' + esc(sess.focus) + '</span></div>'
-      + '<div class="tpt-title">' + esc((sess.name.split(' — ')[1]) || sess.focus) + '</div><div class="tpt-exlist">' + exs + '</div></div>';
+      + '<div class="tpt-title">' + esc((sess.name.split(' — ')[1]) || sess.focus) + '</div><div class="tpt-exlist">' + exs + '</div>'
+      + '<button class="tpt-done' + (done ? ' is-done' : '') + '" onclick="tpToggleDone(\'' + selDay + '\')">' + (done ? '<i class="fa-solid fa-check" aria-hidden="true"></i> Done' : 'Mark as done') + '</button></div>';
   } else {
     hero = '<div class="tpt-hero tpt-rest"><div class="tpt-lbl">' + (isToday ? 'Today · ' : '') + esc(selDay) + '</div><div class="tpt-title">Rest day</div><div class="tpt-restsub">Recover well — back at it tomorrow.</div></div>';
   }
+  const tiles = '<div class="tpt-tiles">' + (phase.metrics || []).map(m => '<div class="tpt-tile"><div class="l">' + esc(m.label) + '</div><div class="v">' + esc(m.val) + '</div>' + (m.sub ? '<div class="s">' + esc(m.sub) + '</div>' : '') + '</div>').join('') + '</div>';
   let nextSess = null, nextDay = null;
   for(let k = 1; k <= 7; k++){ const d = WEEKDAYS[(WEEKDAYS.indexOf(selDay) + k) % 7]; const ns = phase.sessions.find(s => tpDayOf(s) === d); if(ns){ nextSess = ns; nextDay = d; break; } }
   const upnext = nextSess ? '<div class="tpt-next" onclick="tpSelectDay(\'' + nextDay + '\')"><div><div class="tpt-next-lbl">Up next · ' + esc(nextDay) + '</div><div class="tpt-next-t">' + esc(nextSess.focus) + '</div><div class="tpt-next-x">' + nextSess.exercises.slice(0, 3).map(e => esc(e.name)).join(' · ') + '</div></div><i class="fa-solid fa-chevron-right" style="color:var(--text-tertiary)" aria-hidden="true"></i></div>' : '';
-  const strip = phase.schedule.map(d => { const train = d.type !== 'Rest'; return '<div class="tpt-wk' + (d.day === selDay ? ' on' : '') + (train ? '' : ' rest') + '"' + (train ? ' onclick="tpSelectDay(\'' + d.day + '\')"' : '') + '><span class="d">' + esc(d.day) + '</span><span class="f">' + esc(d.type) + '</span></div>'; }).join('');
+  const stat = tpWeekStat(phase), streak = tpStreak(phase), pct = stat.total ? Math.round(stat.done / stat.total * 100) : 0;
+  const prog = '<div class="tpt-prog"><div class="tpt-prog-row"><span>This week</span><span>' + stat.done + ' / ' + stat.total + '</span></div><div class="tpt-prog-bar"><div style="width:' + pct + '%"></div></div><div class="tpt-streak"><i class="fa-solid fa-fire" aria-hidden="true"></i> ' + streak + '-day streak</div></div>';
+  const strip = phase.schedule.map(d => { const train = d.type !== 'Rest'; const ck = train && tpIsDone(d.day) ? '<span class="ck"><i class="fa-solid fa-check" aria-hidden="true"></i></span>' : ''; return '<div class="tpt-wk' + (d.day === selDay ? ' on' : '') + (train ? '' : ' rest') + '"' + (train ? ' onclick="tpSelectDay(\'' + d.day + '\')"' : '') + '>' + ck + '<span class="d">' + esc(d.day) + '</span><span class="f">' + esc(d.type) + '</span></div>'; }).join('');
+  const tip = phase.tip ? '<div class="tpt-tip"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i>' + esc(phase.tip) + '</div>' : '';
   el.innerHTML = '<div class="tpt-wrap">'
     + '<div class="tpt-phaserow"><button class="tpt-phasepill" onclick="openPhaseDetails()">' + esc(phase.badge) + ' · ' + esc(phase.name) + ' <i class="fa-solid fa-chevron-right" style="font-size:10px" aria-hidden="true"></i></button><span class="tpt-wk-lbl">' + esc(phase.dates || '') + '</span></div>'
-    + '<div class="tpt-main">' + hero + '</div>'
-    + '<div class="tpt-side">' + upnext + '<div class="tpt-week-lbl">This week</div><div class="tpt-strip">' + strip + '</div></div>'
+    + '<div class="tpt-main">' + hero + tiles + '</div>'
+    + '<div class="tpt-side">' + upnext + prog + '<div class="tpt-week-lbl">This week</div><div class="tpt-strip">' + strip + '</div>' + tip + '</div>'
     + '</div>';
 }
 function tpSelectDay(d){ _tpSelDay = d; renderTrainingToday(document.getElementById('tp-myweek'), TP_DATA); }
@@ -5116,7 +5154,7 @@ let remState = loadStore('sbp-reminders', { enabled:false, protein:'09:00', crea
 const SUPABASE_URL = 'https://owqyrgufwvqgbrpdpskx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93cXlyZ3Vmd3ZxZ2JycGRwc2t4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MzczOTQsImV4cCI6MjA5NjMxMzM5NH0.Z_zUJbKvO6-FBbKheDmlVu46XjT9toFaVlct12IY8zU';
 
-const SYNC_KEYS = ['sbp-today','sbp-weight','sbp-workouts','sbp-session-logs','sbp-shop','sbp-mealplan','sbp-trainingplan','sbp-recipes'];
+const SYNC_KEYS = ['sbp-today','sbp-weight','sbp-workouts','sbp-session-logs','sbp-shop','sbp-mealplan','sbp-trainingplan','sbp-tp-progress','sbp-recipes'];
 const SYNC_KEY_SET = new Set(SYNC_KEYS);
 
 // Capture the real setter BEFORE patching, so our own sync writes don't recurse.
