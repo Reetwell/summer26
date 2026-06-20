@@ -508,6 +508,9 @@ select.food-input { width: 100%; }
 .tp-session-head { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
 .tp-session-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 .tp-session-name { font-weight: 600; font-size: 13px; color: var(--text-primary); }
+.tp-phase-ctrl { margin-left: auto; display: flex; gap: 5px; }
+.tp-phase-ctrl .mp-icon { width: 26px; height: 26px; font-size: 12px; }
+.tp-session > .tp-add { margin-top: 7px; padding: 8px; font-size: 12px; }
 #tp-myweek .phase-card.tp-anim { animation: tpFade .4s cubic-bezier(.4,0,.2,1) both; }
 #tp-myweek .phase-card:nth-child(2) { animation-delay: .08s; }
 #tp-myweek .phase-card:nth-child(3) { animation-delay: .16s; }
@@ -3159,21 +3162,26 @@ function migrateSplit(sp){
 }
 function tpExItemHtml(ctx, pi, si, ei, e){
   return '<div class="tp-ex"><div class="tp-ex-info" onclick="exOpenRich(\'' + ctx + '\',' + pi + ',' + si + ',' + ei + ')" style="cursor:pointer"><span class="tp-ex-name">' + esc(e.name) + '</span><span class="tp-ex-sets">' + esc(e.sets || '') + '</span></div>'
-    + '<button class="mp-icon" title="Swap" aria-label="Swap exercise" onclick="tpSwapRich(\'' + ctx + '\',' + pi + ',' + si + ',' + ei + ')">↻</button></div>';
+    + '<button class="mp-icon" title="Swap" aria-label="Swap exercise" onclick="tpSwapRich(\'' + ctx + '\',' + pi + ',' + si + ',' + ei + ')">↻</button>'
+    + (ctx === 'live' ? '<button class="mp-icon" title="Remove" aria-label="Remove exercise" onclick="tpExDel(' + pi + ',' + si + ',' + ei + ')">✕</button>' : '')
+    + '</div>';
 }
 function renderRichPhases(el, plan, ctx){
   if(!el || !plan || !plan.phases) return;
+  const edit = ctx === 'live';
   el.innerHTML = plan.phases.map((ph, pi) => {
     let h = '<div class="phase-card tp-anim">';
-    h += '<div class="phase-header"><span class="phase-badge pb1">' + esc(ph.badge) + '</span><span class="phase-title">' + esc(ph.name) + '</span><span class="phase-dates">' + esc(ph.dates) + '</span></div>';
+    h += '<div class="phase-header"><span class="phase-badge pb1">' + esc(ph.badge) + '</span><span class="phase-title">' + esc(ph.name) + '</span><span class="phase-dates">' + esc(ph.dates) + '</span>'
+      + (edit ? '<span class="tp-phase-ctrl"><button class="mp-icon" title="Duplicate phase" aria-label="Duplicate phase" onclick="tpPhaseDup(' + pi + ')"><i class="fa-solid fa-copy"></i></button><button class="mp-icon" title="Delete phase" aria-label="Delete phase" onclick="tpPhaseDel(' + pi + ')">✕</button></span>' : '')
+      + '</div>';
     h += '<div class="metrics-row">' + ph.metrics.map(m => '<div class="metric-box"><div class="metric-label">' + esc(m.label) + '</div><div class="metric-val">' + esc(m.val) + '</div>' + (m.sub ? '<div class="metric-sub">' + esc(m.sub) + '</div>' : '') + '</div>').join('') + '</div>';
     h += '<div class="section-label">Weekly schedule</div><div class="week-grid">' + ph.schedule.map(d => '<div class="day-box ' + d.cls + '"><div class="day-box-name">' + esc(d.day) + '</div><div class="day-box-type">' + esc(d.type) + '</div></div>').join('') + '</div>';
     h += '<div class="section-label">Workout focus</div>';
-    h += ph.sessions.map((s, si) => '<div class="tp-session"><div class="tp-session-head"><span class="tp-session-dot" style="background:' + esc(s.color) + '"></span><span class="tp-session-name">' + esc(s.name) + '</span></div><div class="tp-ex-list">' + s.exercises.map((e, ei) => tpExItemHtml(ctx, pi, si, ei, e)).join('') + '</div></div>').join('');
-    h += '<div class="section-label">Macros</div>' + ph.macros.map(m => '<div class="macro-bar-row"><span class="macro-bar-name">' + esc(m.name) + '</span><div class="macro-bar-bg"><div class="macro-bar-fill" style="width:' + m.pct + '%;background:' + m.color + '"></div></div><span class="macro-bar-val">' + esc(m.val) + '</span></div>').join('');
+    h += ph.sessions.map((s, si) => '<div class="tp-session"><div class="tp-session-head"><span class="tp-session-dot" style="background:' + esc(s.color) + '"></span><span class="tp-session-name">' + esc(s.name) + '</span></div><div class="tp-ex-list">' + s.exercises.map((e, ei) => tpExItemHtml(ctx, pi, si, ei, e)).join('') + '</div>' + (edit ? '<button class="mp-add tp-add" onclick="tpExAdd(' + pi + ',' + si + ')">+ Add exercise</button>' : '') + '</div>').join('');
+    if(ph.macros && ph.macros.length){ h += '<div class="section-label">Macros</div>' + ph.macros.map(m => '<div class="macro-bar-row"><span class="macro-bar-name">' + esc(m.name) + '</span><div class="macro-bar-bg"><div class="macro-bar-fill" style="width:' + m.pct + '%;background:' + m.color + '"></div></div><span class="macro-bar-val">' + esc(m.val) + '</span></div>').join(''); }
     h += '</div>';
     return h;
-  }).join('');
+  }).join('') + (edit ? '<button class="mp-add tp-add" style="margin-top:14px" onclick="tpPhaseAdd()">+ Add phase</button>' : '');
 }
 // ---- Today-forward training view (default): today hero + up next + week strip ----
 let _tpSelDay = null, _tpActivePhase = 0;
@@ -3351,7 +3359,44 @@ function tpSwapRich(ctx, pi, si, ei){
   const alt = swapAlternative(EX_LIB_CACHE, { id:ex.id, muscle:ex.muscle }, plan.location || 'gym', used);
   s.exercises[ei] = { id:alt.id, name:alt.name, muscle:alt.muscle, sets:alt.sets };
   if(ctx === 'preview'){ renderRichPhases(document.getElementById('tonb-preview'), _tonb.plan, 'preview'); }
-  else { tpSave(); renderRichPhases(document.getElementById('tp-myweek'), TP_DATA, 'live'); showToast('Swapped', 'info'); }
+  else { tpRefreshDetails(); showToast('Swapped', 'info'); }
+}
+// ---- Plan editing: phases (add/duplicate/delete) + exercises (add/remove) ----
+function tpRefreshDetails(){
+  tpSave();
+  renderTrainingToday(document.getElementById('tp-myweek'), TP_DATA);
+  if(document.getElementById('phase-details-modal').style.display === 'block'){ renderRichPhases(document.getElementById('phase-details-body'), TP_DATA, 'live'); }
+}
+function tpRenumberPhases(){ TP_DATA.phases.forEach((p, i) => p.badge = 'Phase ' + (i + 1)); }
+function tpPhaseDup(pi){
+  const src = TP_DATA.phases[pi]; if(!src) return;
+  const clone = JSON.parse(JSON.stringify(src));
+  clone.id = tpUid(); (clone.sessions || []).forEach(s => s.id = tpUid());
+  TP_DATA.phases.splice(pi + 1, 0, clone); tpRenumberPhases(); tpRefreshDetails(); showToast('Phase duplicated', 'success');
+}
+function tpPhaseDel(pi){
+  if(TP_DATA.phases.length <= 1){ showToast('Keep at least one phase', 'error'); return; }
+  if(!confirm('Delete this phase?')) return;
+  TP_DATA.phases.splice(pi, 1); if(_tpActivePhase >= TP_DATA.phases.length) _tpActivePhase = 0; tpRenumberPhases(); tpRefreshDetails(); showToast('Phase deleted', 'info');
+}
+function tpPhaseAdd(){
+  const last = TP_DATA.phases[TP_DATA.phases.length - 1]; if(!last) return;
+  const clone = JSON.parse(JSON.stringify(last));
+  clone.id = tpUid(); (clone.sessions || []).forEach(s => s.id = tpUid());
+  TP_DATA.phases.push(clone); tpRenumberPhases(); tpRefreshDetails(); showToast('Phase added', 'success');
+}
+async function tpExAdd(pi, si){
+  const ph = TP_DATA.phases[pi]; const s = ph && ph.sessions[si]; if(!s) return;
+  const lib = await loadExerciseLibrary();
+  const used = s.exercises.map(e => e.id);
+  const pool = recommendExercises(lib, s.focus, ph.location || 'gym', 8, 0).filter(e => !used.includes(e.id));
+  const pick = pool[0]; if(!pick){ showToast('No more for this focus', 'info'); return; }
+  s.exercises.push({ id:pick.id, name:pick.name, muscle:pick.muscle, sets:pick.sets });
+  tpRefreshDetails();
+}
+function tpExDel(pi, si, ei){
+  const ph = TP_DATA.phases[pi]; const s = ph && ph.sessions[si]; if(!s) return;
+  s.exercises.splice(ei, 1); tpRefreshDetails();
 }
 function exShow(ex){
   document.getElementById('exd-name').textContent = ex.name;
