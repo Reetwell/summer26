@@ -472,7 +472,13 @@ select.food-input { width: 100%; }
 @media (min-width: 1024px) { #sec-plan.tp-split { column-count: 1; } }
 @media (min-width: 1024px) { #phase-details-body { column-count: 2; column-gap: 18px; } #phase-details-body > .phase-card { break-inside: avoid; } }
 /* Today-forward training view */
-.tpt-wrap { max-width: 560px; margin: 0 auto; }
+.tpt-wrap { max-width: 620px; margin: 0 auto; }
+@media (min-width: 1024px) {
+  .tpt-wrap { max-width: none; display: grid; grid-template-columns: 1.6fr 1fr; gap: 22px; align-items: start; }
+  .tpt-phaserow { grid-column: 1 / -1; margin-bottom: 4px; }
+  .tpt-main .tpt-hero { margin-bottom: 0; }
+  .tpt-side .tpt-week-lbl { margin-top: 4px; }
+}
 .tpt-phaserow { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
 .tpt-phasepill { background: var(--green-50); color: var(--green-900); border: none; border-radius: 999px; padding: 7px 14px; font-weight: 600; font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background .12s; }
 .tpt-phasepill:hover { background: var(--green-100); }
@@ -3209,8 +3215,9 @@ function renderTrainingToday(el, plan){
   const strip = phase.schedule.map(d => { const train = d.type !== 'Rest'; return '<div class="tpt-wk' + (d.day === selDay ? ' on' : '') + (train ? '' : ' rest') + '"' + (train ? ' onclick="tpSelectDay(\'' + d.day + '\')"' : '') + '><span class="d">' + esc(d.day) + '</span><span class="f">' + esc(d.type) + '</span></div>'; }).join('');
   el.innerHTML = '<div class="tpt-wrap">'
     + '<div class="tpt-phaserow"><button class="tpt-phasepill" onclick="openPhaseDetails()">' + esc(phase.badge) + ' · ' + esc(phase.name) + ' <i class="fa-solid fa-chevron-right" style="font-size:10px" aria-hidden="true"></i></button><span class="tpt-wk-lbl">' + esc(phase.dates || '') + '</span></div>'
-    + hero + upnext
-    + '<div class="tpt-week-lbl">This week</div><div class="tpt-strip">' + strip + '</div></div>';
+    + '<div class="tpt-main">' + hero + '</div>'
+    + '<div class="tpt-side">' + upnext + '<div class="tpt-week-lbl">This week</div><div class="tpt-strip">' + strip + '</div></div>'
+    + '</div>';
 }
 function tpSelectDay(d){ _tpSelDay = d; renderTrainingToday(document.getElementById('tp-myweek'), TP_DATA); }
 function openPhaseDetails(){ renderRichPhases(document.getElementById('phase-details-body'), TP_DATA, 'live'); document.getElementById('phase-details-modal').style.display = 'block'; }
