@@ -2842,7 +2842,8 @@ function seedTrainingFromDOM(){
 function tpSave(){ localStorage.setItem('sbp-trainingplan', JSON.stringify(TP_DATA)); }
 function tpInit(){
   TP_DATA = loadStore('sbp-trainingplan', null);
-  if(TP_DATA && (TP_DATA.mode === 'split' || TP_DATA.mode === 'phases')){ renderTrainingPlan(); return; }
+  if(TP_DATA && TP_DATA.mode === 'split'){ TP_DATA = migrateSplit(TP_DATA); tpSave(); }
+  if(TP_DATA && TP_DATA.mode === 'phases'){ renderTrainingPlan(); return; }
   if(!TP_DATA || !Array.isArray(TP_DATA.phases) || !TP_DATA.phases.length){ TP_DATA = seedTrainingFromDOM(); tpSave(); }
   renderTrainingPlan();
 }
@@ -3143,6 +3144,18 @@ function buildPhasesPlan(lib, t){
     weekStart = wEnd + 1;
   }
   return { v:3, mode:'phases', goal:t.goal, location:t.location, weeks:t.weeks, phases };
+}
+// Upgrade a legacy v2 'split' plan to the v3 phases shape so it gets the new view.
+function migrateSplit(sp){
+  const days = sp.days || [];
+  const sessions = days.map((d, i) => ({ id: tpUid(), day: d.day, name: d.day + ' — ' + d.focus, focus: d.focus, color: TP_COLORS[i % TP_COLORS.length], exercises: d.exercises || [] }));
+  const trainMap = {}; days.forEach(d => trainMap[d.day] = d.focus);
+  const schedule = WEEKDAYS.map(d => trainMap[d] ? { day:d, type:trainMap[d], cls:tpFocusCls(trainMap[d]) } : { day:d, type:'Rest', cls:'d-rest' });
+  const goalLabel = GOAL_LABEL[sp.goal] || 'Training';
+  const phase = { id: tpUid(), badge:'Phase 1', name:goalLabel, dates:'', daysPerWeek:days.length, location:sp.location,
+    metrics:[ {label:'Focus', val:goalLabel, sub:''}, {label:'Gym days', val:days.length + '×/week', sub:''}, {label:'Where', val:LOC_LABEL[sp.location] || '', sub:''} ],
+    schedule, sessions, macros:[], tip:'' };
+  return { v:3, mode:'phases', goal:sp.goal, location:sp.location, weeks:0, phases:[phase] };
 }
 function tpExItemHtml(ctx, pi, si, ei, e){
   return '<div class="tp-ex"><div class="tp-ex-info" onclick="exOpenRich(\'' + ctx + '\',' + pi + ',' + si + ',' + ei + ')" style="cursor:pointer"><span class="tp-ex-name">' + esc(e.name) + '</span><span class="tp-ex-sets">' + esc(e.sets || '') + '</span></div>'
