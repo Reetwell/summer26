@@ -514,6 +514,14 @@ select.food-input { width: 100%; }
 .tp-session-head { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
 .tp-session-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 .tp-session-name { font-weight: 600; font-size: 13px; color: var(--text-primary); }
+.np-tpls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.np-tpl { text-align: left; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px; background: var(--surface); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: border-color .12s, background .12s; }
+.np-tpl:hover { border-color: var(--green-500); background: var(--green-50); }
+.np-tpl i { font-size: 20px; color: var(--green-700); }
+.np-tpl .tt { font-weight: 600; font-size: 14px; margin-top: 7px; color: var(--text-primary); }
+.np-tpl .ts { font-size: 11.5px; color: var(--text-secondary); margin-top: 2px; }
+.np-blank { display: flex; align-items: center; justify-content: center; gap: 8px; border-style: dashed; color: var(--text-secondary); font-weight: 600; font-size: 13px; margin-top: 10px; }
+.np-blank i { font-size: 14px; }
 .tp-phase-ctrl { margin-left: auto; display: flex; gap: 5px; }
 .tp-phase-ctrl .mp-icon { width: 26px; height: 26px; font-size: 12px; }
 .tp-session > .tp-add { margin-top: 7px; padding: 8px; font-size: 12px; }
@@ -2338,6 +2346,60 @@ html.show-splash .splash.splash-done {
   </div>
 </div>
 
+<!-- ==================== NEW PHASE MODAL ==================== -->
+<div id="newphase-modal" style="display:none;position:fixed;inset:0;z-index:215;">
+  <div class="modal-overlay" onclick="closeNewPhase()"></div>
+  <div class="modal-panel onb-panel">
+    <div class="modal-header">
+      <div><div class="modal-title" id="np-title">Add a phase</div><div class="modal-sub" id="np-sub">Pick a starting point</div></div>
+      <button class="modal-close" onclick="closeNewPhase()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div id="np-step-tpl">
+        <div class="np-tpls">
+          <button class="np-tpl" onclick="npPickTemplate('fatloss')"><i class="fa-solid fa-fire"></i><div class="tt">Fat loss</div><div class="ts">Cut · 2–3 cardio</div></button>
+          <button class="np-tpl" onclick="npPickTemplate('muscle')"><i class="fa-solid fa-dumbbell"></i><div class="tt">Muscle build</div><div class="ts">PPL · surplus</div></button>
+          <button class="np-tpl" onclick="npPickTemplate('strength')"><i class="fa-solid fa-bolt"></i><div class="tt">Strength</div><div class="ts">Heavy · 4–6 reps</div></button>
+          <button class="np-tpl" onclick="npPickTemplate('recomp')"><i class="fa-solid fa-arrows-rotate"></i><div class="tt">Recomp</div><div class="ts">Maintain</div></button>
+        </div>
+        <button class="np-tpl np-blank" onclick="npPickTemplate('blank')"><i class="fa-solid fa-plus"></i> Blank phase</button>
+      </div>
+      <div id="np-step-form" style="display:none">
+        <label class="mp-lbl">Name</label>
+        <input type="text" id="np-name" class="food-input" placeholder="Phase name" autocomplete="off">
+        <label class="mp-lbl">Goal</label>
+        <div class="onb-chips" id="np-goal">
+          <button class="onb-chip" data-v="fatloss" onclick="npSet('goal','fatloss',this)">Lose fat</button>
+          <button class="onb-chip" data-v="muscle" onclick="npSet('goal','muscle',this)">Build muscle</button>
+          <button class="onb-chip" data-v="maintain" onclick="npSet('goal','maintain',this)">Maintain</button>
+        </div>
+        <div style="display:flex; gap:18px;">
+          <div style="flex:1"><label class="mp-lbl">Weeks</label><div class="onb-chips" id="np-weeks">
+            <button class="onb-chip" data-v="4" onclick="npSet('weeks',4,this)">4</button>
+            <button class="onb-chip" data-v="6" onclick="npSet('weeks',6,this)">6</button>
+            <button class="onb-chip" data-v="8" onclick="npSet('weeks',8,this)">8</button>
+            <button class="onb-chip" data-v="10" onclick="npSet('weeks',10,this)">10</button>
+          </div></div>
+          <div style="flex:1"><label class="mp-lbl">Days/week</label><div class="onb-chips" id="np-days">
+            <button class="onb-chip" data-v="3" onclick="npSet('days',3,this)">3</button>
+            <button class="onb-chip" data-v="4" onclick="npSet('days',4,this)">4</button>
+            <button class="onb-chip" data-v="5" onclick="npSet('days',5,this)">5</button>
+            <button class="onb-chip" data-v="6" onclick="npSet('days',6,this)">6</button>
+          </div></div>
+        </div>
+        <label class="mp-lbl">Where</label>
+        <div class="onb-chips" id="np-where">
+          <button class="onb-chip" data-v="gym" onclick="npSet('location','gym',this)">Full gym</button>
+          <button class="onb-chip" data-v="home" onclick="npSet('location','home',this)">Home</button>
+          <button class="onb-chip" data-v="bodyweight" onclick="npSet('location','bodyweight',this)">Bodyweight</button>
+        </div>
+        <button class="sigate-cta" style="margin-top:20px" id="np-create-btn" onclick="npCreate()">Create phase</button>
+        <div class="onb-skip" onclick="npStep('tpl')">← Back to templates</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ==================== ADD RECIPE MODAL ==================== -->
 <div id="recipe-modal" style="display:none;position:fixed;inset:0;z-index:200;">
   <div class="modal-overlay" onclick="closeRecipeModal()"></div>
@@ -3187,7 +3249,7 @@ function renderRichPhases(el, plan, ctx){
     if(ph.macros && ph.macros.length){ h += '<div class="section-label">Macros</div>' + ph.macros.map(m => '<div class="macro-bar-row"><span class="macro-bar-name">' + esc(m.name) + '</span><div class="macro-bar-bg"><div class="macro-bar-fill" style="width:' + m.pct + '%;background:' + m.color + '"></div></div><span class="macro-bar-val">' + esc(m.val) + '</span></div>').join(''); }
     h += '</div>';
     return h;
-  }).join('') + (edit ? '<button class="mp-add tp-add" style="margin-top:14px" onclick="tpPhaseAdd()">+ Add phase</button>' : '');
+  }).join('') + (edit ? '<button class="mp-add tp-add" style="margin-top:14px" onclick="openNewPhase()">+ Add phase</button>' : '');
 }
 // ---- Today-forward training view (default): today hero + up next + week strip ----
 let _tpSelDay = null, _tpActivePhase = 0;
@@ -3404,6 +3466,45 @@ async function tpExAdd(pi, si){
 function tpExDel(pi, si, ei){
   const ph = TP_DATA.phases[pi]; const s = ph && ph.sessions[si]; if(!s) return;
   s.exercises.splice(ei, 1); tpRefreshDetails();
+}
+// ---- New phase: template → guided form → create ----
+const NP_TEMPLATES = {
+  fatloss:  { name:'Fat loss',     goal:'fatloss',  weeks:6, days:4, location:'gym' },
+  muscle:   { name:'Muscle build', goal:'muscle',   weeks:8, days:5, location:'gym' },
+  strength: { name:'Strength',     goal:'muscle',   weeks:6, days:4, location:'gym' },
+  recomp:   { name:'Recomp',       goal:'maintain', weeks:8, days:4, location:'gym' },
+  blank:    { name:'New phase',    goal:'muscle',   weeks:4, days:3, location:'gym' }
+};
+let _np = { name:'New phase', goal:'muscle', weeks:6, days:4, location:'gym' };
+function openNewPhase(){ document.getElementById('newphase-modal').style.display = 'block'; npStep('tpl'); }
+function closeNewPhase(){ document.getElementById('newphase-modal').style.display = 'none'; }
+function npStep(s){
+  document.getElementById('np-step-tpl').style.display = s === 'tpl' ? 'block' : 'none';
+  document.getElementById('np-step-form').style.display = s === 'form' ? 'block' : 'none';
+  document.getElementById('np-title').textContent = s === 'tpl' ? 'Add a phase' : 'Customise phase';
+  document.getElementById('np-sub').textContent = s === 'tpl' ? 'Pick a starting point' : 'Tweak it, then create';
+}
+function npHighlight(groupId, val){ document.querySelectorAll('#' + groupId + ' .onb-chip').forEach(b => b.classList.toggle('on', b.dataset.v === String(val))); }
+function npPickTemplate(t){
+  _np = Object.assign({}, NP_TEMPLATES[t] || NP_TEMPLATES.blank);
+  document.getElementById('np-name').value = _np.name;
+  npHighlight('np-goal', _np.goal); npHighlight('np-weeks', _np.weeks); npHighlight('np-days', _np.days); npHighlight('np-where', _np.location);
+  npStep('form');
+}
+function npSet(field, val, el){ _np[field] = val; el.parentElement.querySelectorAll('.onb-chip').forEach(b => b.classList.remove('on')); el.classList.add('on'); }
+function npDefaultSplit(days){ const wk = spreadTrainingDays(days); const f = DEFAULT_SPLITS[days] || DEFAULT_SPLITS[3]; return wk.map((d, i) => ({ day:d, focus:f[i] || 'Full body' })); }
+async function npCreate(){
+  const btn = document.getElementById('np-create-btn'); if(btn){ btn.disabled = true; btn.textContent = 'Creating…'; }
+  try {
+    const lib = await loadExerciseLibrary();
+    const t = { goal:_np.goal, location:_np.location, weeks:_np.weeks, phaseCount:1, days:_np.days, split: npDefaultSplit(_np.days) };
+    const ph = buildPhasesPlan(lib, t).phases[0];
+    ph.name = (document.getElementById('np-name').value || '').trim() || _np.name;
+    ph.dates = '';
+    TP_DATA.phases.push(ph); tpRenumberPhases();
+    closeNewPhase(); tpRefreshDetails(); showToast('Phase added', 'success');
+  } catch(e){ showToast('Could not create phase', 'error'); }
+  finally { if(btn){ btn.disabled = false; btn.textContent = 'Create phase'; } }
 }
 function exShow(ex){
   document.getElementById('exd-name').textContent = ex.name;
