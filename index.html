@@ -399,7 +399,10 @@ html.gated, html.gated body { overflow:hidden; }
 
 /* Meals → Shopping (auto-built list) */
 .meal-tabs { max-width: 300px; }
-.meal-shop-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.meal-shop-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.shop-acts { display: flex; gap: 8px; align-items: center; }
+.shop-act { background: var(--green-50); color: var(--green-900); border: none; border-radius: 999px; padding: 7px 13px; font-size: 12.5px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background .12s; }
+.shop-act:hover { background: var(--green-100); }
 #shop-count { font-size: 13px; color: var(--text-secondary); font-weight: 600; }
 .shop-cat { margin-bottom: 18px; }
 .shop-cat-h { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-tertiary); margin-bottom: 8px; }
@@ -2800,7 +2803,10 @@ function renderMealShopping(){
   })));
   const groups = {};
   Object.values(seen).forEach(nm => { const c = shopCatFor(nm); (groups[c] = groups[c] || []).push(nm); });
-  let h = '<div class="meal-shop-head"><span id="shop-count"></span><button class="mp-reset-link" onclick="shopReset()">↻ Uncheck all</button></div>';
+  let h = '<div class="meal-shop-head"><span id="shop-count"></span><div class="shop-acts">'
+    + '<button class="shop-act" onclick="shopCopy()"><i class="fa-solid fa-copy" aria-hidden="true"></i> Copy</button>'
+    + '<button class="shop-act" onclick="shopToReminders()"><i class="fa-solid fa-list-check" aria-hidden="true"></i> Reminders</button>'
+    + '<button class="mp-reset-link" onclick="shopReset()">↻ Uncheck all</button></div></div>';
   SHOP_CATS.forEach(c => {
     const items = (groups[c.key] || []).sort(); if(!items.length) return;
     h += '<div class="shop-cat"><div class="shop-cat-h">' + esc(c.label) + '</div><div class="shop-items">';
@@ -2812,6 +2818,18 @@ function renderMealShopping(){
 }
 function shopToggle(cb){ const k = cb.dataset.k; if(cb.checked) _mealShopChecked[k] = true; else delete _mealShopChecked[k]; localStorage.setItem('sbp-mealshop', JSON.stringify(_mealShopChecked)); cb.closest('.shop-it').classList.toggle('on', cb.checked); shopUpdateCount(); }
 function shopReset(){ _mealShopChecked = {}; localStorage.setItem('sbp-mealshop', '{}'); renderMealShopping(); }
+function shopItemsToBuy(){ return [...document.querySelectorAll('#meal-shop-view .shop-it:not(.on) span')].map(s => s.textContent.trim()).filter(Boolean); }
+async function shopCopy(){
+  const items = shopItemsToBuy();
+  if(!items.length){ showToast('Nothing left to buy 🎉', 'info'); return; }
+  try { await navigator.clipboard.writeText(items.join('\n')); showToast('Copied ' + items.length + ' items — paste into Reminders', 'success'); }
+  catch(_){ showToast('Couldn\'t copy', 'error'); }
+}
+function shopToReminders(){
+  const items = shopItemsToBuy();
+  if(!items.length){ showToast('Nothing left to buy 🎉', 'info'); return; }
+  window.location.href = 'shortcuts://run-shortcut?name=' + encodeURIComponent('BuildBody Shopping') + '&input=text&text=' + encodeURIComponent(items.join('\n'));
+}
 function shopUpdateCount(){ const all = document.querySelectorAll('#meal-shop-view .shop-it').length; const on = document.querySelectorAll('#meal-shop-view .shop-it.on').length; const el = document.getElementById('shop-count'); if(el) el.textContent = on + ' / ' + all + ' in the basket'; }
 
 // ==================== RECIPE LIBRARY + MEAL ONBOARDING ====================
