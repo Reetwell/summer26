@@ -546,6 +546,23 @@ select.food-input { width: 100%; }
 .tpt-streak i { color: var(--amber-500); }
 .tpt-tip { background: var(--green-50); border-radius: var(--radius-md); padding: 12px 14px; font-size: 12.5px; color: var(--green-900); line-height: 1.55; margin-top: 14px; }
 .tpt-tip i { color: var(--green-700); margin-right: 6px; }
+/* Readiness */
+.tpt-readiness { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; border-radius: var(--radius-lg); padding: 13px 16px; cursor: pointer; margin-bottom: 4px; border: 1px solid var(--border); background: var(--surface); transition: border-color .12s; }
+.tpt-readiness .rd-txt { flex: 1; display: flex; flex-direction: column; }
+.tpt-readiness .rd-txt b { font-size: 14px; color: var(--text-primary); }
+.tpt-readiness .rd-txt span { font-size: 12.5px; color: var(--text-secondary); }
+.tpt-readiness > i { color: var(--text-tertiary); }
+.rd-score { font-family: 'DM Serif Display', serif; font-size: 26px; line-height: 1; }
+.rd-score span { font-size: 13px; }
+.rd-btn { background: var(--green-500); color: #fff; border-radius: 999px; padding: 7px 15px; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.rd-good { border-color: var(--green-500); background: var(--green-50); } .rd-good .rd-score { color: var(--green-900); }
+.rd-ok { border-color: var(--amber-500); background: var(--amber-50); } .rd-ok .rd-score { color: var(--amber-900); }
+.rd-low { border-color: #E24B4A; background: #FCEBEB; } .rd-low .rd-score { color: #A32D2D; }
+.rd-q { font-size: 13px; font-weight: 600; color: var(--text-primary); margin: 16px 0 8px; }
+.rd-row { display: flex; gap: 8px; }
+.rd-chip { flex: 1; padding: 12px 0; border: 1.5px solid var(--border); border-radius: 10px; background: var(--surface); font-weight: 600; font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--text-secondary); cursor: pointer; transition: all .1s; }
+.rd-chip.on { border-color: var(--green-500); background: var(--green-50); color: var(--green-900); }
+.rd-scale { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-tertiary); margin-top: 5px; }
 /* Rich phase: sessions + fade-in animation */
 .tp-session { margin-bottom: 10px; }
 .tp-session-head { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
@@ -2443,6 +2460,35 @@ html.show-splash .splash.splash-done {
   </div>
 </div>
 
+<!-- ==================== READINESS CHECK-IN MODAL ==================== -->
+<div id="readiness-modal" style="display:none;position:fixed;inset:0;z-index:215;">
+  <div class="modal-overlay" onclick="closeReadiness()"></div>
+  <div class="modal-panel onb-panel">
+    <div class="modal-header">
+      <div><div class="modal-title">How are you feeling?</div><div class="modal-sub">A quick check to tune today's training</div></div>
+      <button class="modal-close" onclick="closeReadiness()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="rd-q">Sleep last night</div>
+      <div class="rd-row" id="rd-sleep">
+        <button class="rd-chip" data-v="1" onclick="rdSet('sleep',1,this)">1</button><button class="rd-chip" data-v="2" onclick="rdSet('sleep',2,this)">2</button><button class="rd-chip on" data-v="3" onclick="rdSet('sleep',3,this)">3</button><button class="rd-chip" data-v="4" onclick="rdSet('sleep',4,this)">4</button><button class="rd-chip" data-v="5" onclick="rdSet('sleep',5,this)">5</button>
+      </div>
+      <div class="rd-scale"><span>Poor</span><span>Great</span></div>
+      <div class="rd-q">Energy</div>
+      <div class="rd-row" id="rd-energy">
+        <button class="rd-chip" data-v="1" onclick="rdSet('energy',1,this)">1</button><button class="rd-chip" data-v="2" onclick="rdSet('energy',2,this)">2</button><button class="rd-chip on" data-v="3" onclick="rdSet('energy',3,this)">3</button><button class="rd-chip" data-v="4" onclick="rdSet('energy',4,this)">4</button><button class="rd-chip" data-v="5" onclick="rdSet('energy',5,this)">5</button>
+      </div>
+      <div class="rd-scale"><span>Drained</span><span>Buzzing</span></div>
+      <div class="rd-q">Soreness</div>
+      <div class="rd-row" id="rd-soreness">
+        <button class="rd-chip" data-v="1" onclick="rdSet('soreness',1,this)">1</button><button class="rd-chip" data-v="2" onclick="rdSet('soreness',2,this)">2</button><button class="rd-chip on" data-v="3" onclick="rdSet('soreness',3,this)">3</button><button class="rd-chip" data-v="4" onclick="rdSet('soreness',4,this)">4</button><button class="rd-chip" data-v="5" onclick="rdSet('soreness',5,this)">5</button>
+      </div>
+      <div class="rd-scale"><span>Fresh</span><span>Very sore</span></div>
+      <button class="sigate-cta" style="margin-top:22px" onclick="saveReadiness()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- ==================== ADD RECIPE MODAL ==================== -->
 <div id="recipe-modal" style="display:none;position:fixed;inset:0;z-index:200;">
   <div class="modal-overlay" onclick="closeRecipeModal()"></div>
@@ -3377,6 +3423,34 @@ function tpIsDone(short){ return !!_tpProg[tpDateKey(short)]; }
 function tpToggleDone(short){ const k = tpDateKey(short); if(_tpProg[k]) delete _tpProg[k]; else _tpProg[k] = true; localStorage.setItem('sbp-tp-progress', JSON.stringify(_tpProg)); renderTrainingToday(document.getElementById('tp-myweek'), TP_DATA); }
 function tpWeekStat(phase){ const tr = phase.schedule.filter(d => d.type !== 'Rest'); return { done: tr.filter(d => tpIsDone(d.day)).length, total: tr.length }; }
 function tpStreak(phase){ let n = 0; const now = new Date(); for(let k = 0; k < 60; k++){ const d = new Date(now); d.setDate(now.getDate() - k); const short = WEEKDAYS[(d.getDay() + 6) % 7]; const sd = phase.schedule.find(x => x.day === short); if(!sd || sd.type === 'Rest') continue; if(_tpProg[d.toISOString().slice(0, 10)]) n++; else break; } return n; }
+// ---- Readiness: daily check-in → score that tunes training (wearables auto-fill later) ----
+function rdTodayKey(){ return new Date().toISOString().slice(0, 10); }
+function rdLog(){ return loadStore('sbp-readiness', {}); }
+function todayReadiness(){ return rdLog()[rdTodayKey()] || null; }
+function rdScore(sleep, energy, soreness){ return Math.round((sleep + energy + (6 - soreness)) / 15 * 100); }
+let _rd = { sleep: 3, energy: 3, soreness: 3 };
+function readinessBanner(){
+  const r = todayReadiness();
+  if(!r){ return '<div class="tpt-readiness rd-prompt" onclick="openReadiness()"><div class="rd-txt"><b>How are you feeling today?</b><span>10-second check-in to tune today\'s training</span></div><span class="rd-btn">Check in</span></div>'; }
+  const c = r.score >= 75 ? 'good' : (r.score >= 50 ? 'ok' : 'low');
+  const msg = c === 'good' ? 'Good to go — train hard' : (c === 'ok' ? 'A bit run down — keep it moderate' : 'Take it easier or rest today');
+  return '<div class="tpt-readiness rd-' + c + '" onclick="openReadiness()"><div class="rd-score">' + r.score + '<span>%</span></div><div class="rd-txt"><b>Readiness</b><span>' + msg + '</span></div><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></div>';
+}
+function openReadiness(){
+  const r = todayReadiness(); _rd = r ? { sleep:r.sleep, energy:r.energy, soreness:r.soreness } : { sleep:3, energy:3, soreness:3 };
+  ['sleep','energy','soreness'].forEach(m => document.querySelectorAll('#rd-' + m + ' .rd-chip').forEach(b => b.classList.toggle('on', +b.dataset.v === _rd[m])));
+  document.getElementById('readiness-modal').style.display = 'block';
+}
+function closeReadiness(){ document.getElementById('readiness-modal').style.display = 'none'; }
+function rdSet(metric, val, el){ _rd[metric] = val; el.parentElement.querySelectorAll('.rd-chip').forEach(b => b.classList.remove('on')); el.classList.add('on'); }
+function saveReadiness(){
+  const log = rdLog();
+  log[rdTodayKey()] = { sleep:_rd.sleep, energy:_rd.energy, soreness:_rd.soreness, score: rdScore(_rd.sleep, _rd.energy, _rd.soreness), source:'manual' };
+  localStorage.setItem('sbp-readiness', JSON.stringify(log));
+  closeReadiness();
+  if(TP_DATA && TP_DATA.mode === 'phases') renderTrainingToday(document.getElementById('tp-myweek'), TP_DATA);
+  showToast('Readiness logged — plan tuned for today', 'success');
+}
 function renderTrainingToday(el, plan){
   if(!el || !plan || !plan.phases || !plan.phases.length) return;
   const pi = Math.min(_tpActivePhase, plan.phases.length - 1);
@@ -3405,6 +3479,7 @@ function renderTrainingToday(el, plan){
   const strip = phase.schedule.map(d => { const train = d.type !== 'Rest'; const ck = train && tpIsDone(d.day) ? '<span class="ck"><i class="fa-solid fa-check" aria-hidden="true"></i></span>' : ''; return '<div class="tpt-wk' + (d.day === selDay ? ' on' : '') + (train ? '' : ' rest') + '"' + (train ? ' onclick="tpSelectDay(\'' + d.day + '\')"' : '') + '>' + ck + '<span class="d">' + esc(d.day) + '</span><span class="f">' + esc(d.type) + '</span></div>'; }).join('');
   const tip = phase.tip ? '<div class="tpt-tip"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i>' + esc(phase.tip) + '</div>' : '';
   el.innerHTML = '<div class="tpt-wrap">'
+    + readinessBanner()
     + '<div class="tpt-phaserow"><button class="tpt-phasepill" onclick="openPhaseDetails()">' + esc(phase.badge) + ' · ' + esc(phase.name) + ' <i class="fa-solid fa-chevron-right" style="font-size:10px" aria-hidden="true"></i></button><span class="tpt-wk-lbl">' + esc(phase.dates || '') + '</span></div>'
     + '<div class="tpt-main">' + hero + tiles + '</div>'
     + '<div class="tpt-side">' + upnext + prog + '<div class="tpt-week-lbl">This week</div><div class="tpt-strip">' + strip + '</div>' + tip + '</div>'
@@ -5245,7 +5320,7 @@ let remState = loadStore('sbp-reminders', { enabled:false, protein:'09:00', crea
 const SUPABASE_URL = 'https://owqyrgufwvqgbrpdpskx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93cXlyZ3Vmd3ZxZ2JycGRwc2t4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MzczOTQsImV4cCI6MjA5NjMxMzM5NH0.Z_zUJbKvO6-FBbKheDmlVu46XjT9toFaVlct12IY8zU';
 
-const SYNC_KEYS = ['sbp-today','sbp-weight','sbp-workouts','sbp-session-logs','sbp-shop','sbp-mealshop','sbp-mealplan','sbp-trainingplan','sbp-tp-progress','sbp-recipes'];
+const SYNC_KEYS = ['sbp-today','sbp-weight','sbp-workouts','sbp-session-logs','sbp-shop','sbp-mealshop','sbp-mealplan','sbp-trainingplan','sbp-tp-progress','sbp-readiness','sbp-recipes'];
 const SYNC_KEY_SET = new Set(SYNC_KEYS);
 
 // Capture the real setter BEFORE patching, so our own sync writes don't recurse.
