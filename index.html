@@ -563,6 +563,16 @@ select.food-input { width: 100%; }
 .rd-chip { flex: 1; padding: 12px 0; border: 1.5px solid var(--border); border-radius: 10px; background: var(--surface); font-weight: 600; font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--text-secondary); cursor: pointer; transition: all .1s; }
 .rd-chip.on { border-color: var(--green-500); background: var(--green-50); color: var(--green-900); }
 .rd-scale { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-tertiary); margin-top: 5px; }
+/* Connect wearable */
+.wear-link { grid-column: 1 / -1; font-size: 12.5px; font-weight: 600; color: var(--green-900); cursor: pointer; margin-bottom: 12px; display: inline-flex; align-items: center; gap: 7px; }
+.wear-link i { color: var(--green-700); }
+.wear-card { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px 16px; background: var(--surface); margin-bottom: 10px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: border-color .12s; }
+.wear-card:hover { border-color: var(--green-500); }
+.wear-card > i { font-size: 22px; color: var(--green-700); width: 26px; text-align: center; }
+.wear-card b { display: block; font-size: 14px; color: var(--text-primary); }
+.wear-card .sub { font-size: 12px; color: var(--text-secondary); }
+.wear-soon { margin-left: auto; font-size: 11px; font-weight: 600; color: var(--amber-900); background: var(--amber-50); padding: 3px 10px; border-radius: 999px; flex-shrink: 0; }
+.wear-note { font-size: 12px; color: var(--text-tertiary); line-height: 1.55; margin-top: 8px; }
 /* Rich phase: sessions + fade-in animation */
 .tp-session { margin-bottom: 10px; }
 .tp-session-head { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
@@ -2489,6 +2499,25 @@ html.show-splash .splash.splash-done {
   </div>
 </div>
 
+<!-- ==================== CONNECT WEARABLE MODAL ==================== -->
+<div id="wearable-modal" style="display:none;position:fixed;inset:0;z-index:215;">
+  <div class="modal-overlay" onclick="closeWearables()"></div>
+  <div class="modal-panel onb-panel">
+    <div class="modal-header">
+      <div><div class="modal-title">Connect a wearable</div><div class="modal-sub">Auto-fill your readiness from your tracker</div></div>
+      <button class="modal-close" onclick="closeWearables()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <button class="wear-card" onclick="connectWearable('oura')"><i class="fa-solid fa-circle-dot" aria-hidden="true"></i><div style="flex:1"><b>Oura</b><span class="sub">Readiness · sleep · HR</span></div><span class="wear-soon">Coming soon</span></button>
+      <button class="wear-card" onclick="connectWearable('whoop')"><i class="fa-solid fa-heart-pulse" aria-hidden="true"></i><div style="flex:1"><b>Whoop</b><span class="sub">Recovery · strain · sleep</span></div><span class="wear-soon">Coming soon</span></button>
+      <button class="wear-card" onclick="connectWearable('fitbit')"><i class="fa-solid fa-shoe-prints" aria-hidden="true"></i><div style="flex:1"><b>Fitbit</b><span class="sub">Sleep · HR · steps</span></div><span class="wear-soon">Coming soon</span></button>
+      <button class="wear-card" onclick="connectWearable('garmin')"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><div style="flex:1"><b>Garmin</b><span class="sub">Body battery · sleep · HR</span></div><span class="wear-soon">Coming soon</span></button>
+      <button class="wear-card" onclick="connectWearable('apple')"><i class="fa-solid fa-stopwatch" aria-hidden="true"></i><div style="flex:1"><b>Apple Watch</b><span class="sub">Via the iPhone app</span></div><span class="wear-soon">With the app</span></button>
+      <div class="wear-note">We'll pull a daily readiness/recovery signal and use it to tune your training. Apple Watch &amp; Garmin arrive with the iPhone app; Oura, Whoop &amp; Fitbit connect here.</div>
+    </div>
+  </div>
+</div>
+
 <!-- ==================== ADD RECIPE MODAL ==================== -->
 <div id="recipe-modal" style="display:none;position:fixed;inset:0;z-index:200;">
   <div class="modal-overlay" onclick="closeRecipeModal()"></div>
@@ -3451,6 +3480,16 @@ function saveReadiness(){
   if(TP_DATA && TP_DATA.mode === 'phases') renderTrainingToday(document.getElementById('tp-myweek'), TP_DATA);
   showToast('Readiness logged — plan tuned for today', 'success');
 }
+// ---- Connect a wearable (Whoop/Oura/Fitbit/Garmin/Apple Watch). Wired but gated. ----
+const WEARABLES_ENABLED = false;   // flip true once provider keys + Worker OAuth are live
+function wearLink(){ return '<div class="wear-link" onclick="openWearables()"><i class="fa-solid fa-heart-pulse" aria-hidden="true"></i> Connect a wearable to auto-fill readiness</div>'; }
+function openWearables(){ document.getElementById('wearable-modal').style.display = 'block'; }
+function closeWearables(){ document.getElementById('wearable-modal').style.display = 'none'; }
+function connectWearable(p){
+  if(!WEARABLES_ENABLED){ showToast('Wearable sync is coming soon — we\'re finishing it ⌚', 'info'); return; }
+  // Future: kick off OAuth via the Worker (see backend/wearables.js)
+  window.location.href = REMINDER_BACKEND + '/wearable/' + p + '/start';
+}
 function renderTrainingToday(el, plan){
   if(!el || !plan || !plan.phases || !plan.phases.length) return;
   const pi = Math.min(_tpActivePhase, plan.phases.length - 1);
@@ -3479,7 +3518,7 @@ function renderTrainingToday(el, plan){
   const strip = phase.schedule.map(d => { const train = d.type !== 'Rest'; const ck = train && tpIsDone(d.day) ? '<span class="ck"><i class="fa-solid fa-check" aria-hidden="true"></i></span>' : ''; return '<div class="tpt-wk' + (d.day === selDay ? ' on' : '') + (train ? '' : ' rest') + '"' + (train ? ' onclick="tpSelectDay(\'' + d.day + '\')"' : '') + '>' + ck + '<span class="d">' + esc(d.day) + '</span><span class="f">' + esc(d.type) + '</span></div>'; }).join('');
   const tip = phase.tip ? '<div class="tpt-tip"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i>' + esc(phase.tip) + '</div>' : '';
   el.innerHTML = '<div class="tpt-wrap">'
-    + readinessBanner()
+    + readinessBanner() + wearLink()
     + '<div class="tpt-phaserow"><button class="tpt-phasepill" onclick="openPhaseDetails()">' + esc(phase.badge) + ' · ' + esc(phase.name) + ' <i class="fa-solid fa-chevron-right" style="font-size:10px" aria-hidden="true"></i></button><span class="tpt-wk-lbl">' + esc(phase.dates || '') + '</span></div>'
     + '<div class="tpt-main">' + hero + tiles + '</div>'
     + '<div class="tpt-side">' + upnext + prog + '<div class="tpt-week-lbl">This week</div><div class="tpt-strip">' + strip + '</div>' + tip + '</div>'
