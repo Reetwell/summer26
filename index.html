@@ -563,6 +563,14 @@ select.food-input { width: 100%; }
 .rd-chip { flex: 1; padding: 12px 0; border: 1.5px solid var(--border); border-radius: 10px; background: var(--surface); font-weight: 600; font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--text-secondary); cursor: pointer; transition: all .1s; }
 .rd-chip.on { border-color: var(--green-500); background: var(--green-50); color: var(--green-900); }
 .rd-scale { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-tertiary); margin-top: 5px; }
+/* Readiness + wearable modals: centered fitted card (no giant gap) */
+#readiness-modal .modal-panel, #wearable-modal .modal-panel { inset: auto; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(440px, 94vw); height: auto; max-height: 90vh; border-radius: var(--radius-xl); }
+.rd-preview { display: flex; align-items: center; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 18px; margin-bottom: 4px; }
+.rd-prev-score { font-family: 'DM Serif Display', serif; font-size: 36px; line-height: 1; transition: color .2s; }
+.rd-prev-score span { font-size: 16px; }
+.rd-prev-score.rdc-good { color: var(--green-900); } .rd-prev-score.rdc-ok { color: var(--amber-900); } .rd-prev-score.rdc-low { color: #A32D2D; }
+.rd-prev-msg { font-size: 13px; color: var(--text-secondary); line-height: 1.4; }
+.rd-chip { padding: 14px 0; } .rd-chip:active { transform: scale(.95); }
 /* Connect wearable */
 .wear-link { grid-column: 1 / -1; font-size: 12.5px; font-weight: 600; color: var(--green-900); cursor: pointer; margin-bottom: 12px; display: inline-flex; align-items: center; gap: 7px; }
 .wear-link i { color: var(--green-700); }
@@ -2479,6 +2487,7 @@ html.show-splash .splash.splash-done {
       <button class="modal-close" onclick="closeReadiness()"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="modal-body">
+      <div class="rd-preview"><div class="rd-prev-score" id="rd-prev-score">60<span>%</span></div><div class="rd-prev-msg" id="rd-prev-msg">Good to go</div></div>
       <div class="rd-q">Sleep last night</div>
       <div class="rd-row" id="rd-sleep">
         <button class="rd-chip" data-v="1" onclick="rdSet('sleep',1,this)">1</button><button class="rd-chip" data-v="2" onclick="rdSet('sleep',2,this)">2</button><button class="rd-chip on" data-v="3" onclick="rdSet('sleep',3,this)">3</button><button class="rd-chip" data-v="4" onclick="rdSet('sleep',4,this)">4</button><button class="rd-chip" data-v="5" onclick="rdSet('sleep',5,this)">5</button>
@@ -3468,10 +3477,18 @@ function readinessBanner(){
 function openReadiness(){
   const r = todayReadiness(); _rd = r ? { sleep:r.sleep, energy:r.energy, soreness:r.soreness } : { sleep:3, energy:3, soreness:3 };
   ['sleep','energy','soreness'].forEach(m => document.querySelectorAll('#rd-' + m + ' .rd-chip').forEach(b => b.classList.toggle('on', +b.dataset.v === _rd[m])));
+  rdUpdatePreview();
   document.getElementById('readiness-modal').style.display = 'block';
 }
 function closeReadiness(){ document.getElementById('readiness-modal').style.display = 'none'; }
-function rdSet(metric, val, el){ _rd[metric] = val; el.parentElement.querySelectorAll('.rd-chip').forEach(b => b.classList.remove('on')); el.classList.add('on'); }
+function rdSet(metric, val, el){ _rd[metric] = val; el.parentElement.querySelectorAll('.rd-chip').forEach(b => b.classList.remove('on')); el.classList.add('on'); rdUpdatePreview(); }
+function rdUpdatePreview(){
+  const s = rdScore(_rd.sleep, _rd.energy, _rd.soreness);
+  const c = s >= 75 ? 'good' : (s >= 50 ? 'ok' : 'low');
+  const msg = c === 'good' ? 'Good to go — train hard' : (c === 'ok' ? 'A bit run down — keep it moderate' : 'Take it easier or rest today');
+  const sc = document.getElementById('rd-prev-score'); if(sc){ sc.innerHTML = s + '<span>%</span>'; sc.className = 'rd-prev-score rdc-' + c; }
+  const m = document.getElementById('rd-prev-msg'); if(m) m.textContent = msg;
+}
 function saveReadiness(){
   const log = rdLog();
   log[rdTodayKey()] = { sleep:_rd.sleep, energy:_rd.energy, soreness:_rd.soreness, score: rdScore(_rd.sleep, _rd.energy, _rd.soreness), source:'manual' };
