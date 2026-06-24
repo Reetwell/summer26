@@ -4,6 +4,22 @@ A fitness PWA for **14–21 year olds**: training plans, meal plans + auto shopp
 list, recipes, readiness/wearables, progress. Product/roadmap lives in
 **BUSINESS.md** — this file is the *technical* orientation for any new chat.
 
+## Starter prompts — paste one to open a parallel window
+Each window owns ONE file/area so they never collide. Run **only one `app.js` window
+at a time** (all features live there). Commit + push when done; next window pulls first.
+- **Design/animation** → `styles.css`:
+  > Read PROJECT.md and BUSINESS.md. You own `styles.css` only (design, layout, colour, animation). Don't change app.js logic. Task: …
+- **Features/logic** → `app.js`:
+  > Read PROJECT.md and BUSINESS.md. You own `app.js` only (features, logic, data/sync). Verify in the preview with no console errors before pushing. Task: …
+- **Backend/integrations** → `backend/`:
+  > Read PROJECT.md and BUSINESS.md. You own `backend/` only (Cloudflare Worker, wearables OAuth, SQL, sign-in). Task: …
+- **Planning/QA** → docs:
+  > Read PROJECT.md and BUSINESS.md. You own docs + QA (BUSINESS.md, PROJECT.md) — plan/test/review only, no app code. Task: …
+
+*(When you need two feature windows at once: open a fresh chat tasked only with
+"split app.js into core.js/training.js/meals.js/readiness.js/recipes.js, classic
+scripts in load order, verify every screen." Then each feature becomes its own lane.)*
+
 ## Stack & philosophy
 - **Vanilla static PWA. No build step, no framework, no bundler.** This is deliberate —
   it's why it "always works." Do **not** add React/Vite/etc.
