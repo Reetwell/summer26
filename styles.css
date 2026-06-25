@@ -1498,3 +1498,143 @@ html.show-splash .splash.splash-done {
   .tip  { border-color: rgba(29,158,117,0.28); }
   .tip2 { border-color: rgba(55,138,221,0.28); }
 }
+
+/* ==================== ACCOUNT & SETTINGS SCREEN ==================== */
+
+#sec-account { max-width: 800px; }
+
+/* Desktop: hero spans full width, settings + actions side-by-side below */
+@media (min-width: 760px) {
+  #sec-account {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 20px;
+    row-gap: 14px;
+    align-items: start;
+  }
+  #sec-account .account-back,
+  #sec-account .page-header,
+  #sec-account #auth-in,
+  #sec-account #auth-out { grid-column: 1 / -1; }
+  #sec-account .page-header { margin-bottom: 0; }
+  #sec-account .today-block { margin-bottom: 0; }
+}
+
+/* ---- Profile hero: signed-in card → green gradient banner ---- */
+#sec-account #auth-in .signin-mark {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .08em;
+  color: var(--text-tertiary); margin-bottom: 8px; text-align: left;
+}
+#sec-account #auth-in .signin-mark span { color: var(--text-tertiary); }
+
+#sec-account #auth-in .signin-card {
+  background: linear-gradient(150deg, var(--green-500), var(--green-900));
+  border: none; border-radius: var(--radius-xl);
+  padding: 28px 24px 24px;
+  box-shadow: 0 14px 30px -16px rgba(29,158,117,.55);
+  color: #fff; position: relative; overflow: hidden;
+}
+#sec-account #auth-in .signin-card::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(160px 160px at 6% 16%, rgba(255,255,255,.16), transparent 70%),
+              radial-gradient(220px 220px at 92% 84%, rgba(255,255,255,.10), transparent 70%);
+}
+#sec-account #auth-in .signin-card > * { position: relative; z-index: 1; }
+
+#sec-account #auth-in .signin-card h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 30px; font-weight: 400;
+  color: #fff; margin-bottom: 3px; line-height: 1.1;
+}
+#sec-account #auth-in .signin-sub  { color: rgba(255,255,255,.8); font-size: 14px; margin-bottom: 3px; }
+#sec-account #auth-in .food-hint   { color: rgba(255,255,255,.52); font-size: 12px; margin-bottom: 20px; }
+
+#sec-account #auth-in .signin-btn {
+  background: rgba(255,255,255,.95); color: var(--green-900);
+  border-radius: 999px; padding: 11px 22px; width: auto; font-size: 14px; margin-top: 0;
+  display: inline-flex; align-items: center; gap: 8px;
+  transition: background .12s, transform .1s, box-shadow .15s;
+}
+#sec-account #auth-in .signin-btn:hover {
+  background: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.14); transform: translateY(-1px);
+}
+#sec-account #auth-in .signin-btn:active { transform: scale(.97); }
+
+#sec-account #auth-in .signin-forgot { margin-top: 14px; text-align: left; }
+#sec-account #auth-in .signin-forgot a { color: rgba(255,255,255,.58); font-size: 13px; font-weight: 500; }
+#sec-account #auth-in .signin-forgot a:hover { color: #fff; }
+
+/* ---- Signed-out card ---- */
+#sec-account #auth-out .signin-card {
+  border-radius: var(--radius-xl); padding: 36px 28px; text-align: center;
+}
+#sec-account #auth-out .signin-card i {
+  font-size: 36px; color: var(--text-tertiary); display: block; margin-bottom: 14px;
+}
+#sec-account #auth-out .signin-card h2 {
+  font-family: 'DM Serif Display', serif; font-size: 24px; font-weight: 400; margin-bottom: 8px;
+}
+#sec-account #auth-out .sigate-cta {
+  border-radius: 999px; width: auto;
+  display: inline-flex; align-items: center; gap: 8px; padding: 13px 28px; font-size: 15px;
+}
+
+/* ---- Settings + quick-action cards ---- */
+#sec-account .today-block { border-radius: var(--radius-xl); padding: 20px; }
+
+#sec-account .tblock-title {
+  font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+  color: var(--text-tertiary); padding-bottom: 14px; border-bottom: 1px solid var(--border); margin-bottom: 0;
+}
+#sec-account .tblock-title .tb-icon { stroke: var(--green-500); }
+
+/* "Reminder times" label */
+#sec-account .today-block .food-hint {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-tertiary);
+}
+/* Setting rows */
+#sec-account .rem-row { padding: 12px 0; }
+#sec-account .rem-label { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+#sec-account .rem-time { background: var(--gray-50); border-radius: var(--radius-sm); font-size: 14px; }
+
+/* Unit toggle */
+#sec-account #unit-kg,
+#sec-account #unit-lbs { padding: 6px 18px; font-size: 13px; border-radius: 8px; }
+
+/* ---- Quick action buttons → clean icon list rows ---- */
+#sec-account .food-add-btn {
+  background: transparent; color: var(--text-primary); border: none;
+  border-radius: var(--radius-md); padding: 11px 10px !important;
+  font-size: 14px; font-weight: 600; margin-bottom: 0;
+  transition: background .12s, transform .1s;
+}
+#sec-account .food-add-btn:hover { background: var(--gray-50); color: var(--text-primary); }
+#sec-account .food-add-btn:active { transform: scale(.99); }
+
+/* Icon badge on each action button */
+#sec-account .food-add-btn i {
+  width: 36px; height: 36px; border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; flex-shrink: 0;
+}
+#sec-account .food-add-btn i.fa-bowl-food   { background: var(--green-50); color: var(--green-700); }
+#sec-account .food-add-btn i.fa-dumbbell    { background: var(--blue-50);  color: var(--blue-700);  }
+#sec-account .food-add-btn i.fa-heart-pulse { background: var(--pink-50);  color: var(--pink-500);  }
+
+/* ---- Staggered entrance (sectionIn owns opacity; cards add transform only) ---- */
+@keyframes acctCardIn {
+  from { transform: translateY(10px); }
+  to   { transform: none; }
+}
+.section.active#sec-account #auth-in,
+.section.active#sec-account #auth-out             { animation: acctCardIn 0.30s ease-out 0.06s both; }
+.section.active#sec-account .today-block:nth-child(5) { animation: acctCardIn 0.30s ease-out 0.12s both; }
+.section.active#sec-account .today-block:nth-child(6) { animation: acctCardIn 0.30s ease-out 0.18s both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .section.active#sec-account #auth-in,
+  .section.active#sec-account #auth-out,
+  .section.active#sec-account .today-block { animation: none; }
+}
