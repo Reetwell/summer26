@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap');
+
 :root {
   --green-50: #E1F5EE;
   --green-100: #9FE1CB;
@@ -222,7 +224,7 @@ html.gated, html.gated body { overflow:hidden; }
   z-index: 100; padding: 0 8px; padding-bottom: env(safe-area-inset-bottom);
   align-items: center; justify-content: space-around;
 }
-.bnav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 4px; border-radius: var(--radius-sm); cursor: pointer; color: var(--text-tertiary); border: none; background: none; min-width: 0; flex: 1; }
+.bnav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 4px; border-radius: var(--radius-sm); cursor: pointer; color: var(--text-tertiary); border: none; background: none; min-width: 0; flex: 1; transition: color 0.15s ease; }
 .bnav-item i { font-size: 20px; }
 .bnav-item span { font-size: 10px; font-weight: 500; }
 .bnav-item.active { color: var(--green-500); }
@@ -269,7 +271,7 @@ html.gated, html.gated body { overflow:hidden; }
 
 /* SECTIONS */
 .section { display: none; }
-.section.active { display: block; }
+.section.active { display: block; animation: sectionIn 0.22s ease-out both; }
 
 /* PAGE HEADER */
 .page-header { margin-bottom: 24px; }
@@ -901,11 +903,12 @@ select.food-input { width: 100%; }
 }
 
 /* ==================== SESSION LOGGER ==================== */
-.modal-overlay { position: fixed; inset: 0; background: rgba(26,26,24,0.55); z-index: 200; backdrop-filter: blur(2px); }
+.modal-overlay { position: fixed; inset: 0; background: rgba(26,26,24,0.55); z-index: 200; backdrop-filter: blur(2px); transition: opacity 0.22s ease; }
 .modal-panel {
   position: fixed; inset: 0; top: 5vh;
   background: var(--bg); border-radius: 20px 20px 0 0;
   z-index: 201; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  transition: opacity 0.22s ease;
 }
 .modal-header {
   display: flex; align-items: flex-start; justify-content: space-between;
@@ -915,7 +918,7 @@ select.food-input { width: 100%; }
 .modal-title { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text-primary); margin-bottom: 3px; }
 .modal-sub { font-size: 12px; color: var(--text-secondary); }
 .modal-close {
-  width: 32px; height: 32px; border: 1px solid var(--border); border-radius: 8px;
+  width: 44px; height: 44px; border: 1px solid var(--border); border-radius: 8px;
   background: var(--surface); cursor: pointer; display: flex; align-items: center;
   justify-content: center; color: var(--text-secondary); flex-shrink: 0; font-size: 16px;
 }
@@ -1242,4 +1245,69 @@ html.show-splash .splash.splash-done {
 .log-pulse {
   animation: logPulse 1.8s ease 2;
   border-radius: var(--radius-md);
+}
+
+/* ==================== ENTRANCE ANIMATIONS ==================== */
+
+/* Section fade — opacity only so child animations compose cleanly on top */
+@keyframes sectionIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Today hero slides up after section fades in (no own opacity — parent handles it) */
+@keyframes heroIn {
+  from { transform: translateY(12px); }
+  to   { transform: none; }
+}
+.section.active .today-hero {
+  animation: heroIn 0.32s ease-out 0.08s both;
+}
+
+/* Desktop bento tiles stagger up within the fading section */
+@keyframes tileIn {
+  from { transform: translateY(14px); }
+  to   { transform: none; }
+}
+.section.active #today-bento .dtile                { animation: tileIn 0.28s ease-out both; }
+.section.active #today-bento .dtile:nth-child(1)   { animation-delay: 0.04s; }
+.section.active #today-bento .dtile:nth-child(2)   { animation-delay: 0.08s; }
+.section.active #today-bento .dtile:nth-child(3)   { animation-delay: 0.12s; }
+.section.active #today-bento .dtile:nth-child(4)   { animation-delay: 0.16s; }
+.section.active #today-bento .dtile:nth-child(5)   { animation-delay: 0.20s; }
+.section.active #today-bento .dtile:nth-child(6)   { animation-delay: 0.24s; }
+.section.active #today-bento .dtile:nth-child(7)   { animation-delay: 0.28s; }
+.section.active #today-bento .dtile:nth-child(8)   { animation-delay: 0.32s; }
+
+/* ==================== MODAL ENTRANCE (@starting-style) ==================== */
+/* Fires when the outer wrapper goes from display:none → block, bringing
+   .modal-overlay and .modal-panel into the rendering tree for the first time. */
+@starting-style {
+  .modal-overlay { opacity: 0; }
+  .modal-panel   { opacity: 0; }
+}
+
+/* Centered modals (readiness + wearable) scale in rather than just fading —
+   includes the existing translate so the animation stays centred. */
+@starting-style {
+  #readiness-modal .modal-panel,
+  #wearable-modal  .modal-panel {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.96);
+  }
+}
+#readiness-modal .modal-panel,
+#wearable-modal  .modal-panel {
+  transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ==================== REDUCED MOTION ==================== */
+@media (prefers-reduced-motion: reduce) {
+  .section.active,
+  .section.active .today-hero,
+  .section.active #today-bento .dtile { animation: none; }
+  .modal-overlay,
+  .modal-panel,
+  #readiness-modal .modal-panel,
+  #wearable-modal  .modal-panel { transition: none; }
 }
