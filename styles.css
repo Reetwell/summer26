@@ -39,6 +39,9 @@
   --radius-xl: 24px;
   --nav-h: 64px;
   --bottom-nav-h: 72px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 14px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg: 0 16px 40px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.04);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html { font-size: 16px; }
@@ -105,7 +108,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .signin-seg button.on { background:#fff; color:var(--green-900); box-shadow:0 1px 4px rgba(0,0,0,.08); }
 .signin-field { margin-bottom:12px; }
 .signin-field label { display:block; font-size:12px; font-weight:500; color:var(--text-secondary); margin-bottom:5px; }
-.signin-input { width:100%; border:1px solid var(--border); background:var(--surface); border-radius:10px; padding:13px 14px; font-size:15px; font-family:'DM Sans',sans-serif; color:var(--text-primary); outline:none; transition:border-color .15s,box-shadow .15s; }
+.signin-input { width:100%; border:1px solid var(--border); background:var(--surface); border-radius:var(--radius-md); padding:13px 14px; font-size:15px; font-family:'DM Sans',sans-serif; color:var(--text-primary); outline:none; transition:border-color .15s,box-shadow .15s; }
 .signin-input:focus { border-color:var(--green-500); box-shadow:0 0 0 3px var(--green-50); }
 .signin-btn { width:100%; border:none; border-radius:12px; padding:14px; font-size:15px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; background:var(--green-500); color:#fff; transition:background .15s,transform .1s; margin-top:6px; }
 .signin-btn:hover { background:var(--green-900); }
@@ -196,7 +199,7 @@ html.gated, html.gated body { overflow:hidden; }
 .recipe-card-kcal { font-size:12px; color:var(--text-secondary); margin-top:4px; }
 .star-rating { display:inline-flex; gap:1px; margin-top:8px; }
 .star-rating.lg { gap:3px; }
-.star { background:none; border:none; cursor:pointer; font-size:18px; line-height:1; color:var(--gray-200); padding:2px; transition:color .12s,transform .12s; }
+.star { background:none; border:none; cursor:pointer; font-size:18px; line-height:1; color:var(--gray-200); padding:8px 4px; min-height:44px; display:inline-flex; align-items:center; justify-content:center; transition:color .12s,transform .12s; }
 .star-rating.lg .star { font-size:26px; }
 .star.on { color:#F5B301; }
 .star:active { transform:scale(1.2); }
@@ -241,8 +244,8 @@ html.gated, html.gated body { overflow:hidden; }
 .bnav-fab.open { background: var(--green-700); }
 .bnav-fab.open svg { transform: rotate(45deg); }
 
-.quick-menu-backdrop { display: none; position: fixed; inset: 0; z-index: 110; background: rgba(26,26,24,.28); }
-.quick-menu-backdrop.show { display: block; }
+.quick-menu-backdrop { visibility: hidden; opacity: 0; position: fixed; inset: 0; z-index: 110; background: rgba(26,26,24,.28); transition: opacity 0.18s ease, visibility 0.18s; }
+.quick-menu-backdrop.show { visibility: visible; opacity: 1; }
 .quick-menu {
   position: fixed; z-index: 120; left: 50%; transform: translateX(-50%) translateY(12px);
   bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + 14px);
@@ -313,7 +316,7 @@ html.gated, html.gated body { overflow:hidden; }
 
 /* MACRO PILLS */
 .mpills { display: flex; gap: 7px; margin-top: 8px; flex-wrap: wrap; }
-.pill { font-size: 10px; font-weight: 500; padding: 2px 9px; border-radius: 10px; }
+.pill { font-size: 12px; font-weight: 500; padding: 2px 9px; border-radius: 10px; }
 .pill-p { background: var(--blue-50); color: var(--blue-900); }
 .pill-c { background: var(--purple-50); color: var(--purple-900); }
 .pill-f { background: var(--green-50); color: var(--green-900); }
@@ -325,7 +328,7 @@ html.gated, html.gated body { overflow:hidden; }
 .tbox-val { font-size: 17px; font-weight: 600; color: var(--text-primary); }
 
 /* TIP BOXES */
-.tip { border-left: 2px solid var(--green-500); padding: 8px 12px; margin-top: 10px; background: var(--green-50); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 12px; color: var(--green-900); line-height: 1.6; }
+.tip { padding: 10px 14px; margin-top: 10px; background: var(--green-50); border: 1px solid rgba(29,158,117,0.22); border-radius: var(--radius-md); font-size: 12px; color: var(--green-900); line-height: 1.6; }
 
 /* Editable meal-plan controls */
 .mp-card-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
@@ -601,7 +604,7 @@ select.food-input { width: 100%; }
 .exd-steps { margin-top: 18px; display: flex; flex-direction: column; gap: 10px; }
 .exd-step { display: flex; gap: 12px; font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
 .exd-step-n { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--green-50); color: var(--green-900); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
-.tip2 { border-left: 2px solid var(--blue-500); padding: 8px 12px; margin-top: 10px; background: var(--blue-50); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 12px; color: var(--blue-900); line-height: 1.6; }
+.tip2 { padding: 10px 14px; margin-top: 10px; background: var(--blue-50); border: 1px solid rgba(55,138,221,0.22); border-radius: var(--radius-md); font-size: 12px; color: var(--blue-900); line-height: 1.6; }
 
 /* METRICS ROW */
 .metrics-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin: 12px 0; }
@@ -620,8 +623,8 @@ select.food-input { width: 100%; }
 /* GYM WEEK GRID */
 .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 12px; }
 .day-box { border-radius: var(--radius-sm); padding: 7px 3px; text-align: center; }
-.day-box-name { font-size: 9px; color: var(--text-tertiary); margin-bottom: 3px; }
-.day-box-type { font-size: 9px; font-weight: 600; }
+.day-box-name { font-size: 11px; color: var(--text-tertiary); margin-bottom: 3px; }
+.day-box-type { font-size: 11px; font-weight: 600; }
 .d-lift { background: var(--blue-50); color: var(--blue-700); }
 .d-card { background: var(--green-50); color: var(--green-700); }
 .d-rest { background: var(--gray-100); color: var(--text-tertiary); }
@@ -702,7 +705,7 @@ select.food-input { width: 100%; }
 .wday { border-radius: var(--radius-sm); padding: 8px 4px; text-align: center; cursor: pointer; border: 1px solid var(--border); background: var(--surface); transition: all .15s; }
 .wday-name { font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; }
 .wday-date { font-size: 11px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
-.wday-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gray-200); margin: 0 auto; }
+.wday-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--gray-200); margin: 0 auto; }
 .wday.done .wday-dot { background: var(--green-500); }
 .wday.done { border-color: var(--green-100); background: var(--green-50); }
 .wday.rest-day { background: var(--gray-50); cursor: default; }
@@ -738,13 +741,17 @@ select.food-input { width: 100%; }
   .totals-grid { grid-template-columns: repeat(2, 1fr); }
   .metrics-row { grid-template-columns: repeat(2, 1fr); }
   .week-grid { gap: 3px; }
-  .day-box-type { font-size: 8px; }
+  .day-box-type { font-size: 10px; }
   .page-header h1 { font-size: 22px; }
   .tracker-grid { grid-template-columns: 1fr; }
   .stat-row { grid-template-columns: repeat(3, 1fr); }
   .workout-log-grid { gap: 3px; }
   .phase-toggle { width: 100%; }
   .ptoggle { flex: 1; text-align: center; font-size: 11px; padding: 7px 8px; }
+  /* Meal day tabs: horizontal scroll instead of wrap on small screens */
+  .day-tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; scrollbar-width: none; }
+  .day-tabs::-webkit-scrollbar { display: none; }
+  .dtab { flex-shrink: 0; }
 }
 
 /* ==================== DESKTOP DASHBOARD (>=1024px) ==================== */
@@ -827,7 +834,7 @@ select.food-input { width: 100%; }
   .desk-side button { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: var(--radius-md); font-size: 15px; font-weight: 600; color: var(--text-secondary); text-align: left; background: none; border: none; cursor: pointer; width: 100%; transition: background .12s, color .12s; }
   .desk-side button:hover { background: var(--gray-100); }
   .desk-side button svg { width: 21px; height: 21px; stroke: var(--text-tertiary); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-  .desk-side button.active { background: var(--green-50); color: var(--green-900); }
+  .desk-side button.active { background: var(--green-50); color: var(--green-900); box-shadow: inset 3px 0 0 var(--green-500); }
   .desk-side button.active svg { stroke: var(--green-500); }
   .main { margin-left: 240px; max-width: none; padding-top: 32px; padding-left: 48px; padding-right: 48px; }
   /* Fill the space right of the sidebar, but keep content centred & readable */
@@ -1134,7 +1141,7 @@ html.view-today .account-btn { display: none !important; }
 .step-val { font-size: 26px; font-weight: 600; min-width: 44px; text-align: center; }
 .step-unit { font-size: 13px; color: var(--text-secondary); }
 .water-glasses { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 12px; }
-.glass { width: 18px; height: 24px; border-radius: 3px 3px 6px 6px; border: 1.5px solid var(--blue-500); background: transparent; transition: background .15s; }
+.glass { width: 22px; height: 30px; border-radius: 3px 3px 7px 7px; border: 1.5px solid var(--blue-500); background: transparent; transition: background .15s; }
 .glass.full { background: var(--blue-500); }
 
 /* Creatine toggle */
@@ -1279,6 +1286,16 @@ html.show-splash .splash.splash-done {
 .section.active #today-bento .dtile:nth-child(7)   { animation-delay: 0.28s; }
 .section.active #today-bento .dtile:nth-child(8)   { animation-delay: 0.32s; }
 
+/* Today hero CTA — gentle pulse ring to draw attention when workout not started */
+@keyframes heroPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(255,255,255,0.55); }
+  70%  { box-shadow: 0 0 0 10px rgba(255,255,255,0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+}
+.today-hero:not(.rest) .th-go {
+  animation: heroPulse 2.8s ease-out 1.6s infinite;
+}
+
 /* ==================== MODAL ENTRANCE (@starting-style) ==================== */
 /* Fires when the outer wrapper goes from display:none → block, bringing
    .modal-overlay and .modal-panel into the rendering tree for the first time. */
@@ -1305,9 +1322,159 @@ html.show-splash .splash.splash-done {
 @media (prefers-reduced-motion: reduce) {
   .section.active,
   .section.active .today-hero,
-  .section.active #today-bento .dtile { animation: none; }
+  .section.active #today-bento .dtile,
+  .today-hero:not(.rest) .th-go { animation: none; }
   .modal-overlay,
   .modal-panel,
   #readiness-modal .modal-panel,
-  #wearable-modal  .modal-panel { transition: none; }
+  #wearable-modal  .modal-panel,
+  .quick-menu-backdrop { transition: none; }
+}
+
+/* ==================== DARK MODE ==================== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111110;
+    --surface: #1C1C1A;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.14);
+    --text-primary: #F0EFE9;
+    --text-secondary: #A8A79F;
+    --text-tertiary: #5F5E58;
+    --gray-50: #1C1C1A;
+    --gray-100: #252523;
+    --gray-200: #363633;
+    --gray-400: #6A6A65;
+    --gray-600: #999892;
+    /* Tinted backgrounds become translucent on dark surfaces */
+    --green-50:  rgba(29,158,117,0.14);
+    --green-100: rgba(29,158,117,0.24);
+    --blue-50:   rgba(55,138,221,0.14);
+    --blue-100:  rgba(55,138,221,0.24);
+    --amber-50:  rgba(186,117,23,0.16);
+    --purple-50: rgba(127,119,221,0.14);
+    --pink-50:   rgba(212,83,126,0.14);
+  }
+
+  /* Hardcoded light nav backgrounds */
+  .top-nav    { background: rgba(17,17,16,0.92); }
+  .bottom-nav { background: rgba(17,17,16,0.96); }
+
+  /* Sign-in card / segment */
+  .signin-card { background: var(--surface); }
+  .signin-seg  { background: #181817; }
+  .signin-seg button.on { background: var(--gray-100); color: var(--green-500); }
+
+  /* Modal panel: shift from --bg (very dark) to --surface for readability */
+  .modal-panel  { background: var(--surface); }
+  .modal-header { background: var(--surface); border-bottom-color: var(--border); }
+
+  /* Nav active states: dark green → visible accent */
+  .nav-link.active                    { color: var(--green-500); }
+  .desk-side button.active            { color: var(--green-500); }
+  .desk-side button.active svg        { stroke: var(--green-500); }
+  .bnav-item.active                   { color: var(--green-500); }
+
+  /* Tabs */
+  .dtab.on                   { color: var(--blue-500); }
+  .ctab.on                   { color: var(--blue-500); }
+  .ptoggle.on                { background: var(--gray-100); color: var(--green-500); }
+  .ptoggle.on.p2             { color: var(--blue-500); }
+
+  /* Tags & macro pills: -900 text → saturated accent on dark tinted bg */
+  .tag-l  { color: var(--green-500); }
+  .tag-b  { color: var(--amber-500); }
+  .tag-d  { color: var(--blue-500); }
+  .tag-s  { color: var(--purple-500); }
+  .pill-p { color: var(--blue-500); }
+  .pill-c { color: var(--purple-500); }
+  .pill-f { color: var(--green-500); }
+  .pb1    { color: var(--green-500); }
+  .pb2    { color: var(--blue-500); }
+
+  /* Day/week grid */
+  .d-lift        { color: var(--blue-500); }
+  .d-card        { color: var(--green-500); }
+  .d-foot        { color: var(--amber-500); }
+  .d-ppl, .d-act { color: var(--purple-500); }
+  .d-legs        { color: var(--pink-500); }
+
+  /* Phase timeline */
+  .tl-a { color: var(--green-500); }
+  .tl-b { background: rgba(29,158,117,0.20); color: var(--green-500); }
+  .tl-c { color: var(--blue-500); }
+
+  /* Amber accent: -900 → -500 */
+  .streak-badge  { color: var(--amber-500); }
+  .today-nudge   { color: var(--amber-500); }
+  .tpt-streak    { color: var(--amber-500); }
+  .wear-soon     { color: var(--amber-500); }
+
+  /* Streak bento tile */
+  .dtile-streak      { background: linear-gradient(135deg, var(--amber-50), var(--surface)); }
+  .dtile-streak .big { color: var(--amber-500); }
+
+  /* Workout session feedback */
+  .fb-good     { color: var(--green-500); }
+  .fb-improve  { color: var(--amber-500); }
+  .fb-tip      { color: var(--blue-500); }
+  .score-great { color: var(--green-500); }
+  .score-good  { color: var(--amber-500); }
+
+  /* Readiness */
+  .rd-good                   { background: rgba(29,158,117,0.12); }
+  .rd-good .rd-score         { color: var(--green-500); }
+  .rd-ok .rd-score           { color: var(--amber-500); }
+  .rd-low                    { background: rgba(226,75,74,0.14); }
+  .rd-low .rd-score          { color: #E24B4A; }
+  .rd-chip.on                { color: var(--green-500); }
+  .rd-prev-score.rdc-good    { color: var(--green-500); }
+  .rd-prev-score.rdc-ok      { color: var(--amber-500); }
+
+  /* Onboarding */
+  .onb-chip.on { color: var(--green-500); }
+
+  /* Training plan */
+  .tp-day-focus      { color: var(--green-500); }
+  .tpt-day-focus     { color: var(--green-500); }
+  .tpt-phasepill     { color: var(--green-500); }
+  .tpt-tip           { color: var(--green-500); }
+
+  /* Exercise detail step numbers */
+  .exd-step-n { color: var(--green-500); }
+
+  /* Wearables */
+  .wear-card > i { color: var(--green-500); }
+  .wear-link     { color: var(--green-500); }
+
+  /* Quick menu icons */
+  .quick-menu button i { color: var(--green-500); }
+
+  /* Training template icons */
+  .np-tpl i           { color: var(--green-500); }
+  .np-tpl:hover       { border-color: var(--green-500); background: var(--green-50); }
+
+  /* Meal/shopping controls */
+  .shop-act           { color: var(--green-500); }
+  .mp-icon:hover      { color: var(--green-500); }
+  .mp-add:hover       { color: var(--green-500); }
+  .mp-reset-link:hover { color: var(--green-500); }
+
+  /* Auth links */
+  .signin-forgot a { color: var(--green-500); }
+  .sigate-forgot a { color: var(--green-500); }
+  .sigate-toggle b { color: var(--green-500); }
+  .account-back:hover { color: var(--green-500); }
+
+  /* Account button */
+  .account-btn.signed-in { color: var(--green-500); background: var(--green-50); border-color: var(--green-500); }
+  .account-btn:hover     { color: var(--green-500); background: var(--green-50); border-color: var(--green-500); }
+
+  /* Log session card */
+  .log-btn-icon { background: var(--green-50); color: var(--green-500); }
+  .log-session-btn:hover { background: rgba(29,158,117,0.08); }
+
+  /* Tip box borders adjust for dark */
+  .tip  { border-color: rgba(29,158,117,0.28); }
+  .tip2 { border-color: rgba(55,138,221,0.28); }
 }
