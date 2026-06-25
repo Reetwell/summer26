@@ -915,18 +915,72 @@
     <p>Manage your account and keep everything synced across your devices.</p>
   </div>
 
-  <!-- Signed out users get the full-screen #signin-gate front door (defined near
-       the top of <body>), so this section only renders the signed-in view. -->
+  <!-- Signed out (incl. dev-skip state) -->
+  <div id="auth-out" style="display:none">
+    <div class="signin-card" style="text-align:center">
+      <div style="font-size:2.4rem;margin-bottom:12px;color:var(--text-secondary)"><i class="fa-solid fa-circle-user" aria-hidden="true"></i></div>
+      <h2 style="margin-bottom:8px">Not signed in</h2>
+      <div class="signin-sub">Sign in to back up your data and pick up where you left off on any device.</div>
+      <button class="sigate-cta" style="margin-top:16px" onclick="openSignInFromAccount()">Sign in / create account</button>
+    </div>
+  </div>
 
   <!-- Signed in -->
   <div id="auth-in" style="display:none">
-    <div class="signin-mark">Summer<span>Body</span></div>
+    <div class="signin-mark">Build Your <span>Body</span></div>
     <div class="signin-card">
       <h2 id="auth-greeting">You're signed in</h2>
       <div class="signin-sub" id="auth-user"></div>
       <div class="food-hint" id="auth-last" style="margin-top:4px;margin-bottom:16px"></div>
       <button class="signin-btn" onclick="syncNow()">Sync now</button>
       <div class="signin-forgot"><a onclick="authSignOut()">Sign out</a></div>
+    </div>
+  </div>
+
+  <!-- Settings (shown regardless of auth state) -->
+  <div class="today-block">
+    <div class="tblock-title">
+      <svg class="tb-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </div>
+
+    <div class="rem-row" style="margin-top:14px;align-items:center">
+      <label class="rem-label">Weight units</label>
+      <div style="display:flex;gap:4px">
+        <button class="ptoggle" id="unit-kg" onclick="setWeightUnit('kg')">kg</button>
+        <button class="ptoggle" id="unit-lbs" onclick="setWeightUnit('lbs')">lbs</button>
+      </div>
+    </div>
+
+    <div style="margin-top:16px">
+      <div class="food-hint" style="margin-bottom:8px">Reminder times</div>
+      <div class="rem-row">
+        <label class="rem-label">Protein shake</label>
+        <input type="time" class="rem-time" id="acct-rem-protein" value="09:00" onchange="acctRemChange()">
+      </div>
+      <div class="rem-row" style="margin-top:6px">
+        <label class="rem-label">Creatine</label>
+        <input type="time" class="rem-time" id="acct-rem-creatine" value="20:00" onchange="acctRemChange()">
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick actions -->
+  <div class="today-block">
+    <div class="tblock-title">
+      <svg class="tb-icon" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Quick actions
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+      <button class="food-add-btn" style="width:100%;text-align:left;display:flex;align-items:center;gap:10px;padding:10px 14px" onclick="goHome();setTimeout(openMealOnboarding,100)">
+        <i class="fa-solid fa-bowl-food" aria-hidden="true"></i> Redo meal setup
+      </button>
+      <button class="food-add-btn" style="width:100%;text-align:left;display:flex;align-items:center;gap:10px;padding:10px 14px" onclick="goHome();setTimeout(openTrainOnboarding,100)">
+        <i class="fa-solid fa-dumbbell" aria-hidden="true"></i> Build training plan
+      </button>
+      <button class="food-add-btn" style="width:100%;text-align:left;display:flex;align-items:center;gap:10px;padding:10px 14px" onclick="openWearables()">
+        <i class="fa-solid fa-heart-pulse" aria-hidden="true"></i> Connect a wearable
+      </button>
     </div>
   </div>
 </div>

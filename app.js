@@ -23,6 +23,7 @@ function openAccount() {
   document.getElementById('sec-account').classList.add('active');
   document.querySelectorAll('.nav-link, .bnav-item').forEach(n => n.classList.remove('active'));
   window.scrollTo(0, 0);
+  initAccountSettings();
 }
 function goHome() {
   const navBtn = document.querySelector('.bottom-nav [data-bnav]') || document.querySelector('.nav-link');
@@ -3031,6 +3032,8 @@ function reflectAuth(){
   const pill = document.getElementById('dev-skip-pill');
   if (pill) pill.style.display = (devSkip && !authUser) ? 'inline-flex' : 'none';
   if (accBtn) { accBtn.classList.toggle('signed-in', !!authUser); accBtn.style.display = authUser ? '' : 'none'; }
+  const out = document.getElementById('auth-out');
+  if (out) out.style.display = authUser ? 'none' : 'block';
   if (inn) inn.style.display = authUser ? 'block' : 'none';
   if (authUser) {
     const name = (authUser.user_metadata && authUser.user_metadata.name) || '';
@@ -3040,6 +3043,51 @@ function reflectAuth(){
     const last = document.getElementById('auth-last');
     if (last) last.textContent = _lastSync ? ('Last synced ' + new Date(_lastSync).toLocaleTimeString()) : 'Syncing…';
   }
+}
+
+// ---- Account settings (units + reminder times mirrored into account screen) ----
+let bbSettings = loadStore('sbp-settings', { weightUnit: 'kg' });
+function saveSettings(){ localStorage.setItem('sbp-settings', JSON.stringify(bbSettings)); }
+
+function openSignInFromAccount(){
+  const gate = document.getElementById('signin-gate');
+  if(gate){ gate.classList.add('show'); gate.setAttribute('aria-hidden','false'); }
+  document.documentElement.classList.add('gated');
+}
+
+function initAccountSettings(){
+  const p = document.getElementById('acct-rem-protein');
+  const c = document.getElementById('acct-rem-creatine');
+  if(p) p.value = remState.protein || '09:00';
+  if(c) c.value = remState.creatine || '20:00';
+  const unit = (bbSettings && bbSettings.weightUnit) || 'kg';
+  const kgBtn = document.getElementById('unit-kg');
+  const lbsBtn = document.getElementById('unit-lbs');
+  if(kgBtn) kgBtn.classList.toggle('on', unit === 'kg');
+  if(lbsBtn) lbsBtn.classList.toggle('on', unit === 'lbs');
+}
+
+function acctRemChange(){
+  const p = document.getElementById('acct-rem-protein');
+  const c = document.getElementById('acct-rem-creatine');
+  if(p) remState.protein = p.value;
+  if(c) remState.creatine = c.value;
+  saveRemState();
+  const tp = document.getElementById('rem-protein');
+  const tc = document.getElementById('rem-creatine');
+  if(tp) tp.value = remState.protein;
+  if(tc) tc.value = remState.creatine;
+  showToast('Reminder times saved', 'success');
+}
+
+function setWeightUnit(unit){
+  bbSettings.weightUnit = unit;
+  saveSettings();
+  const kgBtn = document.getElementById('unit-kg');
+  const lbsBtn = document.getElementById('unit-lbs');
+  if(kgBtn) kgBtn.classList.toggle('on', unit === 'kg');
+  if(lbsBtn) lbsBtn.classList.toggle('on', unit === 'lbs');
+  showToast('Units set to ' + unit, 'success');
 }
 
 // Lightweight in-app toast (replaces native alert, matches the design system)
@@ -3415,6 +3463,7 @@ mpInit();
 tpInit();
 initReminders();
 initAuth();
+initAccountSettings();
 playSplash();
 handleLaunchParam();
 
