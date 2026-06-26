@@ -1,0 +1,45 @@
+name: BuildYourBody
+options:
+  bundleIdPrefix: uk.co.buildyourbody
+  deploymentTarget:
+    iOS: "26.0"
+  xcodeVersion: "26.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: ""   # fill in your Apple Developer team ID
+    PRODUCT_BUNDLE_IDENTIFIER: uk.co.buildyourbody.app
+
+packages:
+  Supabase:
+    url: https://github.com/supabase/supabase-swift
+    from: "2.0.0"
+
+targets:
+  BuildYourBody:
+    type: application
+    platform: iOS
+    sources:
+      - BuildYourBody
+    resources:
+      - BuildYourBody/Resources
+    info:
+      path: BuildYourBody/Info.plist
+      properties:
+        UILaunchScreen:
+          UIColorName: AppBackground
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        NSHealthShareUsageDescription: "Build Your Body reads your workouts and activity to show progress."
+        NSHealthUpdateUsageDescription: "Build Your Body logs your workouts to Apple Health."
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+    dependencies:
+      - package: Supabase
+        product: Supabase
+    settings:
+      base:
+        INFOPLIST_FILE: BuildYourBody/Info.plist
