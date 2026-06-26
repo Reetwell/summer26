@@ -193,13 +193,100 @@ html.gated, html.gated body { overflow:hidden; }
 .sigate-dev a { font-size:12px; color:var(--text-tertiary); cursor:pointer; text-decoration:underline dotted; }
 .dev-skip-pill { position:fixed; bottom:16px; left:16px; z-index:300; display:inline-flex; align-items:center; gap:6px; background:var(--amber-50); color:var(--amber-900); border:1px solid var(--amber-500); border-radius:999px; padding:7px 13px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:600; cursor:pointer; box-shadow:0 6px 18px -8px rgba(0,0,0,.3); }
 
-/* Desktop / tablet: centre the card instead of pinning a phone column to the top */
-@media (min-width:600px) {
+/* Tablet: centre the card (600–759px) */
+@media (min-width:600px) and (max-width:759px) {
   .sigate { background:radial-gradient(900px 500px at 50% -5%, var(--green-50), var(--bg) 60%); }
   .sigate.show { align-items:center; padding:40px 20px; }
   .sigate-box { min-height:0; max-width:400px; border-radius:26px; overflow:hidden; box-shadow:0 30px 70px -30px rgba(0,0,0,.35); border:1px solid var(--border); }
   .sigate-hero { min-height:200px; padding:44px 28px; }
   .sigate-sheet { border-radius:24px 24px 0 0; }
+}
+
+/* ============================================================
+   SPLIT-SCREEN SIGN-IN (≥760px) — word reel on the right
+   ============================================================ */
+@media (min-width:760px) {
+  .sigate { background:var(--bg); overflow:hidden; }
+  .sigate.show { align-items:stretch; padding:0; }
+  .sigate-box {
+    max-width:100%; width:100%; min-height:100vh;
+    flex-direction:row; border-radius:0;
+    box-shadow:none; border:none; overflow:hidden;
+  }
+
+  /* LEFT — form panel (order:1 moves it before the hero in DOM flow) */
+  .sigate-sheet {
+    flex: 0 0 min(480px, 48%);
+    order: 1;
+    min-height:100vh; max-height:100vh; overflow-y:auto;
+    border-radius:0; margin-top:0;
+    background:var(--bg);
+    padding:0 52px;
+    display:flex; flex-direction:column; justify-content:center;
+    border-right:1px solid var(--border); z-index:1;
+  }
+  /* Replace mobile slide-up with simple fade */
+  .sigate.show .sigate-sheet { transition: opacity .28s ease; }
+  @starting-style { .sigate.show .sigate-sheet { transform:none; opacity:0; } }
+
+  /* Form text: left-aligned on wide form panel */
+  .sigate-h, .sigate-sub, .sigate-fine, .sigate-forgot, .sigate-toggle { text-align:left; }
+
+  /* RIGHT — green brand panel */
+  .sigate-hero {
+    flex:1; order:2; min-height:100vh;
+    border-radius:0; padding:0;
+    position:relative; overflow:hidden;
+  }
+
+  /* Reposition logo as small "Build Your Body" at panel bottom */
+  .sigate.show .sigate-logo { transform:none; transition:opacity .28s ease; }
+  @starting-style { .sigate.show .sigate-logo { transform:none; opacity:0; } }
+  .sigate-logo {
+    position:absolute; bottom:38px; left:0; right:0;
+    text-align:center; z-index:3;
+    font-size:14px; font-weight:600;
+    color:rgba(255,255,255,.42);
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .sigate-logo .sun { width:7px; height:7px; box-shadow:none; opacity:.7; margin-right:0; vertical-align:0; }
+  .sigate-tag { opacity:0; pointer-events:none; }
+
+  /* ==== WORD REEL via ::before ====
+     4 words stacked at font-size:80px line-height:80px = 80px/word, 320px total.
+     clip-path: inset() windows one word at a time; translateY centres it in the panel.
+     Both animate together — clip jumps instantly while opacity is 0. */
+  .sigate-hero::before {
+    content: "Train.\A Eat.\A Track.\A Build.";
+    white-space: pre;
+    position:absolute; left:0; right:0; text-align:center;
+    font-family:'DM Serif Display',serif;
+    font-size:80px; color:#fff; letter-spacing:-2px; line-height:80px;
+    top:50%; margin-top:-40px; /* centre line 1 (half of 80px) */
+    z-index:2;
+    clip-path: inset(0 0 240px 0); /* initial: show only top 80px = "Train." */
+    animation: reelSlide 10s ease-in-out infinite;
+  }
+}
+
+@keyframes reelSlide {
+  /* Train. */
+  0%       { transform:translateY(0);      clip-path:inset(0 0 240px 0);    opacity:0; }
+  3%,22%   { transform:translateY(0);      clip-path:inset(0 0 240px 0);    opacity:1; }
+  25%      { transform:translateY(0);      clip-path:inset(0 0 240px 0);    opacity:0; }
+  /* jump → Eat. */
+  26%      { transform:translateY(-80px);  clip-path:inset(80px 0 160px 0); opacity:0; }
+  29%,47%  { transform:translateY(-80px);  clip-path:inset(80px 0 160px 0); opacity:1; }
+  50%      { transform:translateY(-80px);  clip-path:inset(80px 0 160px 0); opacity:0; }
+  /* jump → Track. */
+  51%      { transform:translateY(-160px); clip-path:inset(160px 0 80px 0); opacity:0; }
+  54%,72%  { transform:translateY(-160px); clip-path:inset(160px 0 80px 0); opacity:1; }
+  75%      { transform:translateY(-160px); clip-path:inset(160px 0 80px 0); opacity:0; }
+  /* jump → Build. */
+  76%      { transform:translateY(-240px); clip-path:inset(240px 0 0 0);    opacity:0; }
+  79%,97%  { transform:translateY(-240px); clip-path:inset(240px 0 0 0);    opacity:1; }
+  /* fade out before loop-reset jump */
+  100%     { transform:translateY(-240px); clip-path:inset(240px 0 0 0);    opacity:0; }
 }
 
 /* ---------- Recipes ---------- */
