@@ -10,12 +10,14 @@ struct OnboardingView: View {
     @State private var days: Int?
     @State private var location: String?
     @State private var mealsPerDay: Int?
+    @State private var dietStyle: String?
+    @State private var dislikes: Set<String> = []
     @State private var plan: [OnbPlanDay] = []
     @State private var planBuiltFor: Int?
     @State private var expandedDay: UUID?
     @State private var pickerDayID: UUID?
 
-    private let totalSteps = 5
+    private let totalSteps = 7
 
     init(startStep: Int = 0, onComplete: @escaping () -> Void) {
         self.onComplete = onComplete
@@ -28,6 +30,7 @@ struct OnboardingView: View {
             _days = State(initialValue: 4)
             _location = State(initialValue: "Gym")
             _mealsPerDay = State(initialValue: 4)
+            _dietStyle = State(initialValue: "No restrictions")
         }
         #endif
     }
@@ -43,6 +46,8 @@ struct OnboardingView: View {
                 case 1: daysStep
                 case 2: locationStep
                 case 3: mealsStep
+                case 4: dietStep
+                case 5: dislikesStep
                 default: previewStep
                 }
             }
@@ -113,7 +118,8 @@ struct OnboardingView: View {
         case 1: return days != nil
         case 2: return location != nil
         case 3: return mealsPerDay != nil
-        default: return true
+        case 4: return dietStyle != nil
+        default: return true   // dislikes optional; preview always ok
         }
     }
 
@@ -210,6 +216,66 @@ struct OnboardingView: View {
             optionCard("3 meals", icon: "fork.knife", detail: "Breakfast, lunch, dinner — bigger plates", selected: mealsPerDay == 3) { mealsPerDay = 3 }
             optionCard("3 meals + snack", icon: "takeoutbag.and.cup.and.straw.fill", detail: "The classic — most popular", selected: mealsPerDay == 4) { mealsPerDay = 4 }
             optionCard("5 small meals", icon: "clock.fill", detail: "Grazing through the day", selected: mealsPerDay == 5) { mealsPerDay = 5 }
+        }
+    }
+
+    private var dietStep: some View {
+        stepLayout(
+            title: "Any way of eating?",
+            subtitle: "Your meal plan will respect this."
+        ) {
+            optionCard("No restrictions", icon: "checkmark.seal.fill", detail: "I eat everything", selected: dietStyle == "No restrictions") { dietStyle = "No restrictions" }
+            optionCard("Vegetarian", icon: "leaf.fill", detail: "No meat or fish", selected: dietStyle == "Vegetarian") { dietStyle = "Vegetarian" }
+            optionCard("Vegan", icon: "carrot.fill", detail: "Plant-based only", selected: dietStyle == "Vegan") { dietStyle = "Vegan" }
+            optionCard("Halal", icon: "moon.stars.fill", detail: "Halal meat, no pork or alcohol", selected: dietStyle == "Halal") { dietStyle = "Halal" }
+        }
+    }
+
+    private let dislikeOptions = ["Fish", "Seafood", "Eggs", "Dairy", "Nuts", "Pork", "Beef", "Spicy food", "Mushrooms", "Tomatoes", "Onions", "Beans"]
+
+    private var dislikesStep: some View {
+        stepLayout(
+            title: "Anything you don't eat?",
+            subtitle: "We'll keep these out of your meals. Skip if you eat everything."
+        ) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 130), spacing: Spacing.sm)], spacing: Spacing.sm) {
+                ForEach(dislikeOptions, id: \.self) { food in
+                    let selected = dislikes.contains(food)
+                    Button {
+                        withAnimation(.spring(response: 0.28, dampingFraction: 0.7)) {
+                            if selected { dislikes.remove(food) } else { dislikes.insert(food) }
+                        }
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: selected ? "xmark.circle.fill" : "circle")
+                                .font(.system(size: 15))
+                                .foregroundStyle(selected ? Color.green500 : Color.secondary.opacity(0.35))
+                                .contentTransition(.symbolEffect(.replace))
+                            Text(food)
+                                .font(.sans(14, weight: selected ? .semibold : .regular))
+                                .foregroundStyle(.primary)
+                            Spacer(minLength: 0)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 11)
+                        .background(Color.bbSurface, in: RoundedRectangle(cornerRadius: Radius.md))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: Radius.md)
+                                .stroke(selected ? Color.green500 : .clear, lineWidth: 1.5)
+                        )
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+                }
+            }
+
+            if !dislikes.isEmpty {
+                Text("\(dislikes.count) excluded from your plan")
+                    .font(.sans(12, weight: .semibold))
+                    .foregroundStyle(Color.green500)
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, Spacing.sm)
+                    .transition(.opacity)
+            }
         }
     }
 
