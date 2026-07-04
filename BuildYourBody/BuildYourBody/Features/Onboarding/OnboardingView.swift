@@ -10,6 +10,9 @@ struct OnboardingView: View {
     @State private var days: Int?
     @State private var location: String?
     @State private var mealsPerDay: Int?
+    @State private var plan: [OnbPlanDay] = []
+    @State private var planBuiltFor: Int?
+    @State private var expandedDay: UUID?
 
     private let totalSteps = 5
 
@@ -201,37 +204,11 @@ struct OnboardingView: View {
 
     private var previewStep: some View {
         stepLayout(
-            title: "Your plan is ready",
-            subtitle: "\(goal ?? "") · \(days ?? 0) days · \(location ?? "")"
+            title: "Build your week",
+            subtitle: "Tap a day to change it. Expand to pick exercises."
         ) {
-            // Training split preview
-            BBCard {
-                VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text("YOUR TRAINING WEEK")
-                        .font(.sans(10, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                        .kerning(1.2)
-                    ForEach(Array(previewSplit.enumerated()), id: \.offset) { i, day in
-                        HStack {
-                            Text(day.0)
-                                .font(.sans(13, weight: .semibold))
-                                .foregroundStyle(.secondary)
-                                .frame(width: 40, alignment: .leading)
-                            Text(day.1)
-                                .font(.sans(14, weight: day.1 == "Rest" ? .regular : .semibold))
-                                .foregroundStyle(day.1 == "Rest" ? .secondary : .primary)
-                            Spacer()
-                            if day.1 != "Rest" {
-                                Image(systemName: "dumbbell.fill")
-                                    .font(.system(size: 11))
-                                    .foregroundStyle(Color.green500)
-                            }
-                        }
-                        if i < previewSplit.count - 1 {
-                            Divider()
-                        }
-                    }
-                }
+            ForEach($plan) { $day in
+                planDayCard($day)
             }
 
             // Macro targets preview
@@ -250,12 +227,136 @@ struct OnboardingView: View {
                     }
                 }
             }
+            .padding(.top, Spacing.xs)
 
             Text("You can tweak everything later.")
                 .font(.sans(12))
                 .foregroundStyle(.tertiary)
                 .frame(maxWidth: .infinity)
         }
+        .onAppear {
+            if plan.isEmpty || planBuiltFor != days {
+                plan = PlanBuilder.defaultWeek(days: days ?? 4)
+                planBuiltFor = days
+            }
+        }
+    }
+
+    // MARK: plan editor (Hevy-style)
+
+    private func planDayCard(_ day: Binding<OnbPlanDay>) -> some View {
+        let d = day.wrappedValue
+        let isExpanded = expandedDay == d.id && !d.isRest
+
+        return BBCard(padding: Spacing.sm) {
+            VStack(spacing: 0) {
+                HStack(spacing: Spacing.sm) {
+                    Text(d.label)
+                        .font(.sans(13, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 38, alignment: .leading)
+
+                    // Focus picker — tap to change what this day is
+                    Menu {
+                        ForEach(PlanBuilder.focusOptions, id: \.self) { option in
+                            Button {
+                                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                    day.wrappedValue.focus = option
+                                    day.wrappedValue.exercises = PlanBuilder.exercises(for: option)
+                                    if option == "Rest" && expandedDay == d.id { expandedDay = nil }
+                                }
+                            } label: {
+                                if option == d.focus {
+                                    Label(option, systemImage: "checkmark")
+                                } else {
+                                    Text(option)
+                                }
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: 5) {
+                            Text(d.focus)
+                                .font(.sans(14, weight: d.isRest ? .regular : .semibold))
+                                .foregroundStyle(d.isRest ? Color.secondary : .primary)
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.system(size: 9, weight: .semibold))
+                                .foregroundStyle(.tertiary)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(
+                            d.isRest ? Color.secondary.opacity(0.07) : Color.green500.opacity(0.1),
+                            in: RoundedRectangle(cornerRadius: Radius.sm)
+                        )
+                    }
+                    .buttonStyle(.plain)
+
+                    Spacer()
+
+                    if !d.isRest {
+                        // Exercise count + expand toggle
+                        Button {
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+                                expandedDay = isExpanded ? nil : d.id
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Text("\(d.selectedCount) exercises")
+                                    .font(.sans(12))
+                                    .foregroundStyle(.secondary)
+                                    .contentTransition(.numericText())
+                                Image(systemName: "chevron.down")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundStyle(Color.green500)
+                                    .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        Image(systemName: "moon.zzz.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+
+                // Exercise checklist
+                if isExpanded {
+                    VStack(spacing: 0) {
+                        Divider().padding(.vertical, Spacing.sm)
+                        ForEach(day.exercises) { $exercise in
+                            Button {
+                                withAnimation(.spring(response: 0.28, dampingFraction: 0.7)) {
+                                    exercise.selected.toggle()
+                                }
+                            } label: {
+                                HStack(spacing: Spacing.sm) {
+                                    Image(systemName: exercise.selected ? "checkmark.circle.fill" : "circle")
+                                        .font(.system(size: 19))
+                                        .foregroundStyle(exercise.selected ? Color.green500 : Color.secondary.opacity(0.3))
+                                        .contentTransition(.symbolEffect(.replace))
+                                    Text(exercise.name)
+                                        .font(.sans(14, weight: exercise.selected ? .medium : .regular))
+                                        .foregroundStyle(exercise.selected ? .primary : .secondary)
+                                    Spacer()
+                                    Text("3 sets")
+                                        .font(.sans(12))
+                                        .foregroundStyle(.tertiary)
+                                        .opacity(exercise.selected ? 1 : 0)
+                                }
+                                .padding(.vertical, 7)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
+        }
+        .overlay(
+            RoundedRectangle(cornerRadius: Radius.lg)
+                .stroke(isExpanded ? Color.green500.opacity(0.4) : .clear, lineWidth: 1.5)
+        )
     }
 
     // MARK: helpers
@@ -339,16 +440,4 @@ struct OnboardingView: View {
         }
     }
 
-    private var previewSplit: [(String, String)] {
-        switch days ?? 4 {
-        case 3:
-            return [("Mon", "Full Body A"), ("Tue", "Rest"), ("Wed", "Full Body B"), ("Thu", "Rest"), ("Fri", "Full Body C"), ("Sat", "Rest"), ("Sun", "Rest")]
-        case 4:
-            return [("Mon", "Upper A"), ("Tue", "Lower A"), ("Wed", "Rest"), ("Thu", "Upper B"), ("Fri", "Lower B"), ("Sat", "Rest"), ("Sun", "Rest")]
-        case 5:
-            return [("Mon", "Push"), ("Tue", "Pull"), ("Wed", "Legs"), ("Thu", "Rest"), ("Fri", "Upper"), ("Sat", "Lower"), ("Sun", "Rest")]
-        default:
-            return [("Mon", "Push A"), ("Tue", "Pull A"), ("Wed", "Legs A"), ("Thu", "Push B"), ("Fri", "Pull B"), ("Sat", "Legs B"), ("Sun", "Rest")]
-        }
-    }
 }
