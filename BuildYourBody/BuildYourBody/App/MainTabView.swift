@@ -30,6 +30,9 @@ struct MainTabView: View {
                 NavigationStack { AccountView() }
             }
         }
+        #if os(macOS)
+        .tabViewStyle(.sidebarAdaptable)
+        #endif
         .tint(.green500)
     }
 }

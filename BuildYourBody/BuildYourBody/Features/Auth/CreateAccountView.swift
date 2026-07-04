@@ -30,9 +30,8 @@ struct CreateAccountView: View {
 
                     fieldView(label: "Email", placeholder: "you@email.com", text: $email)
                         .textContentType(.emailAddress)
-                        .keyboardType(.emailAddress)
+                        .emailKeyboard()
                         .autocorrectionDisabled()
-                        .textInputAutocapitalization(.never)
 
                     secureFieldView(label: "Password", placeholder: "Choose a password", text: $password)
                         .textContentType(.newPassword)
@@ -63,7 +62,7 @@ struct CreateAccountView: View {
                 }
                 .padding(32)
             }
-            .navigationBarTitleDisplayMode(.inline)
+            .inlineNavigationTitle()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }

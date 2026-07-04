@@ -93,7 +93,7 @@ struct ShoppingView: View {
             .padding(Spacing.md)
         }
         .background(Color.bbBackground)
-        .toolbar(.hidden, for: .navigationBar)
+        .hideNavigationBar()
     }
 
     private func itemRow(_ item: ShopItem, sectionIndex: Int) -> some View {

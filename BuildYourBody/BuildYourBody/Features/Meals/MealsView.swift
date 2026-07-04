@@ -79,7 +79,7 @@ struct MealsView: View {
             .padding(Spacing.md)
         }
         .background(Color.bbBackground)
-        .toolbar(.hidden, for: .navigationBar)
+        .hideNavigationBar()
     }
 
     private func daySummaryStat(value: String, label: String) -> some View {

@@ -8,6 +8,7 @@ extension Color {
     static let cream    = Color(hex: "#F9F6F0")
 
     // Cream in light mode, near-black in dark — matches the web app
+    #if os(iOS)
     static let bbBackground = Color(uiColor: UIColor { trait in
         trait.userInterfaceStyle == .dark
             ? UIColor(red: 0.055, green: 0.055, blue: 0.055, alpha: 1)
@@ -20,6 +21,19 @@ extension Color {
             ? UIColor(red: 0.11, green: 0.11, blue: 0.115, alpha: 1)
             : UIColor.white
     })
+    #else
+    static let bbBackground = Color(nsColor: NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            ? NSColor(red: 0.055, green: 0.055, blue: 0.055, alpha: 1)
+            : NSColor(red: 0.976, green: 0.965, blue: 0.941, alpha: 1)
+    })
+
+    static let bbSurface = Color(nsColor: NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            ? NSColor(red: 0.11, green: 0.11, blue: 0.115, alpha: 1)
+            : NSColor.white
+    })
+    #endif
 
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)

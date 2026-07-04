@@ -113,7 +113,7 @@ struct AccountView: View {
             .padding(Spacing.md)
         }
         .background(Color.bbBackground)
-        .toolbar(.hidden, for: .navigationBar)
+        .hideNavigationBar()
     }
 
     private func heroStat(value: String, label: String) -> some View {

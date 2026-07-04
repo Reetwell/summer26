@@ -78,7 +78,7 @@ struct TrainingView: View {
             .padding(Spacing.md)
         }
         .background(Color.bbBackground)
-        .toolbar(.hidden, for: .navigationBar)
+        .hideNavigationBar()
     }
 
     private func dayCard(_ day: WorkoutDay) -> some View {

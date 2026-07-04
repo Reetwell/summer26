@@ -133,7 +133,7 @@ struct TodayView: View {
             .padding(Spacing.md)
         }
         .background(Color.bbBackground)
-        .toolbar(.hidden, for: .navigationBar)
+        .hideNavigationBar()
     }
 
     private func quickStat(icon: String, value: String, label: String) -> some View {

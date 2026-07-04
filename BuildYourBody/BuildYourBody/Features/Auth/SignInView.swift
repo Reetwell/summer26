@@ -69,9 +69,8 @@ struct SignInView: View {
 
                     BBTextField(label: "Email", placeholder: "you@email.com", text: $email)
                         .textContentType(.emailAddress)
-                        .keyboardType(.emailAddress)
+                        .emailKeyboard()
                         .autocorrectionDisabled()
-                        .textInputAutocapitalization(.never)
 
                     BBTextField(label: "Password", placeholder: "••••••••", text: $password, isSecure: true)
                         .textContentType(.password)
