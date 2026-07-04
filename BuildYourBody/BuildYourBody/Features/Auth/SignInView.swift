@@ -1,6 +1,7 @@
 import SwiftUI
 import AuthenticationServices
 import Supabase
+import Combine
 
 struct SignInView: View {
     @Environment(AppState.self) private var appState
@@ -11,8 +12,95 @@ struct SignInView: View {
     @State private var showCreate = false
 
     var body: some View {
+        Group {
+            #if os(macOS)
+            splitLayout
+            #else
+            sheetLayout
+            #endif
+        }
+        .sheet(isPresented: $showCreate) {
+            CreateAccountView()
+        }
+    }
+
+    // MARK: - macOS: split screen, form left / brand panel right (web parity)
+
+    #if os(macOS)
+    private var splitLayout: some View {
+        HStack(spacing: 0) {
+            // LEFT — form on cream
+            ZStack(alignment: .topLeading) {
+                Color.bbBackground.ignoresSafeArea()
+
+                // Brand wordmark pinned top-left
+                (Text("Build Your ").foregroundStyle(.primary)
+                 + Text("Body").foregroundStyle(Color.green500))
+                    .font(.serifDisplay(19))
+                    .padding(.top, 34)
+                    .padding(.leading, 44)
+
+                // Centered form
+                VStack(alignment: .leading, spacing: Spacing.md) {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("Welcome back")
+                            .font(.serifDisplay(34))
+                        Text("Sign in to pick up where you left off.")
+                            .font(.sans(14))
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.bottom, Spacing.sm)
+
+                    socialButtons
+                    orDivider
+                    formFields
+
+                    BBButton(title: isLoading ? "Signing in…" : "Sign in") {
+                        Task { await signIn() }
+                    }
+
+                    HStack(spacing: 4) {
+                        Text("New here?")
+                            .font(.sans(13))
+                            .foregroundStyle(.secondary)
+                        Button("Create account") { showCreate = true }
+                            .buttonStyle(.plain)
+                            .font(.sans(13, weight: .semibold))
+                            .foregroundStyle(Color.green500)
+                    }
+
+                    Text("By continuing you agree to our Terms & Privacy Policy.")
+                        .font(.sans(11))
+                        .foregroundStyle(.tertiary)
+
+                    #if DEBUG
+                    Button("Skip sign-in (dev) →") {
+                        appState.isAuthenticated = true
+                    }
+                    .buttonStyle(.plain)
+                    .font(.sans(12))
+                    .foregroundStyle(.tertiary)
+                    .padding(.top, 2)
+                    #endif
+                }
+                .frame(maxWidth: 360)
+                .padding(.horizontal, 44)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            }
+            .frame(width: 460)
+
+            // RIGHT — green brand panel with word reel
+            BrandPanelView()
+        }
+        .ignoresSafeArea()
+    }
+    #endif
+
+    // MARK: - iOS: sheet over green hero
+
+    #if os(iOS)
+    private var sheetLayout: some View {
         ZStack {
-            // Green hero background
             LinearGradient(
                 colors: [Color.green700, Color.green900],
                 startPoint: .topLeading,
@@ -20,13 +108,11 @@ struct SignInView: View {
             )
             .ignoresSafeArea()
 
-            // Noise/texture overlay — subtle depth
             Rectangle()
                 .fill(.black.opacity(0.08))
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Brand wordmark
                 HStack {
                     Text("Build Your Body")
                         .font(.serifDisplay(18))
@@ -38,7 +124,6 @@ struct SignInView: View {
 
                 Spacer()
 
-                // Form sheet
                 VStack(spacing: Spacing.md) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Welcome back")
@@ -50,37 +135,9 @@ struct SignInView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.bottom, Spacing.sm)
 
-                    // Social sign-in
-                    SignInWithAppleButton(.signIn) { request in
-                        request.requestedScopes = [.fullName, .email]
-                    } onCompletion: { result in
-                        handleAppleSignIn(result)
-                    }
-                    .signInWithAppleButtonStyle(.black)
-                    .frame(height: 52)
-                    .clipShape(RoundedRectangle(cornerRadius: Radius.md))
-
-                    // Divider
-                    HStack {
-                        Rectangle().fill(Color.primary.opacity(0.1)).frame(height: 1)
-                        Text("or").font(.sans(12)).foregroundStyle(.tertiary)
-                        Rectangle().fill(Color.primary.opacity(0.1)).frame(height: 1)
-                    }
-
-                    BBTextField(label: "Email", placeholder: "you@email.com", text: $email)
-                        .textContentType(.emailAddress)
-                        .emailKeyboard()
-                        .autocorrectionDisabled()
-
-                    BBTextField(label: "Password", placeholder: "••••••••", text: $password, isSecure: true)
-                        .textContentType(.password)
-
-                    if let error {
-                        Text(error)
-                            .font(.sans(13))
-                            .foregroundStyle(.red)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
+                    socialButtons
+                    orDivider
+                    formFields
 
                     BBButton(title: isLoading ? "Signing in…" : "Sign in") {
                         Task { await signIn() }
@@ -115,10 +172,76 @@ struct SignInView: View {
                 .padding(.bottom, Spacing.xl)
             }
         }
-        .sheet(isPresented: $showCreate) {
-            CreateAccountView()
+    }
+    #endif
+
+    // MARK: - shared pieces
+
+    private var socialButtons: some View {
+        VStack(spacing: Spacing.sm) {
+            SignInWithAppleButton(.continue) { request in
+                request.requestedScopes = [.fullName, .email]
+            } onCompletion: { result in
+                handleAppleSignIn(result)
+            }
+            .signInWithAppleButtonStyle(.black)
+            .frame(height: 46)
+            .clipShape(RoundedRectangle(cornerRadius: Radius.md))
+
+            Button {
+                // TODO: Google OAuth via Supabase (needs redirect URL config)
+            } label: {
+                HStack(spacing: 8) {
+                    Text("G")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(
+                            LinearGradient(colors: [Color(hex: "#4285F4"), Color(hex: "#EA4335")],
+                                           startPoint: .leading, endPoint: .trailing)
+                        )
+                    Text("Continue with Google")
+                        .font(.sans(14, weight: .semibold))
+                        .foregroundStyle(.primary)
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 46)
+                .background(Color.bbSurface, in: RoundedRectangle(cornerRadius: Radius.md))
+                .overlay(
+                    RoundedRectangle(cornerRadius: Radius.md)
+                        .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                )
+            }
+            .buttonStyle(ScaleButtonStyle())
         }
     }
+
+    private var orDivider: some View {
+        HStack {
+            Rectangle().fill(Color.primary.opacity(0.1)).frame(height: 1)
+            Text("or").font(.sans(12)).foregroundStyle(.tertiary)
+            Rectangle().fill(Color.primary.opacity(0.1)).frame(height: 1)
+        }
+    }
+
+    private var formFields: some View {
+        VStack(spacing: Spacing.md) {
+            BBTextField(label: "Email", placeholder: "you@email.com", text: $email)
+                .textContentType(.emailAddress)
+                .emailKeyboard()
+                .autocorrectionDisabled()
+
+            BBTextField(label: "Password", placeholder: "••••••••", text: $password, isSecure: true)
+                .textContentType(.password)
+
+            if let error {
+                Text(error)
+                    .font(.sans(13))
+                    .foregroundStyle(.red)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
+    // MARK: - actions
 
     private func signIn() async {
         guard !email.isEmpty, !password.isEmpty else {
@@ -157,3 +280,77 @@ struct SignInView: View {
         }
     }
 }
+
+// MARK: - Brand panel: green gradient, floating orbs, word reel (web parity)
+
+#if os(macOS)
+private struct BrandPanelView: View {
+    private let words = ["Train.", "Eat.", "Track.", "Build."]
+    @State private var index = 0
+    @State private var orbShift = false
+
+    private let timer = Timer.publish(every: 2.6, on: .main, in: .common).autoconnect()
+
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                colors: [Color.green500, Color.green900],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            // Soft floating orbs — slow drift
+            Circle()
+                .fill(.white.opacity(0.10))
+                .frame(width: 220, height: 220)
+                .blur(radius: 40)
+                .offset(x: orbShift ? -160 : -120, y: orbShift ? -220 : -180)
+            Circle()
+                .fill(.white.opacity(0.08))
+                .frame(width: 260, height: 260)
+                .blur(radius: 50)
+                .offset(x: orbShift ? 180 : 140, y: orbShift ? 240 : 200)
+
+            // Word reel
+            ZStack {
+                Text(words[index])
+                    .font(.serifDisplay(84))
+                    .foregroundStyle(.white)
+                    .id(index)
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .bottom).combined(with: .opacity),
+                        removal: .move(edge: .top).combined(with: .opacity)
+                    ))
+            }
+            .clipped()
+
+            // Brand footer — glass chip
+            VStack {
+                Spacer()
+                HStack(spacing: 7) {
+                    Circle()
+                        .fill(.white.opacity(0.7))
+                        .frame(width: 6, height: 6)
+                    Text("Build Your Body")
+                        .font(.sans(13, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.75))
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .glassEffect(.regular, in: Capsule())
+                .padding(.bottom, 30)
+            }
+        }
+        .onReceive(timer) { _ in
+            withAnimation(.spring(response: 0.55, dampingFraction: 0.85)) {
+                index = (index + 1) % words.count
+            }
+        }
+        .onAppear {
+            withAnimation(.easeInOut(duration: 9).repeatForever(autoreverses: true)) {
+                orbShift = true
+            }
+        }
+    }
+}
+#endif
