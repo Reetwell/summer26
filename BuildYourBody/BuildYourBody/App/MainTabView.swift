@@ -13,6 +13,14 @@ struct MainTabView: View {
     }
 
     var body: some View {
+        #if os(macOS)
+        MacRootView()
+        #else
+        iosTabs
+        #endif
+    }
+
+    private var iosTabs: some View {
         TabView(selection: $selection) {
             Tab("Today", systemImage: "sun.max.fill", value: 0) {
                 NavigationStack { TodayView() }
