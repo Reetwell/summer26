@@ -13,6 +13,7 @@ struct OnboardingView: View {
     @State private var plan: [OnbPlanDay] = []
     @State private var planBuiltFor: Int?
     @State private var expandedDay: UUID?
+    @State private var pickerDayID: UUID?
 
     private let totalSteps = 5
 
@@ -56,6 +57,14 @@ struct OnboardingView: View {
         }
         .background(Color.bbBackground)
         .animation(.spring(response: 0.4, dampingFraction: 0.86), value: step)
+        .sheet(isPresented: Binding(
+            get: { pickerDayID != nil },
+            set: { if !$0 { pickerDayID = nil } }
+        )) {
+            if let idx = plan.firstIndex(where: { $0.id == pickerDayID }) {
+                ExercisePickerView(day: $plan[idx])
+            }
+        }
     }
 
     // MARK: header / footer
@@ -95,6 +104,7 @@ struct OnboardingView: View {
         .padding(.horizontal, Spacing.lg)
         .padding(.top, Spacing.md)
         .padding(.bottom, Spacing.lg)
+        .frame(maxWidth: 640)
     }
 
     private var canContinue: Bool {
@@ -119,6 +129,7 @@ struct OnboardingView: View {
         .disabled(!canContinue)
         .padding(.horizontal, Spacing.lg)
         .padding(.bottom, Spacing.lg)
+        .frame(maxWidth: 640)
         .animation(.easeOut(duration: 0.18), value: canContinue)
     }
 
@@ -205,7 +216,7 @@ struct OnboardingView: View {
     private var previewStep: some View {
         stepLayout(
             title: "Build your week",
-            subtitle: "Tap a day to change it. Expand to pick exercises."
+            subtitle: "Name your days, pick a template, add your exercises."
         ) {
             ForEach($plan) { $day in
                 planDayCard($day)
@@ -251,103 +262,145 @@ struct OnboardingView: View {
         return BBCard(padding: Spacing.sm) {
             VStack(spacing: 0) {
                 HStack(spacing: Spacing.sm) {
+                    // Day chip
                     Text(d.label)
-                        .font(.sans(13, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                        .frame(width: 38, alignment: .leading)
-
-                    // Focus picker — tap to change what this day is
-                    Menu {
-                        ForEach(PlanBuilder.focusOptions, id: \.self) { option in
-                            Button {
-                                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
-                                    day.wrappedValue.focus = option
-                                    day.wrappedValue.exercises = PlanBuilder.exercises(for: option)
-                                    if option == "Rest" && expandedDay == d.id { expandedDay = nil }
-                                }
-                            } label: {
-                                if option == d.focus {
-                                    Label(option, systemImage: "checkmark")
-                                } else {
-                                    Text(option)
-                                }
-                            }
-                        }
-                    } label: {
-                        HStack(spacing: 5) {
-                            Text(d.focus)
-                                .font(.sans(14, weight: d.isRest ? .regular : .semibold))
-                                .foregroundStyle(d.isRest ? Color.secondary : .primary)
-                            Image(systemName: "chevron.up.chevron.down")
-                                .font(.system(size: 9, weight: .semibold))
-                                .foregroundStyle(.tertiary)
-                        }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
+                        .font(.sans(12, weight: .bold))
+                        .foregroundStyle(d.isRest ? Color.secondary : Color.green700)
+                        .frame(width: 40, height: 40)
                         .background(
-                            d.isRest ? Color.secondary.opacity(0.07) : Color.green500.opacity(0.1),
-                            in: RoundedRectangle(cornerRadius: Radius.sm)
+                            d.isRest ? Color.secondary.opacity(0.08) : Color.green500.opacity(0.13),
+                            in: RoundedRectangle(cornerRadius: Radius.md)
                         )
+
+                    if d.isRest {
+                        Text("Rest day")
+                            .font(.sans(15))
+                            .foregroundStyle(.secondary)
+                    } else {
+                        // Editable workout name — call it whatever fits your split
+                        VStack(alignment: .leading, spacing: 1) {
+                            TextField("Workout name", text: day.name)
+                                .font(.sans(15, weight: .semibold))
+                                .textFieldStyle(.plain)
+                            Text("\(d.exercises.count) exercises")
+                                .font(.sans(12))
+                                .foregroundStyle(.secondary)
+                                .contentTransition(.numericText())
+                        }
                     }
-                    .buttonStyle(.plain)
 
                     Spacer()
 
                     if !d.isRest {
-                        // Exercise count + expand toggle
+                        // Expand chevron
                         Button {
                             withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
                                 expandedDay = isExpanded ? nil : d.id
                             }
                         } label: {
-                            HStack(spacing: 6) {
-                                Text("\(d.selectedCount) exercises")
-                                    .font(.sans(12))
-                                    .foregroundStyle(.secondary)
-                                    .contentTransition(.numericText())
-                                Image(systemName: "chevron.down")
-                                    .font(.system(size: 11, weight: .semibold))
-                                    .foregroundStyle(Color.green500)
-                                    .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(Color.green500)
+                                .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                                .frame(width: 30, height: 30)
+                                .background(Color.green500.opacity(0.1), in: Circle())
+                        }
+                        .buttonStyle(ScaleButtonStyle())
+                    }
+
+                    // Day menu: templates + rest toggle
+                    Menu {
+                        Section("Start from a template") {
+                            ForEach(PlanBuilder.templates, id: \.self) { template in
+                                Button(template) {
+                                    withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                        day.wrappedValue.isRest = false
+                                        day.wrappedValue.name = template
+                                        day.wrappedValue.exercises = PlanBuilder.exercises(for: template)
+                                    }
+                                }
                             }
                         }
-                        .buttonStyle(.plain)
-                    } else {
-                        Image(systemName: "moon.zzz.fill")
-                            .font(.system(size: 12))
-                            .foregroundStyle(.tertiary)
+                        Section {
+                            if d.isRest {
+                                Button("Make it a training day") {
+                                    withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                        day.wrappedValue.isRest = false
+                                        day.wrappedValue.name = "Workout"
+                                        day.wrappedValue.exercises = []
+                                    }
+                                }
+                            } else {
+                                Button("Make it a rest day", role: .destructive) {
+                                    withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                        day.wrappedValue.isRest = true
+                                        day.wrappedValue.name = "Rest"
+                                        day.wrappedValue.exercises = []
+                                        if expandedDay == d.id { expandedDay = nil }
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 30, height: 30)
+                            .background(Color.secondary.opacity(0.08), in: Circle())
                     }
+                    .buttonStyle(.plain)
                 }
 
-                // Exercise checklist
+                // Exercise list + add button
                 if isExpanded {
                     VStack(spacing: 0) {
                         Divider().padding(.vertical, Spacing.sm)
-                        ForEach(day.exercises) { $exercise in
-                            Button {
-                                withAnimation(.spring(response: 0.28, dampingFraction: 0.7)) {
-                                    exercise.selected.toggle()
-                                }
-                            } label: {
-                                HStack(spacing: Spacing.sm) {
-                                    Image(systemName: exercise.selected ? "checkmark.circle.fill" : "circle")
-                                        .font(.system(size: 19))
-                                        .foregroundStyle(exercise.selected ? Color.green500 : Color.secondary.opacity(0.3))
-                                        .contentTransition(.symbolEffect(.replace))
+
+                        ForEach(d.exercises) { exercise in
+                            HStack(spacing: Spacing.sm) {
+                                VStack(alignment: .leading, spacing: 1) {
                                     Text(exercise.name)
-                                        .font(.sans(14, weight: exercise.selected ? .medium : .regular))
-                                        .foregroundStyle(exercise.selected ? .primary : .secondary)
-                                    Spacer()
-                                    Text("3 sets")
-                                        .font(.sans(12))
+                                        .font(.sans(14, weight: .medium))
+                                    Text(exercise.muscle)
+                                        .font(.sans(11))
                                         .foregroundStyle(.tertiary)
-                                        .opacity(exercise.selected ? 1 : 0)
                                 }
-                                .padding(.vertical, 7)
-                                .contentShape(Rectangle())
+                                Spacer()
+                                Text("3 sets")
+                                    .font(.sans(12))
+                                    .foregroundStyle(.tertiary)
+                                Button {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                        day.wrappedValue.exercises.removeAll { $0.id == exercise.id }
+                                    }
+                                } label: {
+                                    Image(systemName: "minus.circle.fill")
+                                        .font(.system(size: 17))
+                                        .foregroundStyle(Color.secondary.opacity(0.35))
+                                }
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
+                            .padding(.vertical, 7)
+                            .transition(.opacity.combined(with: .move(edge: .top)))
                         }
+
+                        // Add from the full library
+                        Button {
+                            pickerDayID = d.id
+                        } label: {
+                            HStack(spacing: 7) {
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.system(size: 17))
+                                Text("Add exercise")
+                                    .font(.sans(14, weight: .semibold))
+                            }
+                            .foregroundStyle(Color.green500)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 11)
+                            .background(Color.green500.opacity(0.09), in: RoundedRectangle(cornerRadius: Radius.md))
+                        }
+                        .buttonStyle(ScaleButtonStyle())
+                        .padding(.top, Spacing.xs)
                     }
                     .transition(.opacity.combined(with: .move(edge: .top)))
                 }
@@ -378,6 +431,8 @@ struct OnboardingView: View {
                 content()
             }
             .padding(.horizontal, Spacing.lg)
+            .frame(maxWidth: 640)
+            .frame(maxWidth: .infinity)
         }
     }
 
