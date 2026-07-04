@@ -5,6 +5,12 @@ import Supabase
 final class AppState {
     var isAuthenticated = false
     var isLoading = true
+    var hasOnboarded = UserDefaults.standard.bool(forKey: "bb-onboarded")
+
+    func completeOnboarding() {
+        UserDefaults.standard.set(true, forKey: "bb-onboarded")
+        hasOnboarded = true
+    }
 
     let supabase = SupabaseClient(
         supabaseURL: URL(string: Secrets.supabaseURL)!,
@@ -13,10 +19,16 @@ final class AppState {
 
     init() {
         #if DEBUG
-        // Test hook: SIMCTL_CHILD_BB_SKIP_AUTH=1 simctl launch …
+        // Test hooks: SIMCTL_CHILD_BB_SKIP_AUTH=1 / BB_FORCE_ONBOARDING=1
+        if ProcessInfo.processInfo.environment["BB_FORCE_ONBOARDING"] == "1" {
+            hasOnboarded = false
+        }
         if ProcessInfo.processInfo.environment["BB_SKIP_AUTH"] == "1" {
             isAuthenticated = true
             isLoading = false
+            if ProcessInfo.processInfo.environment["BB_FORCE_ONBOARDING"] != "1" {
+                hasOnboarded = true
+            }
             return
         }
         #endif
