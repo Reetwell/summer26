@@ -40,6 +40,14 @@ scripts in load order, verify every screen." Then each feature becomes its own l
 - `backend/` — Cloudflare Worker code: `worker.js` (reminders + recipe extract),
   `wearables.js` (OAuth scaffold, not yet mounted), `*.sql` (Supabase tables).
 - `BUSINESS.md` — product plan, pricing, roadmap, setup to-dos (run these SQL/keys).
+- `BuildYourBody/` — **native iOS + macOS SwiftUI app** (Xcode 26 project; owned by
+  the native-app chat — web chats don't touch it). Status: all 5 tab UIs + 7-step
+  onboarding + auth screens done on sample data. Supabase-swift wired but
+  `Core/Supabase/Secrets.swift` still has placeholder URL/key. Build headlessly:
+  `export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` then
+  `xcodebuild -project BuildYourBody.xcodeproj -scheme BuildYourBody -destination
+  'platform=iOS Simulator,name=iPhone 17 Pro' build` (or `platform=macOS`).
+  See DESIGN-PLAN.md for the roadmap. `ios/` = old scaffold source, superseded.
 
 ## Data & sync (the reliability backbone)
 - State lives in **localStorage** under `sbp-*` / `bb-*` keys.
