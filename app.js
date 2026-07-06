@@ -2496,46 +2496,85 @@ function currentStreak() {
 }
 
 function heroStart() {
-  const s = getSessionForDate(new Date());
-  if(!s || s.sessionType === 'rest') { showSection('plan', document.querySelector('[onclick*="\'plan\'"]')); return; }
+  const info = getTodayPlanSession();
+  if (info.type === 'no-plan') { openTrainOnboarding(); return; }
+  if (info.type === 'custom' || info.type === 'rest') { showSection('plan', document.querySelector('[onclick*="\'plan\'"]')); return; }
+  if (!info.sessionType || info.sessionType === 'rest') { showSection('plan', document.querySelector('[onclick*="\'plan\'"]')); return; }
   openSessionLogger();
+}
+
+// Returns a normalised session descriptor for today — custom plan first,
+// then the static hardcoded schedule, then { type:'no-plan' } as last resort.
+function getTodayPlanSession() {
+  const today = new Date();
+  const todayShort = WEEKDAYS[(today.getDay() + 6) % 7];
+  const todayStr = today.toISOString().split('T')[0];
+  // Custom onboarding-built plan (mode:'phases')
+  if (TP_DATA && TP_DATA.mode === 'phases' && TP_DATA.phases && TP_DATA.phases.length) {
+    const pi = Math.min(_tpActivePhase, TP_DATA.phases.length - 1);
+    const phase = TP_DATA.phases[pi];
+    const sIdx = phase.sessions.findIndex(s => tpDayOf(s) === todayShort);
+    if (sIdx >= 0) {
+      const sess = phase.sessions[sIdx];
+      return { type:'custom', label:sess.focus, name:sess.name, phaseBadge:phase.badge, done:tpIsDone(todayShort), pi, sIdx };
+    }
+    return { type:'rest', phaseBadge: phase.badge };
+  }
+  // Static plan (within its hardcoded date window)
+  const s = getSessionForDate(today);
+  if (s) return { type:'static', done: !!sessionLogs.find(l => l.date === todayStr), ...s };
+  // No plan or outside static date range
+  return { type:'no-plan' };
 }
 
 function renderTodayHero() {
   const hero = document.getElementById('today-hero');
   if(!hero) return;
-  const today = new Date();
-  const s = getSessionForDate(today);
   const lbl = document.getElementById('th-lbl');
   const title = document.getElementById('th-title');
   const meta = document.getElementById('th-meta');
   const goLabel = document.getElementById('th-go-label');
-  const todayStr = today.toISOString().split('T')[0];
-  const hasLog = sessionLogs.find(l => l.date === todayStr);
+  const info = getTodayPlanSession();
 
   hero.classList.remove('rest');
-  if(!s || s.sessionType === 'rest') {
+  if (info.type === 'no-plan') {
+    lbl.textContent = 'Training';
+    title.textContent = 'No plan yet';
+    meta.textContent = 'Set up your training plan to start tracking sessions here.';
+    goLabel.textContent = 'Build my plan →';
+  } else if (info.type === 'custom') {
+    lbl.textContent = "Today's session";
+    title.textContent = info.label;
+    meta.textContent = info.phaseBadge + (info.done ? ' · Done ✓' : '');
+    goLabel.textContent = info.done ? 'View in Training' : 'Start session';
+  } else if (info.type === 'rest') {
     hero.classList.add('rest');
     lbl.textContent = 'Today';
     title.textContent = 'Rest day';
     meta.textContent = 'No gym — sleep, eat your protein, recover.';
     goLabel.textContent = 'View your plan';
-  } else if(s.sessionType === 'football') {
-    lbl.textContent = "Today's session";
-    title.textContent = 'Football';
-    meta.textContent = 'Phase 1a · Week ' + s.week + ' · Counts as cardio';
-    goLabel.textContent = hasLog ? 'View session' : 'Mark as done';
-  } else if(s.sessionType === 'active') {
-    lbl.textContent = "Today's session";
-    title.textContent = 'Active rest';
-    meta.textContent = 'Phase 2 · Week ' + s.week + ' · Easy swim or walk';
-    goLabel.textContent = hasLog ? 'View session' : 'Mark as done';
   } else {
-    const sd = SESSION_DATA[s.sessionType];
-    lbl.textContent = "Today's session";
-    title.textContent = sd ? sd.label : s.sessionType;
-    meta.textContent = 'Phase ' + s.phase + ' · Week ' + s.week + (hasLog ? ' · Done ✓' : '');
-    goLabel.textContent = hasLog ? 'View session' : 'Start session';
+    // Static plan session
+    if (!info.sessionType || info.sessionType === 'rest') {
+      hero.classList.add('rest');
+      lbl.textContent = 'Today'; title.textContent = 'Rest day';
+      meta.textContent = 'No gym — sleep, eat your protein, recover.';
+      goLabel.textContent = 'View your plan';
+    } else if (info.sessionType === 'football') {
+      lbl.textContent = "Today's session"; title.textContent = 'Football';
+      meta.textContent = 'Phase 1a · Week ' + info.week + ' · Counts as cardio';
+      goLabel.textContent = info.done ? 'View session' : 'Mark as done';
+    } else if (info.sessionType === 'active') {
+      lbl.textContent = "Today's session"; title.textContent = 'Active rest';
+      meta.textContent = 'Phase 2 · Week ' + info.week + ' · Easy swim or walk';
+      goLabel.textContent = info.done ? 'View session' : 'Mark as done';
+    } else {
+      const sd = SESSION_DATA[info.sessionType];
+      lbl.textContent = "Today's session";
+      title.textContent = sd ? sd.label : info.sessionType;
+      meta.textContent = 'Phase ' + info.phase + ' · Week ' + info.week + (info.done ? ' · Done ✓' : '');
+      goLabel.textContent = info.done ? 'View session' : 'Start session';
+    }
   }
 
   const streak = currentStreak();
@@ -2602,15 +2641,31 @@ function renderTodayBento(day, tot, tgt) {
   }
 
   // up next workout
-  const s = getSessionForDate(new Date());
   const wkLbl = document.getElementById('db-wk-lbl'), wkTitle = document.getElementById('db-wk-title'), wkEx = document.getElementById('db-wk-ex'), wkBtn = document.getElementById('db-wk-btn');
-  const todayStr = new Date().toISOString().split('T')[0];
-  const hasLog = sessionLogs.find(l => l.date === todayStr);
   if(wkTitle) {
-    if(!s || s.sessionType === 'rest') { wkLbl.textContent = 'Today'; wkTitle.textContent = 'Rest day'; wkEx.textContent = 'No gym — recover, sleep, hit your protein.'; wkBtn.textContent = 'View your plan'; }
-    else if(s.sessionType === 'football') { wkLbl.textContent = 'Up next'; wkTitle.textContent = 'Football'; wkEx.textContent = 'Counts as cardio · Phase 1a · Week ' + s.week; wkBtn.textContent = hasLog ? 'View session' : 'Mark as done'; }
-    else if(s.sessionType === 'active') { wkLbl.textContent = 'Up next'; wkTitle.textContent = 'Active rest'; wkEx.textContent = 'Easy swim or walk · Phase 2 · Week ' + s.week; wkBtn.textContent = hasLog ? 'View session' : 'Mark as done'; }
-    else { const sd = SESSION_DATA[s.sessionType]; wkLbl.textContent = 'Up next · ' + (s.phase === '2' ? 'Phase 2' : 'Phase 1'); wkTitle.textContent = sd ? sd.label : s.sessionType; wkEx.textContent = sd ? sd.exercises.slice(0, 4).map(e => e.name).join(' · ') : ''; wkBtn.textContent = hasLog ? 'View session' : 'Start session'; }
+    const inf = getTodayPlanSession();
+    if (inf.type === 'no-plan') {
+      wkLbl.textContent = 'Training'; wkTitle.textContent = 'No plan yet';
+      wkEx.textContent = 'Build your training plan to start tracking.'; wkBtn.textContent = 'Build my plan';
+    } else if (inf.type === 'custom') {
+      wkLbl.textContent = 'Up next'; wkTitle.textContent = inf.label;
+      wkEx.textContent = inf.phaseBadge; wkBtn.textContent = inf.done ? 'View in Training' : 'Start session';
+    } else if (inf.type === 'rest' || !inf.sessionType || inf.sessionType === 'rest') {
+      wkLbl.textContent = 'Today'; wkTitle.textContent = 'Rest day';
+      wkEx.textContent = 'No gym — recover, sleep, hit your protein.'; wkBtn.textContent = 'View your plan';
+    } else if (inf.sessionType === 'football') {
+      wkLbl.textContent = 'Up next'; wkTitle.textContent = 'Football';
+      wkEx.textContent = 'Counts as cardio · Phase 1a · Week ' + inf.week; wkBtn.textContent = inf.done ? 'View session' : 'Mark as done';
+    } else if (inf.sessionType === 'active') {
+      wkLbl.textContent = 'Up next'; wkTitle.textContent = 'Active rest';
+      wkEx.textContent = 'Easy swim or walk · Phase 2 · Week ' + inf.week; wkBtn.textContent = inf.done ? 'View session' : 'Mark as done';
+    } else {
+      const sd = SESSION_DATA[inf.sessionType];
+      wkLbl.textContent = 'Up next · ' + (inf.phase === '2' ? 'Phase 2' : 'Phase 1');
+      wkTitle.textContent = sd ? sd.label : inf.sessionType;
+      wkEx.textContent = sd ? sd.exercises.slice(0, 4).map(e => e.name).join(' · ') : '';
+      wkBtn.textContent = inf.done ? 'View session' : 'Start session';
+    }
   }
 
   // fuel macros
@@ -2655,8 +2710,13 @@ function renderToday() {
   document.getElementById('t-macf').textContent = tot.f + 'g';
 
   // sub line
-  const s = getSessionForDate(new Date());
-  document.getElementById('today-sub').textContent = s ? ('Week ' + s.week + ' · ' + (s.phase==='2'?'Phase 2 — muscle build':'Phase 1 — fat loss')) : 'Track your fuel for the day';
+  const _inf = getTodayPlanSession();
+  const _sub = document.getElementById('today-sub');
+  if (_sub) {
+    if (_inf.type === 'custom') _sub.textContent = _inf.phaseBadge + ' · ' + _inf.label;
+    else if (_inf.type === 'static' && _inf.phase) _sub.textContent = 'Week ' + _inf.week + ' · ' + (_inf.phase === '2' ? 'Phase 2 — muscle build' : 'Phase 1 — fat loss');
+    else _sub.textContent = 'Track your fuel for the day';
+  }
 
   // quick add chips
   document.getElementById('quick-row').innerHTML = QUICK_ADDS.map(q =>
