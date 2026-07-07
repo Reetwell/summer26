@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Training — mockup v3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#1D9E75; --green-700:#0F6E56; --green-900:#085041;
+    --cream:#F9F6F0; --ink:#1A1A18; --sub:#8A8578; --card:#FFFFFF;
+    --line:rgba(26,26,24,.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--cream);font-family:'DM Sans',sans-serif;color:var(--ink);width:1280px}
+  .serif{font-family:'DM Serif Display',serif;font-weight:400}
+
+  .layout{display:flex;min-height:1024px}
+
+  /* ── date rail (from Meals) ── */
+  .rail{width:118px;border-right:1px solid var(--line);padding:44px 0;display:flex;flex-direction:column;gap:30px;align-items:center}
+  .rail .day{text-align:center;color:#B9B4A6;position:relative}
+  .rail .day .lbl{font-size:11px;font-weight:700;letter-spacing:.14em}
+  .rail .day .num{font-family:'DM Serif Display',serif;font-size:44px;line-height:1.05}
+  .rail .day .st{font-size:10px;font-weight:700;letter-spacing:.08em;margin-top:2px;display:flex;align-items:center;justify-content:center;gap:4px}
+  .rail .done{color:#8A8578}
+  .rail .done .st{color:var(--green)}
+  .rail .today{color:var(--green-900)}
+  .rail .today .lbl{color:var(--green)}
+  .rail .today .num{color:var(--green-700);font-size:52px}
+  .rail .today::before{content:"";position:absolute;left:-14px;top:8px;bottom:8px;width:3px;background:var(--green);border-radius:2px}
+  .rail .rest{opacity:.55}
+  .check{display:inline-flex;width:14px;height:14px;border-radius:50%;background:var(--green);color:#fff;align-items:center;justify-content:center;font-size:9px}
+
+  /* ── main ── */
+  .main{flex:1;padding:48px 56px}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:.16em;color:var(--sub);margin-bottom:10px}
+  h1{font-size:76px;line-height:.98;letter-spacing:-1px;margin-bottom:26px}
+  h1 .g{color:var(--green-700)}
+
+  .statsrow{display:flex;gap:44px;margin-bottom:34px}
+  .statsrow .s .k{font-size:11px;font-weight:700;letter-spacing:.13em;color:var(--sub)}
+  .statsrow .s .v{font-size:20px;font-weight:700;margin-top:3px}
+  .statsrow .s .v small{font-size:13px;color:var(--sub);font-weight:500}
+  .statsrow .s .v .up{color:var(--green);font-size:13px;font-weight:700}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr 300px;gap:18px}
+  .card{background:var(--card);border-radius:20px;padding:24px;box-shadow:0 10px 30px -18px rgba(26,26,24,.18)}
+  .card .hd{font-size:11px;font-weight:700;letter-spacing:.13em;color:var(--sub);margin-bottom:14px}
+
+  /* hero */
+  .hero{grid-column:1 / span 2;background:linear-gradient(135deg,var(--green) 0%,var(--green-900) 100%);color:#fff;border-radius:22px;padding:30px;display:flex;flex-direction:column;justify-content:space-between;min-height:270px}
+  .hero .tag{font-size:11px;font-weight:700;letter-spacing:.15em;color:rgba(255,255,255,.72)}
+  .hero h2{font-size:40px;line-height:1.04;margin:8px 0 6px}
+  .hero .meta{font-size:14px;color:rgba(255,255,255,.78)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}
+  .chip{font-size:12.5px;font-weight:500;padding:7px 13px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.16)}
+  .startrow{display:flex;align-items:center;gap:16px}
+  .start{background:#fff;color:var(--green-900);font-weight:700;font-size:15px;border:none;border-radius:14px;padding:14px 26px;display:inline-flex;align-items:center;gap:9px;cursor:pointer}
+  .start .tri{width:0;height:0;border-left:9px solid var(--green-900);border-top:6px solid transparent;border-bottom:6px solid transparent}
+  .hero .last{font-size:13px;color:rgba(255,255,255,.66)}
+
+  /* sessions ring column */
+  .ringcard{display:flex;flex-direction:column;gap:18px}
+  .ringwrap{display:flex;align-items:center;gap:16px}
+  .bignum{font-size:34px}
+  .subtle{font-size:12.5px;color:var(--sub)}
+  .spark{margin-top:6px}
+
+  /* top lifts */
+  .lift{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+  .lift:last-child{border-bottom:none}
+  .lift .nm{font-weight:500;font-size:14.5px;flex:1}
+  .lift .kg{font-family:'DM Serif Display',serif;font-size:20px}
+  .lift .delta{font-size:12px;font-weight:700;color:var(--green);background:rgba(29,158,117,.1);padding:4px 9px;border-radius:999px}
+  .liftbar{height:5px;border-radius:3px;background:rgba(29,158,117,.12);margin-top:6px;overflow:hidden}
+  .liftbar i{display:block;height:100%;border-radius:3px;background:var(--green)}
+
+  /* PRs */
+  .pr{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .pr:last-child{border-bottom:none}
+  .pr .ic{width:34px;height:34px;border-radius:10px;background:rgba(232,161,58,.14);color:#B47A17;display:flex;align-items:center;justify-content:center;font-size:15px}
+  .pr .t{flex:1}
+  .pr .t .n{font-weight:500;font-size:14px}
+  .pr .t .d{font-size:12px;color:var(--sub)}
+  .pr .kg{font-family:'DM Serif Display',serif;font-size:19px}
+
+  /* routines */
+  .rt{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+  .rt:last-child{border-bottom:none}
+  .rt .ic{width:36px;height:36px;border-radius:11px;background:rgba(29,158,117,.11);color:var(--green-700);display:flex;align-items:center;justify-content:center;font-size:15px}
+  .rt .t{flex:1}
+  .rt .t .n{font-weight:600;font-size:14.5px}
+  .rt .t .d{font-size:12px;color:var(--sub)}
+  .rt .ch{color:#C9C4B6;font-size:16px}
+  .newrt{margin-top:12px;width:100%;border:1.5px dashed rgba(29,158,117,.4);background:rgba(29,158,117,.05);color:var(--green-700);font-weight:700;font-size:13.5px;border-radius:12px;padding:11px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- date rail -->
+  <div class="rail">
+    <div class="day done"><div class="lbl">MON</div><div class="num serif">12</div><div class="st"><span class="check">✓</span></div></div>
+    <div class="day done"><div class="lbl">TUE</div><div class="num serif">13</div><div class="st"><span class="check">✓</span></div></div>
+    <div class="day rest"><div class="lbl">WED</div><div class="num serif">14</div><div class="st">REST</div></div>
+    <div class="day today"><div class="lbl">TODAY</div><div class="num serif">15</div><div class="st" style="color:var(--green)">PUSH</div></div>
+    <div class="day"><div class="lbl">FRI</div><div class="num serif">16</div><div class="st">LEGS</div></div>
+    <div class="day"><div class="lbl">SAT</div><div class="num serif">17</div><div class="st">PULL</div></div>
+    <div class="day rest"><div class="lbl">SUN</div><div class="num serif">18</div><div class="st">REST</div></div>
+  </div>
+
+  <!-- main -->
+  <div class="main">
+    <div class="eyebrow">WEEK 3 OF 6 · HYPERTROPHY PHASE</div>
+    <h1 class="serif"><span class="g">12,400 kg</span><br>lifted this week.</h1>
+
+    <div class="statsrow">
+      <div class="s"><div class="k">SESSIONS</div><div class="v">4 <small>/ 5</small></div></div>
+      <div class="s"><div class="k">NEW PRS</div><div class="v">3 <span class="up">↑</span></div></div>
+      <div class="s"><div class="k">STREAK</div><div class="v">6 <small>days</small></div></div>
+      <div class="s"><div class="k">VS LAST WEEK</div><div class="v"><span class="up">+8%</span></div></div>
+      <div class="s"><div class="k">TIME UNDER LOAD</div><div class="v">3h 42m</div></div>
+    </div>
+
+    <div class="grid">
+
+      <!-- hero -->
+      <div class="hero">
+        <div>
+          <div class="tag">TODAY · PUSH DAY A</div>
+          <h2 class="serif">Chest, shoulders &amp; triceps</h2>
+          <div class="meta">6 exercises · ~55 min</div>
+          <div class="chips">
+            <span class="chip">Bench Press</span><span class="chip">Incline DB Press</span>
+            <span class="chip">Overhead Press</span><span class="chip">Lateral Raise</span>
+            <span class="chip">+2 more</span>
+          </div>
+        </div>
+        <div class="startrow">
+          <button class="start"><span class="tri"></span> Start workout</button>
+          <span class="last">Last time: 12,400 kg · beat it</span>
+        </div>
+      </div>
+
+      <!-- right stack: sessions + volume -->
+      <div class="ringcard">
+        <div class="card">
+          <div class="hd">SESSIONS THIS WEEK</div>
+          <div class="ringwrap">
+            <svg width="76" height="76" viewBox="0 0 76 76">
+              <circle cx="38" cy="38" r="32" fill="none" stroke="rgba(29,158,117,.13)" stroke-width="8"/>
+              <circle cx="38" cy="38" r="32" fill="none" stroke="#1D9E75" stroke-width="8" stroke-linecap="round"
+                stroke-dasharray="201" stroke-dashoffset="40" transform="rotate(-90 38 38)"/>
+              <text x="38" y="44" text-anchor="middle" font-family="'DM Serif Display',serif" font-size="20" fill="#1A1A18">80%</text>
+            </svg>
+            <div><div class="bignum serif">4/5</div><div class="subtle">1 to go — Saturday</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="hd">VOLUME TREND</div>
+          <div class="bignum serif">12.4k <span style="font-size:15px;font-family:'DM Sans';color:var(--sub)">kg</span></div>
+          <svg class="spark" width="100%" height="44" viewBox="0 0 240 44" preserveAspectRatio="none">
+            <path d="M0 36 L40 30 L80 33 L120 22 L160 26 L200 12 L240 8" fill="none" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M0 36 L40 30 L80 33 L120 22 L160 26 L200 12 L240 8 L240 44 L0 44 Z" fill="rgba(29,158,117,.08)"/>
+          </svg>
+          <div class="subtle" style="margin-top:6px"><b style="color:var(--green)">+8%</b> vs last week</div>
+        </div>
+      </div>
+
+      <!-- top lifts -->
+      <div class="card">
+        <div class="hd">TOP LIFTS · PROGRESS</div>
+        <div class="lift"><div style="flex:1"><div style="display:flex;align-items:center"><span class="nm">Bench Press</span><span class="kg">80<small style="font-size:12px;font-family:'DM Sans';color:var(--sub)"> kg</small></span></div><div class="liftbar"><i style="width:78%"></i></div></div><span class="delta">+5 kg</span></div>
+        <div class="lift"><div style="flex:1"><div style="display:flex;align-items:center"><span class="nm">Squat</span><span class="kg">110<small style="font-size:12px;font-family:'DM Sans';color:var(--sub)"> kg</small></span></div><div class="liftbar"><i style="width:64%"></i></div></div><span class="delta">+10 kg</span></div>
+        <div class="lift"><div style="flex:1"><div style="display:flex;align-items:center"><span class="nm">Deadlift</span><span class="kg">140<small style="font-size:12px;font-family:'DM Sans';color:var(--sub)"> kg</small></span></div><div class="liftbar"><i style="width:71%"></i></div></div><span class="delta">+7.5 kg</span></div>
+        <div class="lift"><div style="flex:1"><div style="display:flex;align-items:center"><span class="nm">Overhead Press</span><span class="kg">52.5<small style="font-size:12px;font-family:'DM Sans';color:var(--sub)"> kg</small></span></div><div class="liftbar"><i style="width:55%"></i></div></div><span class="delta">+2.5 kg</span></div>
+      </div>
+
+      <!-- PRs -->
+      <div class="card">
+        <div class="hd">NEW RECORDS THIS WEEK</div>
+        <div class="pr"><div class="ic">🏆</div><div class="t"><div class="n">Bench Press</div><div class="d">Tuesday · +5 kg</div></div><div class="kg">80 kg</div></div>
+        <div class="pr"><div class="ic">🏆</div><div class="t"><div class="n">Lat Pulldown</div><div class="d">Monday · +5 kg</div></div><div class="kg">65 kg</div></div>
+        <div class="pr"><div class="ic">🏆</div><div class="t"><div class="n">Leg Press</div><div class="d">Monday · +10 kg</div></div><div class="kg">180 kg</div></div>
+        <div class="subtle" style="margin-top:12px">Next target: Squat 115 kg — you're close.</div>
+      </div>
+
+      <!-- routines -->
+      <div class="card">
+        <div class="hd">YOUR ROUTINES</div>
+        <div class="rt"><div class="ic">🏋️</div><div class="t"><div class="n">Push Day A</div><div class="d">6 exercises · 55 min</div></div><div class="ch">›</div></div>
+        <div class="rt"><div class="ic">🏋️</div><div class="t"><div class="n">Pull Day A</div><div class="d">6 exercises · 50 min</div></div><div class="ch">›</div></div>
+        <div class="rt"><div class="ic">🦵</div><div class="t"><div class="n">Legs Day</div><div class="d">7 exercises · 60 min</div></div><div class="ch">›</div></div>
+        <div class="rt"><div class="ic">💪</div><div class="t"><div class="n">Upper B</div><div class="d">6 exercises · 55 min</div></div><div class="ch">›</div></div>
+        <button class="newrt">+ New routine</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>
