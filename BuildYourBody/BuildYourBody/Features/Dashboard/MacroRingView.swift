@@ -4,6 +4,8 @@ import SwiftUI
 struct CalorieRingView: View {
     let consumed: Int
     let target: Int
+    var size: CGFloat = 150
+    var lineWidth: CGFloat = 14
     @State private var progress: CGFloat = 0
 
     private var fraction: CGFloat {
@@ -14,7 +16,7 @@ struct CalorieRingView: View {
     var body: some View {
         ZStack {
             Circle()
-                .stroke(Color.green500.opacity(0.12), lineWidth: 14)
+                .stroke(Color.green500.opacity(0.12), lineWidth: lineWidth)
 
             Circle()
                 .trim(from: 0, to: progress)
@@ -25,20 +27,20 @@ struct CalorieRingView: View {
                         startAngle: .degrees(-90),
                         endAngle: .degrees(270)
                     ),
-                    style: StrokeStyle(lineWidth: 14, lineCap: .round)
+                    style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
 
             VStack(spacing: 2) {
                 Text("\(consumed)")
-                    .font(.serifDisplay(34))
+                    .font(.serifDisplay(size * 0.22))
                     .contentTransition(.numericText())
                 Text("of \(target) kcal")
-                    .font(.sans(12))
+                    .font(.sans(size * 0.08))
                     .foregroundStyle(.secondary)
             }
         }
-        .frame(width: 150, height: 150)
+        .frame(width: size, height: size)
         .onAppear {
             withAnimation(.spring(response: 1.1, dampingFraction: 0.9).delay(0.2)) {
                 progress = fraction
