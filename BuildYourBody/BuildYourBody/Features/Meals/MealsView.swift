@@ -102,8 +102,8 @@ struct MealsView: View {
     }
 
     private var macDateRail: some View {
-        VStack(spacing: 26) {
-            ForEach(macWeek) { day in
+        VStack(spacing: 0) {
+            ForEach(Array(macWeek.enumerated()), id: \.element.id) { i, day in
                 VStack(spacing: 3) {
                     Text(day.label.uppercased())
                         .font(.sans(11, weight: .bold))
@@ -119,9 +119,11 @@ struct MealsView: View {
                         Capsule().fill(Color.green500).frame(width: 3, height: 44).offset(x: 6)
                     }
                 }
+                if i < macWeek.count - 1 { Spacer(minLength: 16) }
             }
         }
-        .padding(.vertical, 44)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.vertical, 40)
         .frame(width: 132)
         .background(Color.bbSurface)
     }

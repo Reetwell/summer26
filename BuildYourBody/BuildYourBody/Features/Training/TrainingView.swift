@@ -253,8 +253,8 @@ struct TrainingView: View {
     }
 
     private var dateRail: some View {
-        VStack(spacing: 26) {
-            ForEach(railWeek) { day in
+        VStack(spacing: 0) {
+            ForEach(Array(railWeek.enumerated()), id: \.element.id) { i, day in
                 VStack(spacing: 3) {
                     Text(day.label)
                         .font(.sans(11, weight: .bold))
@@ -280,8 +280,10 @@ struct TrainingView: View {
                         Capsule().fill(Color.green500).frame(width: 3, height: 44).offset(x: 6)
                     }
                 }
+                if i < railWeek.count - 1 { Spacer(minLength: 12) }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.vertical, 40)
         .frame(width: 118)
         .background(Color.bbSurface)
