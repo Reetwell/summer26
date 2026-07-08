@@ -38,6 +38,14 @@ struct MealsView: View {
     private var eatenFat: Int     { meals.filter(\.eaten).reduce(0) { $0 + $1.fat } }
 
     var body: some View {
+        #if os(macOS)
+        macLayout
+        #else
+        iosLayout
+        #endif
+    }
+
+    private var macLayout: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.md) {
                 // Header
@@ -297,4 +305,174 @@ struct MealsView: View {
         }
         .buttonStyle(ScaleButtonStyle())
     }
+
+    // MARK: - iOS: Stitch editorial layout (glass meal cards, logged/unlogged)
+
+    #if os(iOS)
+    private struct MStrip: Identifiable {
+        let id = UUID(); let label: String; let num: Int; let isToday: Bool
+    }
+    private var weekStrip: [MStrip] {
+        var cal = Calendar.current
+        cal.firstWeekday = 2
+        let start = cal.dateInterval(of: .weekOfYear, for: .now)?.start ?? .now
+        let fmt = DateFormatter(); fmt.dateFormat = "EEE"
+        return (0..<7).compactMap { off in
+            guard let d = cal.date(byAdding: .day, value: off, to: start) else { return nil }
+            let t = cal.isDateInToday(d)
+            return MStrip(label: t ? "Today" : fmt.string(from: d), num: cal.component(.day, from: d), isToday: t)
+        }
+    }
+
+    private var iosLayout: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                // BUILD header
+                HStack {
+                    Text("BUILD").font(.serifDisplay(28)).foregroundStyle(Color.green700).kerning(1)
+                    Spacer()
+                    HStack(spacing: Spacing.md) {
+                        Image(systemName: "bell").font(.system(size: 17, weight: .medium)).foregroundStyle(.secondary)
+                        Image(systemName: "gearshape").font(.system(size: 17, weight: .medium)).foregroundStyle(.secondary)
+                        Text("RR").font(.sans(12, weight: .bold)).foregroundStyle(.white)
+                            .frame(width: 34, height: 34)
+                            .background(LinearGradient(colors: [.green500, .green900], startPoint: .topLeading, endPoint: .bottomTrailing), in: Circle())
+                    }
+                }
+                .padding(.top, Spacing.sm)
+                .slideIn()
+
+                // Date strip
+                HStack(spacing: 0) {
+                    ForEach(weekStrip) { d in
+                        VStack(spacing: 1) {
+                            HStack(spacing: 3) {
+                                if d.isToday { Circle().fill(Color.green500).frame(width: 5, height: 5) }
+                                Text(d.label.uppercased()).font(.sans(10, weight: .bold)).kerning(1)
+                            }
+                            .foregroundStyle(d.isToday ? Color.green500 : Color.secondary.opacity(0.6))
+                            Text("\(d.num)").font(.serifDisplay(26))
+                                .foregroundStyle(d.isToday ? Color.green700 : Color.secondary.opacity(0.5))
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                }
+                .padding(.top, Spacing.md)
+                .slideIn(delay: 0.04)
+
+                // Big headline
+                (Text("\(max(kcalTarget - eatenKcal, 0)) kcal").foregroundStyle(Color.green700)
+                 + Text("\nleft today").foregroundStyle(.primary))
+                    .font(.serifDisplay(52))
+                    .lineSpacing(-4)
+                    .padding(.top, Spacing.lg)
+                    .contentTransition(.numericText())
+                    .slideIn(delay: 0.08)
+
+                // Macro strip
+                HStack(spacing: Spacing.lg) {
+                    macroStat("PROTEIN", eatenProtein, proteinTarget)
+                    macroStat("CARBS", eatenCarbs, carbsTarget)
+                    macroStat("FAT", eatenFat, fatTarget)
+                }
+                .padding(.vertical, Spacing.md)
+                .slideIn(delay: 0.12)
+
+                // Meal cards
+                VStack(spacing: Spacing.md) {
+                    ForEach(Array(meals.enumerated()), id: \.element.id) { i, meal in
+                        mealCardIOS($meals[i])
+                            .slideIn(delay: 0.16 + Double(i) * 0.06)
+                    }
+                }
+                .padding(.top, Spacing.xs)
+            }
+            .padding(.horizontal, Spacing.md)
+            .padding(.bottom, Spacing.xl)
+            .animation(.spring(response: 0.5, dampingFraction: 0.85), value: eatenKcal)
+        }
+        .background(Color.bbBackground)
+        .hideNavigationBar()
+    }
+
+    private func macroStat(_ key: String, _ eaten: Int, _ target: Int) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(key).font(.sans(10, weight: .bold)).foregroundStyle(.secondary).kerning(1)
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                Text("\(eaten)").font(.sans(18, weight: .bold)).contentTransition(.numericText())
+                Text("/\(target)g").font(.sans(12)).foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func mealCardIOS(_ meal: Binding<Meal>) -> some View {
+        let m = meal.wrappedValue
+        return Group {
+            if m.eaten {
+                // Logged — filled card with icon panel
+                HStack(spacing: 0) {
+                    ZStack {
+                        m.tint.opacity(0.16)
+                        Image(systemName: m.icon).font(.system(size: 30)).foregroundStyle(m.tint)
+                    }
+                    .frame(width: 108)
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text(m.slot).font(.serifDisplay(24))
+                            Spacer()
+                            Button {
+                                withAnimation(.spring(response: 0.32, dampingFraction: 0.65)) { meal.wrappedValue.eaten = false }
+                            } label: {
+                                Image(systemName: "checkmark.circle.fill").font(.system(size: 24)).foregroundStyle(Color.green500)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        Text(m.name).font(.sans(13)).foregroundStyle(.secondary).lineLimit(1)
+                        Spacer(minLength: 4)
+                        (Text("\(m.kcal)").font(.sans(30, weight: .bold))
+                         + Text(" kcal").font(.sans(12)).foregroundStyle(.secondary))
+                    }
+                    .padding(Spacing.md)
+                }
+                .frame(height: 132)
+                .background(Color.bbSurface, in: RoundedRectangle(cornerRadius: 20))
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .shadow(color: .black.opacity(0.05), radius: 12, y: 4)
+            } else {
+                // Unlogged — dashed placeholder
+                VStack(alignment: .leading, spacing: Spacing.md) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(m.slot).font(.serifDisplay(24)).foregroundStyle(.primary.opacity(0.55))
+                        Text(m.slot == "Dinner" ? "Target: ~\(m.kcal) kcal to hit your goal" : "Recommended ~\(m.kcal) kcal")
+                            .font(.sans(13)).foregroundStyle(.secondary)
+                    }
+                    Button {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) { meal.wrappedValue.eaten = true }
+                    } label: {
+                        HStack(spacing: 7) {
+                            Image(systemName: "plus").font(.system(size: 13, weight: .bold))
+                            Text("Log \(m.slot)").font(.sans(14, weight: .bold))
+                        }
+                        .foregroundStyle(m.slot == "Dinner" ? .white : Color.green700)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 13)
+                        .background(
+                            m.slot == "Dinner"
+                                ? AnyShapeStyle(LinearGradient(colors: [.green500, .green700], startPoint: .top, endPoint: .bottom))
+                                : AnyShapeStyle(Color.green500.opacity(0.1)),
+                            in: RoundedRectangle(cornerRadius: 13)
+                        )
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+                }
+                .padding(Spacing.md + 2)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .strokeBorder(Color.secondary.opacity(0.25), style: StrokeStyle(lineWidth: 1.5, dash: [6]))
+                )
+            }
+        }
+    }
+    #endif
 }
