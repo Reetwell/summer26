@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=390, initial-scale=1">
+<title>Today — mobile mockup v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#1D9E75; --green-700:#0F6E56; --green-900:#085041;
+    --cream:#F9F6F0; --ink:#1A1A18; --sub:#8A8578; --card:#fff;
+    --line:rgba(26,26,24,.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{width:390px;background:var(--cream);font-family:'DM Sans',sans-serif;color:var(--ink);padding-bottom:120px}
+  .serif{font-family:'DM Serif Display',serif;font-weight:400}
+
+  /* header */
+  .hdr{display:flex;align-items:center;justify-content:space-between;padding:22px 22px 14px}
+  .wordmark{font-family:'DM Serif Display',serif;font-size:30px;color:var(--green-700);letter-spacing:1px}
+  .hdr .icons{display:flex;align-items:center;gap:14px;color:#6b675c;font-size:17px}
+  .avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#1D9E75,#085041);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+
+  /* date strip */
+  .dates{display:flex;justify-content:space-between;padding:10px 22px 6px}
+  .d{text-align:center;color:#B9B4A6}
+  .d .lbl{font-size:10.5px;font-weight:700;letter-spacing:.13em}
+  .d .num{font-family:'DM Serif Display',serif;font-size:30px;line-height:1.15}
+  .d.today{color:var(--green-700)}
+  .d.today .lbl{color:var(--green)}
+  .d.today .lbl::before{content:"● ";font-size:7px;vertical-align:2px}
+
+  /* headline */
+  .head{padding:26px 22px 4px}
+  h1{font-size:52px;line-height:1.0;letter-spacing:-.5px}
+  h1 .g{color:var(--green-700)}
+  .stats{display:flex;gap:26px;padding:16px 22px 20px}
+  .stats .s .k{font-size:10.5px;font-weight:700;letter-spacing:.12em;color:var(--sub)}
+  .stats .s .v{font-size:17px;font-weight:700;margin-top:2px}
+  .stats .s .v small{font-size:12px;color:var(--sub);font-weight:500}
+
+  .wrap{padding:0 18px;display:flex;flex-direction:column;gap:14px}
+  .card{background:var(--card);border-radius:20px;padding:20px;box-shadow:0 10px 26px -16px rgba(26,26,24,.18)}
+  .hd{font-size:10.5px;font-weight:700;letter-spacing:.13em;color:var(--sub)}
+
+  /* hero */
+  .hero{background:linear-gradient(135deg,var(--green) 0%,var(--green-900) 100%);color:#fff;border-radius:22px;padding:22px}
+  .hero .tag{font-size:10.5px;font-weight:700;letter-spacing:.14em;color:rgba(255,255,255,.72)}
+  .hero h2{font-size:28px;margin:7px 0 3px}
+  .hero .meta{font-size:13px;color:rgba(255,255,255,.78)}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 16px}
+  .chip{font-size:11.5px;padding:6px 11px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.16)}
+  .start{width:100%;background:#fff;color:var(--green-900);font-weight:700;font-size:15px;font-family:'DM Sans';border:none;border-radius:13px;padding:14px;display:flex;align-items:center;justify-content:center;gap:8px}
+  .tri{width:0;height:0;border-left:8px solid var(--green-900);border-top:5px solid transparent;border-bottom:5px solid transparent}
+
+  /* nutrition */
+  .nut{display:flex;align-items:center;gap:18px;margin-top:14px}
+  .ringtxt{text-anchor:middle;font-family:'DM Serif Display',serif}
+  .bars{flex:1;display:flex;flex-direction:column;gap:10px}
+  .bar .t{display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:4px}
+  .bar .t b{font-weight:700}
+  .bar .t span{color:var(--sub)}
+  .track{height:5px;border-radius:3px;background:rgba(26,26,24,.07);overflow:hidden}
+  .track i{display:block;height:100%;border-radius:3px}
+
+  /* duo row */
+  .duo{display:flex;gap:14px}
+  .duo .card{flex:1;padding:16px}
+  .big{font-size:26px;margin-top:6px}
+  .tiny{font-size:11.5px;color:var(--sub);margin-top:2px}
+  .readiness{display:flex;align-items:center;gap:12px;margin-top:8px}
+
+  /* activity */
+  .act{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+  .act:last-child{border-bottom:none;padding-bottom:0}
+  .act .ic{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:15px;background:rgba(29,158,117,.11)}
+  .act .t{flex:1}
+  .act .t .n{font-weight:600;font-size:13.5px}
+  .act .t .d{font-size:11.5px;color:var(--sub)}
+  .act .v{font-weight:700;font-size:13.5px;color:var(--green-700)}
+
+  /* liquid glass floating navbar */
+  .navwrap{position:fixed;bottom:0;left:0;width:390px;display:flex;justify-content:center;padding:0 16px 22px;pointer-events:none;z-index:50}
+  .nav{pointer-events:auto;display:flex;gap:6px;padding:10px 14px;border-radius:999px;
+       background:rgba(255,255,255,.55);backdrop-filter:blur(22px) saturate(1.6);-webkit-backdrop-filter:blur(22px) saturate(1.6);
+       border:1px solid rgba(255,255,255,.65);box-shadow:0 20px 40px rgba(26,26,24,.22), inset 0 1px 0 rgba(255,255,255,.8)}
+  .ni{display:flex;flex-direction:column;align-items:center;gap:3px;width:56px;padding:7px 0;border-radius:999px;color:#6b675c;font-size:9.5px;font-weight:700;letter-spacing:.04em}
+  .ni .ico{font-size:18px;line-height:1}
+  .ni.on{background:var(--green);color:#fff;box-shadow:0 6px 16px -6px rgba(29,158,117,.6)}
+</style>
+</head>
+<body>
+
+  <div class="hdr">
+    <div class="wordmark">BUILD</div>
+    <div class="icons"><span>🔔</span><span>⚙️</span><div class="avatar">RR</div></div>
+  </div>
+
+  <div class="dates">
+    <div class="d"><div class="lbl">MON</div><div class="num">12</div></div>
+    <div class="d"><div class="lbl">TUE</div><div class="num">13</div></div>
+    <div class="d"><div class="lbl">WED</div><div class="num">14</div></div>
+    <div class="d today"><div class="lbl">TODAY</div><div class="num">15</div></div>
+    <div class="d"><div class="lbl">FRI</div><div class="num">16</div></div>
+    <div class="d"><div class="lbl">SAT</div><div class="num">17</div></div>
+  </div>
+
+  <div class="head">
+    <h1 class="serif"><span class="g">Push day,</span><br>and you're ready.</h1>
+  </div>
+  <div class="stats">
+    <div class="s"><div class="k">READINESS</div><div class="v">82 <small>/100</small></div></div>
+    <div class="s"><div class="k">KCAL LEFT</div><div class="v">760</div></div>
+    <div class="s"><div class="k">STEPS</div><div class="v">8,412</div></div>
+    <div class="s"><div class="k">STREAK</div><div class="v">6 <small>days</small></div></div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- training hero -->
+    <div class="hero">
+      <div class="tag">TODAY'S TRAINING · PUSH DAY A</div>
+      <h2 class="serif">Chest, shoulders &amp; triceps</h2>
+      <div class="meta">6 exercises · ~55 min · last time 12,400 kg</div>
+      <div class="chips">
+        <span class="chip">Bench Press</span><span class="chip">Incline DB</span>
+        <span class="chip">Overhead Press</span><span class="chip">+3 more</span>
+      </div>
+      <button class="start"><span class="tri"></span> Start workout</button>
+    </div>
+
+    <!-- nutrition -->
+    <div class="card">
+      <div class="hd">NUTRITION</div>
+      <div class="nut">
+        <svg width="104" height="104" viewBox="0 0 104 104">
+          <circle cx="52" cy="52" r="44" fill="none" stroke="rgba(29,158,117,.12)" stroke-width="10"/>
+          <circle cx="52" cy="52" r="44" fill="none" stroke="#1D9E75" stroke-width="10" stroke-linecap="round"
+                  stroke-dasharray="276" stroke-dashoffset="80" transform="rotate(-90 52 52)"/>
+          <text x="52" y="50" class="ringtxt" font-size="24" fill="#1A1A18">1,840</text>
+          <text x="52" y="66" text-anchor="middle" font-family="'DM Sans'" font-size="10" fill="#8A8578">of 2,600</text>
+        </svg>
+        <div class="bars">
+          <div class="bar"><div class="t"><b>Protein</b><span>120/180g</span></div><div class="track"><i style="width:67%;background:#1D9E75"></i></div></div>
+          <div class="bar"><div class="t"><b>Carbs</b><span>150/250g</span></div><div class="track"><i style="width:60%;background:#4A90D9"></i></div></div>
+          <div class="bar"><div class="t"><b>Fat</b><span>45/65g</span></div><div class="track"><i style="width:69%;background:#E8A13A"></i></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- readiness + weight -->
+    <div class="duo">
+      <div class="card">
+        <div class="hd">READINESS</div>
+        <div class="readiness">
+          <svg width="52" height="52" viewBox="0 0 52 52">
+            <circle cx="26" cy="26" r="21" fill="none" stroke="rgba(29,158,117,.13)" stroke-width="6"/>
+            <circle cx="26" cy="26" r="21" fill="none" stroke="#1D9E75" stroke-width="6" stroke-linecap="round"
+                    stroke-dasharray="132" stroke-dashoffset="24" transform="rotate(-90 26 26)"/>
+            <text x="26" y="31" text-anchor="middle" font-family="'DM Serif Display',serif" font-size="15" fill="#1A1A18">82</text>
+          </svg>
+          <div><div style="font-weight:700;font-size:14px">Recovered</div><div class="tiny">Good day to push</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="hd">WEIGHT</div>
+        <div class="big serif">74.2 <span style="font-size:14px;font-family:'DM Sans';color:var(--sub)">kg</span></div>
+        <div class="tiny"><b style="color:var(--green)">−0.4 kg</b> this week</div>
+      </div>
+    </div>
+
+    <!-- recent -->
+    <div class="card">
+      <div class="hd" style="margin-bottom:6px">RECENT</div>
+      <div class="act"><div class="ic">🏋️</div><div class="t"><div class="n">Pull Day A</div><div class="d">Yesterday · 52 min</div></div><div class="v">11,900 kg</div></div>
+      <div class="act"><div class="ic">🍽️</div><div class="t"><div class="n">Lunch logged</div><div class="d">Grilled chicken salad</div></div><div class="v">620 kcal</div></div>
+    </div>
+
+  </div>
+
+  <!-- liquid glass floating navbar -->
+  <div class="navwrap">
+    <div class="nav">
+      <div class="ni on"><span class="ico">☀️</span>Today</div>
+      <div class="ni"><span class="ico">🍴</span>Meals</div>
+      <div class="ni"><span class="ico">🏋️</span>Train</div>
+      <div class="ni"><span class="ico">🛒</span>Shop</div>
+      <div class="ni"><span class="ico">👤</span>You</div>
+    </div>
+  </div>
+
+</body>
+</html>
