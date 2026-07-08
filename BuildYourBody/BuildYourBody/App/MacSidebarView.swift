@@ -3,7 +3,13 @@ import SwiftUI
 #if os(macOS)
 // Custom Mac layout — brand sidebar + detail, styled like the web app's desktop sidebar
 struct MacRootView: View {
-    @State private var selection = 0
+    @State private var selection: Int = {
+        #if DEBUG
+        return Int(ProcessInfo.processInfo.environment["BB_TAB"] ?? "0") ?? 0
+        #else
+        return 0
+        #endif
+    }()
     @Namespace private var pillNamespace
 
     private let items: [(icon: String, label: String)] = [
