@@ -119,12 +119,12 @@ struct MealsView: View {
                         Capsule().fill(Color.green500).frame(width: 3, height: 44).offset(x: 6)
                     }
                 }
-                if i < macWeek.count - 1 { Spacer(minLength: 16) }
+                if i < macWeek.count - 1 { Spacer(minLength: 14) }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.vertical, 40)
-        .frame(width: 132)
+        .frame(width: 128)
         .background(Color.bbSurface)
     }
 

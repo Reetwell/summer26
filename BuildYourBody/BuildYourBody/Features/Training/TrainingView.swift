@@ -336,12 +336,12 @@ struct TrainingView: View {
                         Capsule().fill(Color.green500).frame(width: 3, height: 44).offset(x: 6)
                     }
                 }
-                if i < railWeek.count - 1 { Spacer(minLength: 12) }
+                if i < railWeek.count - 1 { Spacer(minLength: 14) }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.vertical, 40)
-        .frame(width: 118)
+        .frame(width: 128)
         .background(Color.bbSurface)
     }
 
