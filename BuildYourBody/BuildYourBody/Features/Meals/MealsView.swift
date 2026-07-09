@@ -412,6 +412,7 @@ struct MealsView: View {
             }
             .padding(.horizontal, Spacing.md)
             .padding(.bottom, Spacing.xl)
+            .readableWidth()
             .animation(.spring(response: 0.5, dampingFraction: 0.85), value: eatenKcal)
         }
         .background(Color.bbBackground)

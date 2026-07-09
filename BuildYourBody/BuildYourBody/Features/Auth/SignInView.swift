@@ -10,13 +10,17 @@ struct SignInView: View {
     @State private var isLoading = false
     @State private var error: String?
     @State private var showCreate = false
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var hSize
+    #endif
 
     var body: some View {
         Group {
             #if os(macOS)
             splitLayout
             #else
-            sheetLayout
+            // iPad (regular width) gets the split screen; iPhone gets the sheet
+            if hSize == .regular { splitLayout } else { sheetLayout }
             #endif
         }
         .sheet(isPresented: $showCreate) {
@@ -24,9 +28,8 @@ struct SignInView: View {
         }
     }
 
-    // MARK: - macOS: split screen, form left / brand panel right (web parity)
+    // MARK: - Split screen (macOS + iPad): form left / brand panel right
 
-    #if os(macOS)
     private var splitLayout: some View {
         HStack(spacing: 0) {
             // LEFT — form on cream
@@ -94,7 +97,6 @@ struct SignInView: View {
         }
         .ignoresSafeArea()
     }
-    #endif
 
     // MARK: - iOS: sheet over green hero
 
@@ -283,7 +285,6 @@ struct SignInView: View {
 
 // MARK: - Brand panel: green gradient, floating orbs, word reel (web parity)
 
-#if os(macOS)
 private struct BrandPanelView: View {
     private let words = ["Train.", "Eat.", "Track.", "Build."]
     @State private var index = 0
@@ -353,4 +354,3 @@ private struct BrandPanelView: View {
         }
     }
 }
-#endif

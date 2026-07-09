@@ -36,4 +36,13 @@ extension View {
         self
         #endif
     }
+
+    /// Caps content width on wide screens (iPad/tablet) so it sits as a
+    /// comfortable centred column instead of stretching. No effect on
+    /// iPhone (the screen is narrower than the cap).
+    func readableWidth(_ maxWidth: CGFloat = 720) -> some View {
+        self
+            .frame(maxWidth: maxWidth)
+            .frame(maxWidth: .infinity)
+    }
 }

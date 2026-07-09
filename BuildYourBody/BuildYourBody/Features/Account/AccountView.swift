@@ -4,7 +4,9 @@ struct AccountView: View {
     @Environment(AppState.self) private var appState
     private let todayStore = TodayStore.shared
     @State private var showReminders = false
+    @State private var showLeague = false
     @State private var notificationsOn = false
+    private let rank = RankState.sample
 
     var body: some View {
         #if os(macOS)
@@ -77,6 +79,10 @@ struct AccountView: View {
                     in: RoundedRectangle(cornerRadius: Radius.lg)
                 )
                 .slideIn(delay: 0.06)
+
+                // Rank + weekly league
+                RankCard(rank: rank) { showLeague = true }
+                    .slideIn(delay: 0.09)
 
                 // Settings
                 sectionLabel("SETTINGS")
@@ -179,9 +185,11 @@ struct AccountView: View {
                     .slideIn(delay: 0.28)
             }
             .padding(Spacing.md)
+            .readableWidth()
         }
         .background(Color.bbBackground)
         .hideNavigationBar()
+        .sheet(isPresented: $showLeague) { LeagueView(isPresented: $showLeague) }
     }
 
     private var remindersSheet: some View {
@@ -383,6 +391,11 @@ struct AccountView: View {
                 .offset(y: -52)
                 .padding(.bottom, -34)
 
+                // Rank + weekly league
+                RankCard(rank: rank) { showLeague = true }
+                    .padding(.horizontal, 40)
+                    .padding(.top, 8)
+
                 // Two columns
                 HStack(alignment: .top, spacing: 40) {
                     // Settings
@@ -446,6 +459,7 @@ struct AccountView: View {
         }
         .background(Color.bbBackground)
         .hideNavigationBar()
+        .sheet(isPresented: $showLeague) { LeagueView(isPresented: $showLeague) }
     }
 
     private func macSectionHeader(_ text: String) -> some View {

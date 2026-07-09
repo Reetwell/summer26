@@ -5,6 +5,8 @@ struct TodayView: View {
     private let tsStore = TrainingStore.shared
     @State private var showJunkEntry = false
     @State private var junkText = ""
+    @State private var showLeague = false
+    private let rank = RankState.sample
 
     private var dateString: String {
         Date.now.formatted(.dateTime.weekday(.wide).day().month(.wide))
@@ -69,6 +71,10 @@ struct TodayView: View {
                     }
                 }
                 .slideIn(delay: 0.06)
+
+                // Rank + weekly league
+                RankCard(rank: rank, compact: true) { showLeague = true }
+                    .slideIn(delay: 0.09)
 
                 // Readiness
                 ReadinessBannerView()
@@ -202,9 +208,11 @@ struct TodayView: View {
             }
             .padding(Spacing.md)
             .padding(.bottom, Spacing.xl)
+            .readableWidth()
         }
         .background(Color.bbBackground)
         .hideNavigationBar()
+        .sheet(isPresented: $showLeague) { LeagueView(isPresented: $showLeague) }
         .alert("Log junk food", isPresented: $showJunkEntry) {
             TextField("What did you eat?", text: $junkText)
             Button("Log") {
@@ -255,6 +263,7 @@ struct TodayView: View {
         }
         .background(Color.bbBackground)
         .hideNavigationBar()
+        .sheet(isPresented: $showLeague) { LeagueView(isPresented: $showLeague) }
     }
 
     private var readinessHero: some View {
@@ -306,6 +315,9 @@ struct TodayView: View {
     private var bentoPane: some View {
         ScrollView {
             VStack(spacing: 20) {
+                // Rank + weekly league
+                RankCard(rank: rank) { showLeague = true }
+
                 // Nutrition (full width) — text + arc
                 HStack(spacing: Spacing.lg) {
                     VStack(alignment: .leading, spacing: Spacing.md) {

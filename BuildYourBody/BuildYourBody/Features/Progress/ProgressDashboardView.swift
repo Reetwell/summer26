@@ -135,6 +135,7 @@ struct ProgressDashboardView: View {
             }
             .padding(Spacing.md)
             .padding(.bottom, Spacing.xl)
+            .readableWidth()
         }
         .background(Color.bbBackground)
         .hideNavigationBar()

@@ -137,6 +137,7 @@ struct TrainingView: View {
                     }
                 }
                 .padding(Spacing.md)
+                .readableWidth()
             }
             .background(Color.bbBackground)
             .hideNavigationBar()
