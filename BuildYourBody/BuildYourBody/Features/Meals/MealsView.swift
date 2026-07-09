@@ -21,10 +21,49 @@ struct MealsView: View {
         Meal(slot: "Dinner", name: "Salmon, rice & greens", kcal: 720, protein: 42, carbs: 68, fat: 26, icon: "moon.stars.fill", tint: .green500)
     ]
 
+    @State private var showShopping = false
+
     private let kcalTarget = 2600
     private let proteinTarget = 160
     private let carbsTarget = 300
     private let fatTarget = 80
+
+    // Shopping CTA card — blends into the page, opens the shopping list
+    private var shoppingCTA: some View {
+        Button {
+            showShopping = true
+        } label: {
+            HStack(spacing: Spacing.md) {
+                Image(systemName: "cart.fill")
+                    .font(.system(size: 17))
+                    .foregroundStyle(.white)
+                    .frame(width: 46, height: 46)
+                    .background(
+                        LinearGradient(colors: [.green500, .green700], startPoint: .topLeading, endPoint: .bottomTrailing),
+                        in: RoundedRectangle(cornerRadius: 13)
+                    )
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Shopping list")
+                        .font(.sans(15, weight: .semibold))
+                        .foregroundStyle(.primary)
+                    Text("Everything for this week's meals")
+                        .font(.sans(13))
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color.green500)
+            }
+            .padding(Spacing.md)
+            .background(Color.green500.opacity(0.08), in: RoundedRectangle(cornerRadius: Radius.lg))
+            .overlay(
+                RoundedRectangle(cornerRadius: Radius.lg)
+                    .stroke(Color.green500.opacity(0.15), lineWidth: 1)
+            )
+        }
+        .buttonStyle(ScaleButtonStyle())
+    }
 
     private var eatenKcal: Int    { meals.filter(\.eaten).reduce(0) { $0 + $1.kcal } }
     private var eatenProtein: Int { meals.filter(\.eaten).reduce(0) { $0 + $1.protein } }
@@ -90,8 +129,13 @@ struct MealsView: View {
                             mealCardMac($meals[3]).frame(maxWidth: .infinity)
                         }
                     }
+
+                    // Shopping list CTA
+                    shoppingCTA
+                        .padding(.top, 20)
                 }
                 .padding(56)
+                .padding(.bottom, 96)
                 .frame(maxWidth: 1000, alignment: .leading)
                 .frame(maxWidth: .infinity)
                 .animation(.spring(response: 0.5, dampingFraction: 0.85), value: eatenKcal)
@@ -99,6 +143,7 @@ struct MealsView: View {
         }
         .background(Color.bbBackground)
         .hideNavigationBar()
+        .sheet(isPresented: $showShopping) { ShoppingSheet(isPresented: $showShopping) }
     }
 
     private var macDateRail: some View {
@@ -297,6 +342,11 @@ struct MealsView: View {
                 }
                 .padding(.top, Spacing.xs)
 
+                // Shopping list CTA
+                shoppingCTA
+                    .padding(.top, Spacing.md)
+                    .slideIn(delay: 0.4)
+
                 // Recipes section
                 HStack {
                     Text("RECIPES")
@@ -346,6 +396,7 @@ struct MealsView: View {
         }
         .background(Color.bbBackground)
         .hideNavigationBar()
+        .sheet(isPresented: $showShopping) { ShoppingSheet(isPresented: $showShopping) }
     }
 
     private func macroStat(_ key: String, _ eaten: Int, _ target: Int) -> some View {
@@ -428,4 +479,28 @@ struct MealsView: View {
         }
     }
     #endif
+}
+
+// Presents the shopping list in a sheet with a close button (works on both platforms)
+private struct ShoppingSheet: View {
+    @Binding var isPresented: Bool
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            ShoppingView()
+            Button {
+                isPresented = false
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(.secondary)
+                    .padding(11)
+                    .background(.regularMaterial, in: Circle())
+            }
+            .buttonStyle(.plain)
+            .padding(Spacing.md)
+        }
+        #if os(macOS)
+        .frame(minWidth: 560, minHeight: 680)
+        #endif
+    }
 }
