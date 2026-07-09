@@ -2,7 +2,9 @@ import SwiftUI
 
 struct AccountView: View {
     @Environment(AppState.self) private var appState
-    @State private var notificationsOn = true
+    private let todayStore = TodayStore.shared
+    @State private var showReminders = false
+    @State private var notificationsOn = false
 
     var body: some View {
         #if os(macOS)
@@ -98,10 +100,47 @@ struct AccountView: View {
                         .padding(.horizontal, Spacing.sm)
                         .padding(.vertical, 9)
                         Divider().padding(.leading, 52)
-                        settingsRow(icon: "heart.fill", tint: Color(hex: "#E8564A"), title: "Apple Health", value: "Connect")
+                        Divider().padding(.leading, 52)
+                        Button {
+                            showReminders = true
+                        } label: {
+                            HStack(spacing: Spacing.md) {
+                                iconBadge("clock.fill", tint: Color(hex: "#E85D9A"))
+                                Text("Reminder times").font(.sans(15)).foregroundStyle(.primary)
+                                Spacer()
+                                Text(todayStore.proteinReminderTime)
+                                    .font(.sans(13)).foregroundStyle(.secondary)
+                                Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold)).foregroundStyle(.tertiary)
+                            }
+                            .padding(.horizontal, Spacing.sm).padding(.vertical, 11).contentShape(Rectangle())
+                        }
+                        .buttonStyle(ScaleButtonStyle())
+                        Divider().padding(.leading, 52)
+                        Button {
+                            #if os(iOS)
+                            Task { await HealthKitService.shared.requestAuthorization() }
+                            #endif
+                        } label: {
+                            HStack(spacing: Spacing.md) {
+                                iconBadge("heart.fill", tint: Color(hex: "#E8564A"))
+                                Text("Apple Health").font(.sans(15)).foregroundStyle(.primary)
+                                Spacer()
+                                #if os(iOS)
+                                Text(HealthKitService.shared.authorized ? "Connected" : "Connect")
+                                    .font(.sans(13))
+                                    .foregroundStyle(HealthKitService.shared.authorized ? Color.green500 : .secondary)
+                                #else
+                                Text("iOS only").font(.sans(13)).foregroundStyle(.secondary)
+                                #endif
+                                Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold)).foregroundStyle(.tertiary)
+                            }
+                            .padding(.horizontal, Spacing.sm).padding(.vertical, 11).contentShape(Rectangle())
+                        }
+                        .buttonStyle(ScaleButtonStyle())
                     }
                 }
                 .slideIn(delay: 0.13)
+                .sheet(isPresented: $showReminders) { remindersSheet }
 
                 // More
                 sectionLabel("MORE")
@@ -143,6 +182,90 @@ struct AccountView: View {
         }
         .background(Color.bbBackground)
         .hideNavigationBar()
+    }
+
+    private var remindersSheet: some View {
+        NavigationStack {
+            Form {
+                Section("Daily reminders") {
+                    HStack {
+                        Label("Protein check", systemImage: "fork.knife")
+                            .font(.sans(15))
+                        Spacer()
+                        DatePicker("", selection: Binding(
+                            get: { timeToDate(todayStore.proteinReminderTime) },
+                            set: { todayStore.proteinReminderTime = dateToTime($0) }
+                        ), displayedComponents: .hourAndMinute)
+                        .labelsHidden()
+                    }
+                    HStack {
+                        Label("Creatine", systemImage: "pills.fill")
+                            .font(.sans(15))
+                        Spacer()
+                        DatePicker("", selection: Binding(
+                            get: { timeToDate(todayStore.creatineReminderTime) },
+                            set: { todayStore.creatineReminderTime = dateToTime($0) }
+                        ), displayedComponents: .hourAndMinute)
+                        .labelsHidden()
+                    }
+                    HStack {
+                        Label("Hydration", systemImage: "drop.fill")
+                            .font(.sans(15))
+                        Spacer()
+                        DatePicker("", selection: Binding(
+                            get: { timeToDate(todayStore.waterReminderTime) },
+                            set: { todayStore.waterReminderTime = dateToTime($0) }
+                        ), displayedComponents: .hourAndMinute)
+                        .labelsHidden()
+                    }
+                }
+                Section {
+                    #if os(iOS)
+                    Button("Enable notifications") {
+                        Task {
+                            await todayStore.requestNotificationPermission()
+                            todayStore.saveReminders()
+                        }
+                    }
+                    .font(.sans(15, weight: .semibold))
+                    .foregroundStyle(Color.green500)
+                    #endif
+                } footer: {
+                    Text("Reminders send daily at the times you set.")
+                        .font(.sans(12))
+                }
+            }
+            .navigationTitle("Reminders")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        todayStore.saveReminders()
+                        showReminders = false
+                    }
+                    .font(.sans(15, weight: .semibold))
+                    .foregroundStyle(Color.green500)
+                }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { showReminders = false }
+                }
+            }
+        }
+    }
+
+    private func timeToDate(_ s: String) -> Date {
+        let parts = s.split(separator: ":").compactMap { Int($0) }
+        guard parts.count == 2 else { return Date() }
+        var c = Calendar.current.dateComponents([.year, .month, .day], from: Date())
+        c.hour = parts[0]; c.minute = parts[1]
+        return Calendar.current.date(from: c) ?? Date()
+    }
+
+    private func dateToTime(_ d: Date) -> String {
+        let c = Calendar.current.dateComponents([.hour, .minute], from: d)
+        return String(format: "%02d:%02d", c.hour ?? 0, c.minute ?? 0)
     }
 
     private func heroStat(value: String, label: String) -> some View {

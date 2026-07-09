@@ -72,17 +72,19 @@ struct MacRootView: View {
         }
     }
 
-    // MARK: floating glass dock — single Liquid Glass bar, sliding active pill
+    // MARK: floating dock — Liquid Glass bar with a sliding pill
 
     private var floatingDock: some View {
-        HStack(spacing: 4) {
-            ForEach(items.indices, id: \.self) { i in
-                dockButton(i)
+        GlassEffectContainer {
+            HStack(spacing: 0) {
+                ForEach(items.indices, id: \.self) { i in
+                    dockButton(i)
+                }
             }
+            .padding(6)
+            .glassEffect(.regular.interactive(), in: Capsule())
         }
-        .padding(6)
-        .glassEffect(.regular.interactive(), in: Capsule())
-        .shadow(color: Color.green900.opacity(0.18), radius: 24, y: 12)
+        .shadow(color: Color.green900.opacity(0.2), radius: 26, y: 14)
     }
 
     private func dockButton(_ i: Int) -> some View {

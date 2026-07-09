@@ -16,22 +16,38 @@ struct WeekDayState: Identifiable {
 }
 
 struct TrainingView: View {
-    private let week: [WeekDayState] = [
-        .init(letter: "M", state: .done),
-        .init(letter: "T", state: .done),
-        .init(letter: "W", state: .rest),
-        .init(letter: "T", state: .today),
-        .init(letter: "F", state: .upcoming),
-        .init(letter: "S", state: .upcoming),
-        .init(letter: "S", state: .rest)
-    ]
+    private let ts = TrainingStore.shared
+    @State private var showSession = false
+    @State private var showPlanDetails = false
 
-    private let routines = [
-        Routine(name: "Push Day A", exercises: ["Bench Press", "Incline DB Press", "Overhead Press", "Lateral Raise", "Triceps Pushdown", "Cable Fly"], duration: "~55 min"),
-        Routine(name: "Pull Day A", exercises: ["Deadlift", "Pull-Ups", "Barbell Row", "Face Pull", "Barbell Curl", "Hammer Curl"], duration: "~50 min"),
-        Routine(name: "Legs Day", exercises: ["Squat", "Romanian Deadlift", "Leg Press", "Leg Curl", "Walking Lunge", "Calf Raise", "Leg Extension"], duration: "~60 min"),
-        Routine(name: "Upper B", exercises: ["Incline Bench Press", "Lat Pulldown", "DB Shoulder Press", "Seated Cable Row", "Preacher Curl", "Skull Crushers"], duration: "~55 min")
-    ]
+    // Computed from live store
+    private var liveWeek: [WeekDayState] {
+        var cal = Calendar.current; cal.firstWeekday = 2
+        guard let start = cal.dateInterval(of: .weekOfYear, for: Date())?.start else { return [] }
+        let fmt = DateFormatter(); fmt.dateFormat = "E"; fmt.locale = Locale(identifier: "en_US_POSIX")
+        let phase = ts.plan.phases[safe: ts.activePhaseIndex]
+        return (0..<7).compactMap { off -> WeekDayState? in
+            guard let d = cal.date(byAdding: .day, value: off, to: start) else { return nil }
+            let letter = String(fmt.string(from: d).prefix(1))
+            let session = phase?.sessions.first { $0.day == fmt.string(from: d) }
+            let isRest = session?.focus == "Rest" || session == nil
+            let isToday = cal.isDateInToday(d)
+            let isDone = ts.progress[ts.isoDate(d)] == true
+            let state: WeekDayState.DayState = isDone ? .done : (isToday ? .today : (isRest ? .rest : .upcoming))
+            return WeekDayState(letter: letter, state: state)
+        }
+    }
+
+    private var phaseBadge: String {
+        ts.todayPhase.map { "\($0.badge) · WK \($0.weeks)" } ?? "No plan"
+    }
+
+    private var routines: [Routine] {
+        guard let phase = ts.plan.phases[safe: ts.activePhaseIndex] else { return [] }
+        return phase.sessions
+            .filter { $0.focus != "Rest" }
+            .map { Routine(name: $0.name, exercises: $0.exercises, duration: $0.duration) }
+    }
 
     var body: some View {
         #if os(macOS)
@@ -42,59 +58,131 @@ struct TrainingView: View {
     }
 
     private var iosLayout: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: Spacing.md) {
-                // Header
-                HStack(alignment: .firstTextBaseline) {
-                    Text("Training")
-                        .font(.serifDisplay(34))
-                    Spacer()
-                    Text("PHASE 2 · WK 3")
-                        .font(.sans(11, weight: .bold))
-                        .foregroundStyle(Color.green500)
-                        .kerning(0.8)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(Color.green500.opacity(0.12), in: Capsule())
-                }
-                .slideIn()
-
-                // TODAY hero — the one thing to do right now
+        NavigationStack {
+            ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.md) {
+                    // Header
+                    HStack(alignment: .firstTextBaseline) {
+                        Text("Training")
+                            .font(.serifDisplay(34))
+                        Spacer()
+                        NavigationLink(destination: PlanDetailsView()) {
+                            Text(phaseBadge.uppercased())
+                                .font(.sans(11, weight: .bold))
+                                .foregroundStyle(Color.green500)
+                                .kerning(0.8)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(Color.green500.opacity(0.12), in: Capsule())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .slideIn()
+
+                    // TODAY hero
+                    todayHero
+                        .slideIn(delay: 0.06)
+
+                    // Week strip — live
+                    BBCard(padding: Spacing.sm) {
+                        HStack {
+                            ForEach(liveWeek) { day in
+                                weekDot(day)
+                                    .frame(maxWidth: .infinity)
+                            }
+                        }
+                    }
+                    .slideIn(delay: 0.12)
+
+                    // Readiness
+                    ReadinessBannerView()
+                        .slideIn(delay: 0.16)
+
+                    // Quick stats — live
+                    HStack(spacing: Spacing.sm) {
+                        statCard(value: "\(ts.sessionsThisWeek)/\(ts.sessionsPlannedThisWeek)", unit: "", label: "sessions this week")
+                        statCard(value: "\(ts.currentStreak)", unit: "🔥", label: "day streak")
+                        NavigationLink(destination: PlanDetailsView()) {
+                            statCard(value: "\(ts.plan.phases.count)", unit: "", label: "phases in plan")
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .slideIn(delay: 0.22)
+
+                    // Routines
                     HStack {
-                        Text("TODAY · THURSDAY")
-                            .font(.sans(10, weight: .bold))
-                            .foregroundStyle(.white.opacity(0.75))
+                        Text("THIS WEEK'S SESSIONS")
+                            .font(.sans(11, weight: .semibold))
+                            .foregroundStyle(.secondary)
                             .kerning(1.2)
                         Spacer()
+                        NavigationLink(destination: PlanDetailsView()) {
+                            Text("Plan details")
+                                .font(.sans(13, weight: .semibold))
+                                .foregroundStyle(Color.green500)
+                        }
+                    }
+                    .padding(.top, 4)
+                    .slideIn(delay: 0.24)
+
+                    ForEach(Array(routines.enumerated()), id: \.element.id) { index, routine in
+                        let session = ts.plan.phases[safe: ts.activePhaseIndex]?.sessions.first { $0.name == routine.name }
+                        NavigationLink(destination: session.map { s in
+                            SessionView(session: s, phase: ts.todayPhase ?? ts.plan.phases[0])
+                        }) {
+                            routineCard(routine)
+                        }
+                        .buttonStyle(.plain)
+                        .slideIn(delay: 0.26 + Double(index) * 0.05)
+                    }
+                }
+                .padding(Spacing.md)
+            }
+            .background(Color.bbBackground)
+            .hideNavigationBar()
+        }
+    }
+
+    @ViewBuilder
+    private var todayHero: some View {
+        if let session = ts.todaySession(), session.focus != "Rest" {
+            VStack(alignment: .leading, spacing: Spacing.md) {
+                HStack {
+                    Text("TODAY · \(Date().formatted(.dateTime.weekday(.wide)).uppercased())")
+                        .font(.sans(10, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.75))
+                        .kerning(1.2)
+                    Spacer()
+                    if ts.currentStreak > 0 {
                         HStack(spacing: 4) {
-                            Image(systemName: "flame.fill")
-                                .font(.system(size: 11))
-                            Text("6")
-                                .font(.sans(12, weight: .bold))
+                            Image(systemName: "flame.fill").font(.system(size: 11))
+                            Text("\(ts.currentStreak)").font(.sans(12, weight: .bold))
                         }
                         .foregroundStyle(.white)
-                        .padding(.horizontal, 9)
-                        .padding(.vertical, 5)
+                        .padding(.horizontal, 9).padding(.vertical, 5)
                         .background(.white.opacity(0.16), in: Capsule())
                     }
+                }
 
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("Push Day A")
-                            .font(.serifDisplay(30))
-                            .foregroundStyle(.white)
-                        Text("6 exercises · ~55 min · last time 12,400 kg")
-                            .font(.sans(13))
-                            .foregroundStyle(.white.opacity(0.8))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(session.name).font(.serifDisplay(30)).foregroundStyle(.white)
+                    Text("\(session.exercises.count) exercises · \(session.duration)")
+                        .font(.sans(13)).foregroundStyle(.white.opacity(0.8))
+                }
+
+                if ts.isDone() {
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark.circle.fill").font(.system(size: 16)).foregroundStyle(.white)
+                        Text("Done today — great work").font(.sans(14, weight: .semibold)).foregroundStyle(.white)
                     }
-
-                    // Start button — white on green, impossible to miss
-                    Button {} label: {
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
+                    .background(.white.opacity(0.18), in: RoundedRectangle(cornerRadius: Radius.md))
+                } else {
+                    NavigationLink(destination: SessionView(session: session, phase: ts.todayPhase ?? ts.plan.phases[0])) {
                         HStack(spacing: 8) {
-                            Image(systemName: "play.fill")
-                                .font(.system(size: 14))
-                            Text("Start workout")
-                                .font(.sans(16, weight: .bold))
+                            Image(systemName: "play.fill").font(.system(size: 14))
+                            Text("Start workout").font(.sans(16, weight: .bold))
                         }
                         .foregroundStyle(Color.green700)
                         .frame(maxWidth: .infinity)
@@ -103,63 +191,27 @@ struct TrainingView: View {
                     }
                     .buttonStyle(ScaleButtonStyle())
                 }
-                .padding(Spacing.md)
-                .background(
-                    LinearGradient(colors: [.green500, .green900],
-                                   startPoint: .topLeading, endPoint: .bottomTrailing),
-                    in: RoundedRectangle(cornerRadius: Radius.lg)
-                )
-                .slideIn(delay: 0.06)
-
-                // Week strip
-                BBCard(padding: Spacing.sm) {
-                    HStack {
-                        ForEach(week) { day in
-                            weekDot(day)
-                                .frame(maxWidth: .infinity)
-                        }
-                    }
-                }
-                .slideIn(delay: 0.12)
-
-                // Quick stats
-                HStack(spacing: Spacing.sm) {
-                    statCard(value: "24.8k", unit: "kg", label: "volume this week")
-                    statCard(value: "2", unit: "PRs", label: "new records")
-                    statCard(value: "3/5", unit: "", label: "sessions done")
-                }
-                .slideIn(delay: 0.18)
-
-                // Routines
-                HStack {
-                    Text("YOUR ROUTINES")
-                        .font(.sans(11, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                        .kerning(1.2)
-                    Spacer()
-                    Button {} label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 11, weight: .bold))
-                            Text("New")
-                                .font(.sans(13, weight: .semibold))
-                        }
-                        .foregroundStyle(Color.green500)
-                    }
-                    .buttonStyle(.plain)
-                }
-                .padding(.top, 4)
-                .slideIn(delay: 0.22)
-
-                ForEach(Array(routines.enumerated()), id: \.element.id) { index, routine in
-                    routineCard(routine)
-                        .slideIn(delay: 0.24 + Double(index) * 0.05)
-                }
             }
             .padding(Spacing.md)
+            .background(
+                LinearGradient(colors: [.green500, .green900], startPoint: .topLeading, endPoint: .bottomTrailing),
+                in: RoundedRectangle(cornerRadius: Radius.lg)
+            )
+        } else {
+            BBCard {
+                HStack(spacing: Spacing.md) {
+                    Image(systemName: "zzz")
+                        .font(.system(size: 22))
+                        .foregroundStyle(Color.green500.opacity(0.5))
+                        .frame(width: 44, height: 44)
+                        .background(Color.green500.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Rest day").font(.sans(16, weight: .semibold))
+                        Text("Recovery is part of the plan.").font(.sans(13)).foregroundStyle(.secondary)
+                    }
+                }
+            }
         }
-        .background(Color.bbBackground)
-        .hideNavigationBar()
     }
 
     #if os(macOS)
@@ -230,6 +282,10 @@ struct TrainingView: View {
                         macStat("TIME UNDER LOAD", "3h 42m")
                     }
                     .slideIn(delay: 0.05)
+
+                    // Readiness inline (macOS — compact, no hero)
+                    ReadinessBannerView()
+                        .slideIn(delay: 0.08)
 
                     // Bento grid
                     let cols = [GridItem(.flexible(), spacing: 16),
@@ -554,31 +610,26 @@ struct TrainingView: View {
     }
 
     private func routineCard(_ routine: Routine) -> some View {
-        Button {} label: {
-            BBCard {
-                VStack(alignment: .leading, spacing: Spacing.sm) {
-                    HStack {
-                        Text(routine.name)
-                            .font(.sans(16, weight: .semibold))
-                            .foregroundStyle(.primary)
-                        Spacer()
-                        Text("\(routine.exercises.count) exercises · \(routine.duration)")
-                            .font(.sans(12))
-                            .foregroundStyle(.secondary)
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(.tertiary)
-                    }
-
-                    // Exercise preview — first 3 + count
-                    Text(previewLine(routine))
-                        .font(.sans(13))
+        BBCard {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                HStack {
+                    Text(routine.name)
+                        .font(.sans(16, weight: .semibold))
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Text("\(routine.exercises.count) ex · \(routine.duration)")
+                        .font(.sans(12))
                         .foregroundStyle(.secondary)
-                        .lineLimit(1)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.tertiary)
                 }
+                Text(previewLine(routine))
+                    .font(.sans(13))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
         }
-        .buttonStyle(ScaleButtonStyle())
     }
 
     private func previewLine(_ routine: Routine) -> String {

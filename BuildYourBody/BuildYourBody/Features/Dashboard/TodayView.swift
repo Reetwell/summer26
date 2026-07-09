@@ -1,6 +1,11 @@
 import SwiftUI
 
 struct TodayView: View {
+    private let todayStore = TodayStore.shared
+    private let tsStore = TrainingStore.shared
+    @State private var showJunkEntry = false
+    @State private var junkText = ""
+
     private var dateString: String {
         Date.now.formatted(.dateTime.weekday(.wide).day().month(.wide))
     }
@@ -66,34 +71,8 @@ struct TodayView: View {
                 .slideIn(delay: 0.06)
 
                 // Readiness
-                BBCard {
-                    HStack(spacing: Spacing.md) {
-                        ZStack {
-                            Circle()
-                                .stroke(Color.green500.opacity(0.14), lineWidth: 6)
-                            Circle()
-                                .trim(from: 0, to: 0.82)
-                                .stroke(Color.green500, style: StrokeStyle(lineWidth: 6, lineCap: .round))
-                                .rotationEffect(.degrees(-90))
-                            Text("82")
-                                .font(.serifDisplay(20))
-                        }
-                        .frame(width: 54, height: 54)
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Readiness")
-                                .font(.sans(15, weight: .semibold))
-                            Text("Recovered — good day to push.")
-                                .font(.sans(13))
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.tertiary)
-                    }
-                }
-                .slideIn(delay: 0.12)
+                ReadinessBannerView()
+                    .slideIn(delay: 0.12)
 
                 // Today's training
                 BBCard {
@@ -130,19 +109,120 @@ struct TodayView: View {
                 }
                 .slideIn(delay: 0.18)
 
-                // Quick stats row
+                // Quick stats row — steps live from HealthKit, water from TodayStore
                 HStack(spacing: Spacing.sm) {
-                    quickStat(icon: "figure.walk", value: "8,412", label: "steps")
-                    quickStat(icon: "drop.fill", value: "1.8L", label: "water")
+                    #if os(iOS)
+                    quickStat(icon: "figure.walk", value: stepsString, label: "steps")
+                    #else
+                    quickStat(icon: "figure.walk", value: "—", label: "steps")
+                    #endif
+                    quickStat(icon: "drop.fill", value: String(format: "%.1fL", todayStore.todayLog.water), label: "water")
                     quickStat(icon: "scalemass.fill", value: "74.2kg", label: "weight")
                 }
                 .slideIn(delay: 0.24)
+
+                // Hydration logger
+                BBCard {
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        HStack {
+                            Label("Water", systemImage: "drop.fill")
+                                .font(.sans(15, weight: .semibold))
+                                .foregroundStyle(Color(hex: "#4A90D9"))
+                            Spacer()
+                            Text(String(format: "%.1f / 3.0 L", todayStore.todayLog.water))
+                                .font(.sans(13))
+                                .foregroundStyle(.secondary)
+                        }
+                        HStack(spacing: Spacing.sm) {
+                            ForEach([0.25, 0.5, 0.75, 1.0], id: \.self) { amt in
+                                Button {
+                                    todayStore.addWater(amt)
+                                } label: {
+                                    Text("+\(amt < 1 ? String(Int(amt * 1000)) + "ml" : "1L")")
+                                        .font(.sans(13, weight: .semibold))
+                                        .foregroundStyle(Color(hex: "#4A90D9"))
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 9)
+                                        .background(Color(hex: "#4A90D9").opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
+                                }
+                                .buttonStyle(ScaleButtonStyle())
+                            }
+                        }
+                    }
+                }
+                .slideIn(delay: 0.28)
+
+                // Creatine + junk row
+                HStack(spacing: Spacing.sm) {
+                    // Creatine toggle
+                    Button { todayStore.toggleCreatine() } label: {
+                        BBCard(padding: Spacing.sm) {
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack {
+                                    Circle()
+                                        .fill(todayStore.todayLog.creatine ? Color.green500 : Color.secondary.opacity(0.2))
+                                        .frame(width: 10, height: 10)
+                                    Spacer()
+                                    if todayStore.todayLog.creatine {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .font(.system(size: 16))
+                                            .foregroundStyle(Color.green500)
+                                    }
+                                }
+                                Text("5g").font(.serifDisplay(18))
+                                Text("creatine").font(.sans(11)).foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+
+                    // Junk food log
+                    BBCard(padding: Spacing.sm) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Image(systemName: "fork.knife")
+                                .font(.system(size: 14))
+                                .foregroundStyle(Color(hex: "#E05C5C"))
+                            Text("\(todayStore.todayLog.junk.count)").font(.serifDisplay(18))
+                            HStack {
+                                Text("junk").font(.sans(11)).foregroundStyle(.secondary)
+                                Spacer()
+                                Button {
+                                    showJunkEntry = true
+                                } label: {
+                                    Image(systemName: "plus")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundStyle(Color(hex: "#E05C5C"))
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                }
+                .slideIn(delay: 0.30)
             }
             .padding(Spacing.md)
+            .padding(.bottom, Spacing.xl)
         }
         .background(Color.bbBackground)
         .hideNavigationBar()
+        .alert("Log junk food", isPresented: $showJunkEntry) {
+            TextField("What did you eat?", text: $junkText)
+            Button("Log") {
+                if !junkText.trimmingCharacters(in: .whitespaces).isEmpty {
+                    todayStore.logJunk(junkText)
+                    junkText = ""
+                }
+            }
+            Button("Cancel", role: .cancel) { junkText = "" }
+        }
     }
+
+    #if os(iOS)
+    private var stepsString: String {
+        if let steps = HealthKitService.shared.steps { return steps >= 1000 ? String(format: "%.1fk", Double(steps) / 1000) : "\(steps)" }
+        return "—"
+    }
+    #endif
 
     private func quickStat(icon: String, value: String, label: String) -> some View {
         BBCard(padding: Spacing.sm) {
@@ -200,38 +280,27 @@ struct TodayView: View {
                     .kerning(3)
                     .foregroundStyle(Color(hex: "#86f8c9").opacity(0.9))
                 (Text(greeting + " ").foregroundStyle(.white)
-                 + Text("Primed for progress.").foregroundStyle(.white.opacity(0.65)))
+                 + Text(readinessTagline).foregroundStyle(.white.opacity(0.65)))
                     .font(.serifDisplay(46))
                     .lineSpacing(2)
                     .padding(.top, Spacing.md)
 
                 Spacer()
 
-                HStack(alignment: .lastTextBaseline, spacing: 16) {
-                    Text("82").font(.serifDisplay(110)).foregroundStyle(.white)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("READINESS").font(.sans(12, weight: .bold)).kerning(2).foregroundStyle(Color(hex: "#86f8c9"))
-                        Text("RECOVERED").font(.serifDisplay(26)).foregroundStyle(.white)
-                    }
-                }
-                HStack(spacing: 8) {
-                    heroPill("Sleep: 92%")
-                    heroPill("HRV: High")
-                }
-                .padding(.top, Spacing.md)
+                ReadinessHeroContent()
             }
             .padding(40)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         }
     }
 
-    private func heroPill(_ text: String) -> some View {
-        Text(text)
-            .font(.sans(13, weight: .semibold))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 16).padding(.vertical, 9)
-            .background(.white.opacity(0.18), in: Capsule())
-            .overlay(Capsule().stroke(.white.opacity(0.2), lineWidth: 1))
+    private var readinessTagline: String {
+        switch ReadinessStore.shared.todayScore {
+        case let s? where s >= 80: return "Primed for progress."
+        case let s? where s >= 60: return "Solid foundation today."
+        case .some:                return "Recovery day."
+        default:                   return "Check in to get started."
+        }
     }
 
     private var bentoPane: some View {

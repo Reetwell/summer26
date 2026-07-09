@@ -296,6 +296,49 @@ struct MealsView: View {
                     }
                 }
                 .padding(.top, Spacing.xs)
+
+                // Recipes section
+                HStack {
+                    Text("RECIPES")
+                        .font(.sans(11, weight: .bold))
+                        .foregroundStyle(.secondary)
+                        .kerning(1.3)
+                    Spacer()
+                    NavigationLink(destination: RecipesView()) {
+                        Text("See all")
+                            .font(.sans(13, weight: .semibold))
+                            .foregroundStyle(Color.green500)
+                    }
+                }
+                .padding(.top, Spacing.md)
+                .slideIn(delay: 0.42)
+
+                NavigationLink(destination: RecipesView()) {
+                    HStack(spacing: Spacing.sm) {
+                        Image(systemName: "link.badge.plus")
+                            .font(.system(size: 18))
+                            .foregroundStyle(Color.green500)
+                            .frame(width: 44, height: 44)
+                            .background(Color.green500.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Add from TikTok / IG / YouTube")
+                                .font(.sans(15, weight: .semibold))
+                                .foregroundStyle(.primary)
+                            Text("AI extracts the recipe in seconds")
+                                .font(.sans(13))
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(Spacing.md)
+                    .background(Color.bbSurface, in: RoundedRectangle(cornerRadius: Radius.lg))
+                    .shadow(color: .black.opacity(0.04), radius: 8, y: 3)
+                }
+                .buttonStyle(.plain)
+                .slideIn(delay: 0.46)
             }
             .padding(.horizontal, Spacing.md)
             .padding(.bottom, Spacing.xl)
