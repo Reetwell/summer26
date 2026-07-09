@@ -17,7 +17,7 @@ struct MacRootView: View {
         ("sun.max.fill", "Today"),
         ("fork.knife", "Meals"),
         ("dumbbell.fill", "Training"),
-        ("cart.fill", "Shopping"),
+        ("chart.line.uptrend.xyaxis", "Progress"),
         ("person.fill", "Account")
     ]
 
@@ -82,7 +82,7 @@ struct MacRootView: View {
         case 0: TodayView().id(0)
         case 1: MealsView().id(1)
         case 2: TrainingView().id(2)
-        case 3: ShoppingView().id(3)
+        case 3: ProgressDashboardView().id(3)
         default: AccountView().id(4)
         }
     }

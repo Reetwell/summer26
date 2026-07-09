@@ -31,8 +31,8 @@ struct MainTabView: View {
             Tab("Training", systemImage: "dumbbell.fill", value: 2) {
                 NavigationStack { TrainingView() }
             }
-            Tab("Shopping", systemImage: "cart.fill", value: 3) {
-                NavigationStack { ShoppingView() }
+            Tab("Progress", systemImage: "chart.line.uptrend.xyaxis", value: 3) {
+                NavigationStack { ProgressDashboardView() }
             }
             Tab("Account", systemImage: "person.fill", value: 4) {
                 NavigationStack { AccountView() }
