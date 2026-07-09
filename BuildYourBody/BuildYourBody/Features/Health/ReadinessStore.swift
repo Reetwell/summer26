@@ -1,4 +1,5 @@
 import Foundation
+import Supabase
 
 // Mirrors web's sbp-readiness: { [ISO-date]: ReadinessEntry }
 struct ReadinessEntry: Codable {
@@ -9,15 +10,34 @@ struct ReadinessEntry: Codable {
     var source: String   // "manual" | "healthkit"
 }
 
+// Row shape matching Supabase app_data table
+private struct AppDataUpsert: Encodable {
+    let user_id: String
+    let key: String
+    let value: [String: ReadinessEntry]
+}
+
+private struct AppDataRow: Decodable {
+    let value: [String: ReadinessEntry]
+}
+
 @Observable
 final class ReadinessStore {
     static let shared = ReadinessStore()
-    private let key = "sbp-readiness"
+    private let udKey = "sbp-readiness"
     private var entries: [String: ReadinessEntry] = [:]
 
-    private init() { load() }
+    private let supabase = SupabaseClient(
+        supabaseURL: URL(string: Secrets.supabaseURL)!,
+        supabaseKey: Secrets.supabaseAnonKey
+    )
 
-    private static var isoFormatter: DateFormatter = {
+    private init() {
+        load()
+        Task { await loadFromSupabase() }
+    }
+
+    private static let isoFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"
         f.locale = Locale(identifier: "en_US_POSIX")
@@ -55,6 +75,7 @@ final class ReadinessStore {
         let entry = ReadinessEntry(sleep: sleep, energy: energy, soreness: soreness, score: score, source: source)
         entries[todayKey()] = entry
         persist()
+        Task { await syncToSupabase() }
     }
 
     // Returns last 7 days of entries for charts
@@ -67,16 +88,47 @@ final class ReadinessStore {
         }.reversed()
     }
 
+    // MARK: - Supabase sync
+
+    private func currentUserId() async -> String? {
+        guard let session = try? await supabase.auth.session else { return nil }
+        return session.user.id.uuidString
+    }
+
+    private func syncToSupabase() async {
+        guard let uid = await currentUserId() else { return }
+        let row = AppDataUpsert(user_id: uid, key: "bb-readiness-native", value: entries)
+        _ = try? await supabase.from("app_data")
+            .upsert(row, onConflict: "user_id,key")
+            .execute()
+    }
+
+    private func loadFromSupabase() async {
+        guard let uid = await currentUserId() else { return }
+        guard let rows = try? await supabase.from("app_data")
+            .select("value")
+            .eq("user_id", value: uid)
+            .eq("key", value: "bb-readiness-native")
+            .execute()
+            .value as [AppDataRow],
+              let remote = rows.first else { return }
+        // Merge: remote fills dates we don't have locally; local wins on conflict
+        for (date, entry) in remote.value where entries[date] == nil {
+            entries[date] = entry
+        }
+        persist()
+    }
+
     // MARK: - Persistence
 
     private func load() {
-        guard let data = UserDefaults.standard.data(forKey: key),
+        guard let data = UserDefaults.standard.data(forKey: udKey),
               let decoded = try? JSONDecoder().decode([String: ReadinessEntry].self, from: data) else { return }
         entries = decoded
     }
 
     private func persist() {
         guard let data = try? JSONEncoder().encode(entries) else { return }
-        UserDefaults.standard.set(data, forKey: key)
+        UserDefaults.standard.set(data, forKey: udKey)
     }
 }
