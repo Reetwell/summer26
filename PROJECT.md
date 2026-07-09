@@ -20,6 +20,21 @@ at a time** (all features live there). Commit + push when done; next window pull
 "split app.js into core.js/training.js/meals.js/readiness.js/recipes.js, classic
 scripts in load order, verify every screen." Then each feature becomes its own lane.)*
 
+## Report back — end every session with a STATUS BLOCK
+Every build chat (Design / Features / Backend), at the **end of each work session**,
+print this block so Brian can paste it into the project's second-brain notes. Keep
+it factual and concise:
+
+    STATUS BLOCK
+    Lane: <Design | Features | Backend>
+    Date: <today>
+    Shipped this session: <bullets — commits / changes>
+    Current state: <1–2 lines>
+    Next up: <smallest next step(s)>
+    Needs from Brian: <keys / decisions / setup — or "none">
+    Open questions / risks: <or "none">
+    Depends on / hands off to: <other lane — or "none">
+
 ## Stack & philosophy
 - **Vanilla static PWA. No build step, no framework, no bundler.** This is deliberate —
   it's why it "always works." Do **not** add React/Vite/etc.
