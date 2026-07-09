@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 #if os(iOS)
 import UserNotifications
 #endif
