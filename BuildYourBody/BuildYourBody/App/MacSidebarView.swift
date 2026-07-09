@@ -1,7 +1,7 @@
 import SwiftUI
 
 #if os(macOS)
-// Custom Mac layout — brand sidebar + detail, styled like the web app's desktop sidebar
+// Mac layout — top bar + floating glass bottom dock (Stitch desktop design)
 struct MacRootView: View {
     @State private var selection: Int = {
         #if DEBUG
@@ -10,7 +10,7 @@ struct MacRootView: View {
         return 0
         #endif
     }()
-    @Namespace private var pillNamespace
+    @Namespace private var dockNamespace
 
     private let items: [(icon: String, label: String)] = [
         ("sun.max.fill", "Today"),
@@ -21,62 +21,78 @@ struct MacRootView: View {
     ]
 
     var body: some View {
-        HStack(spacing: 0) {
-            sidebar
-            Divider()
-            detail
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        ZStack(alignment: .bottom) {
+            VStack(spacing: 0) {
+                topBar
+                detail
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            floatingDock
+                .padding(.bottom, 24)
         }
         .background(Color.bbBackground)
     }
 
-    private var sidebar: some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
-            // Wordmark — "Build Your" + green "Body", serif like the web
-            (Text("Build Your ")
-                .foregroundStyle(.primary)
-             + Text("Body")
-                .foregroundStyle(Color.green500))
-                .font(.serifDisplay(20))
-                .padding(.horizontal, Spacing.md)
-                .padding(.top, Spacing.lg)
-                .padding(.bottom, Spacing.lg)
+    // MARK: top bar
 
-            ForEach(items.indices, id: \.self) { i in
-                sidebarItem(index: i)
-            }
+    private var topBar: some View {
+        HStack {
+            (Text("Build Your ").foregroundStyle(.primary)
+             + Text("Body").foregroundStyle(Color.green500))
+                .font(.serifDisplay(20))
 
             Spacer()
 
-            // Streak footer chip
-            HStack(spacing: 6) {
-                Image(systemName: "flame.fill")
-                    .font(.system(size: 12))
-                Text("6 day streak")
-                    .font(.sans(12, weight: .semibold))
+            HStack(spacing: 20) {
+                HStack(spacing: 5) {
+                    Image(systemName: "flame.fill").font(.system(size: 13))
+                    Text("6").font(.sans(13, weight: .bold))
+                }
+                .foregroundStyle(Color.green500)
+
+                HStack(spacing: 5) {
+                    Image(systemName: "trophy.fill").font(.system(size: 12))
+                    Text("Lv. 4").font(.sans(13, weight: .bold))
+                }
+                .foregroundStyle(Color.green500)
+
+                Text("RR")
+                    .font(.sans(12, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 36, height: 36)
+                    .background(LinearGradient(colors: [.green500, .green900], startPoint: .topLeading, endPoint: .bottomTrailing), in: Circle())
+                    .overlay(Circle().stroke(Color.green500.opacity(0.4), lineWidth: 2))
             }
-            .foregroundStyle(Color.green500)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(Color.green500.opacity(0.1), in: Capsule())
-            .padding(Spacing.md)
         }
-        .padding(.horizontal, Spacing.sm)
-        .frame(width: 220)
-        .background(Color.bbSurface)
+        .padding(.horizontal, 32)
+        .padding(.vertical, 16)
+        .background(Color.bbBackground)
+        .overlay(alignment: .bottom) {
+            Divider().opacity(0.5)
+        }
     }
 
-    private func sidebarItem(index: Int) -> some View {
-        SidebarItemButton(
-            icon: items[index].icon,
-            label: items[index].label,
-            isSelected: selection == index,
-            namespace: pillNamespace
-        ) {
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                selection = index
+    // MARK: floating glass dock
+
+    private var floatingDock: some View {
+        HStack(spacing: 6) {
+            ForEach(items.indices, id: \.self) { i in
+                DockItem(
+                    icon: items[i].icon,
+                    label: items[i].label,
+                    isSelected: selection == i,
+                    namespace: dockNamespace
+                ) {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                        selection = i
+                    }
+                }
             }
         }
+        .padding(8)
+        .glassEffect(.regular, in: Capsule())
+        .overlay(Capsule().stroke(.white.opacity(0.25), lineWidth: 1))
+        .shadow(color: Color.green900.opacity(0.18), radius: 24, y: 12)
     }
 
     @ViewBuilder
@@ -91,7 +107,7 @@ struct MacRootView: View {
     }
 }
 
-private struct SidebarItemButton: View {
+private struct DockItem: View {
     let icon: String
     let label: String
     let isSelected: Bool
@@ -102,43 +118,30 @@ private struct SidebarItemButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 11) {
+            VStack(spacing: 3) {
                 Image(systemName: icon)
-                    .font(.system(size: 14, weight: .medium))
-                    .frame(width: 20)
-                Text(label)
-                    .font(.sans(14, weight: isSelected ? .semibold : .medium))
-                Spacer()
+                    .font(.system(size: 16, weight: .medium))
+                Text(label.uppercased())
+                    .font(.sans(9, weight: .bold))
+                    .kerning(0.5)
             }
-            .foregroundStyle(isSelected ? Color.green700 : (hovering ? .primary : .secondary))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 9)
+            .foregroundStyle(isSelected ? .white : (hovering ? .primary : .secondary))
+            .frame(width: 70, height: 54)
             .background {
-                if isSelected {
-                    RoundedRectangle(cornerRadius: Radius.md)
-                        .fill(Color.green500.opacity(0.13))
-                        .matchedGeometryEffect(id: "pill", in: namespace)
-                } else if hovering {
-                    RoundedRectangle(cornerRadius: Radius.md)
-                        .fill(Color.primary.opacity(0.045))
-                }
-            }
-            .overlay(alignment: .leading) {
                 if isSelected {
                     Capsule()
                         .fill(Color.green500)
-                        .frame(width: 3, height: 18)
-                        .offset(x: -Spacing.sm)
-                        .matchedGeometryEffect(id: "accent", in: namespace)
+                        .matchedGeometryEffect(id: "dockpill", in: namespace)
+                } else if hovering {
+                    Capsule().fill(Color.primary.opacity(0.06))
                 }
             }
-            .contentShape(RoundedRectangle(cornerRadius: Radius.md))
+            .contentShape(Capsule())
+            .scaleEffect(hovering && !isSelected ? 1.06 : 1)
         }
         .buttonStyle(.plain)
         .onHover { inside in
-            withAnimation(.easeOut(duration: 0.12)) {
-                hovering = inside
-            }
+            withAnimation(.easeOut(duration: 0.14)) { hovering = inside }
         }
     }
 }
