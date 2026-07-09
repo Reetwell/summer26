@@ -72,27 +72,42 @@ struct MacRootView: View {
         }
     }
 
-    // MARK: floating glass dock
+    // MARK: floating glass dock (proper Liquid Glass)
 
     private var floatingDock: some View {
-        HStack(spacing: 6) {
-            ForEach(items.indices, id: \.self) { i in
-                DockItem(
-                    icon: items[i].icon,
-                    label: items[i].label,
-                    isSelected: selection == i,
-                    namespace: dockNamespace
-                ) {
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                        selection = i
-                    }
+        GlassEffectContainer(spacing: 8) {
+            HStack(spacing: 8) {
+                ForEach(items.indices, id: \.self) { i in
+                    dockButton(i)
                 }
             }
         }
-        .padding(8)
-        .glassEffect(.regular, in: Capsule())
-        .overlay(Capsule().stroke(.white.opacity(0.25), lineWidth: 1))
         .shadow(color: Color.green900.opacity(0.18), radius: 24, y: 12)
+    }
+
+    private func dockButton(_ i: Int) -> some View {
+        let selected = selection == i
+        return Button {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                selection = i
+            }
+        } label: {
+            VStack(spacing: 3) {
+                Image(systemName: items[i].icon)
+                    .font(.system(size: 16, weight: .medium))
+                Text(items[i].label.uppercased())
+                    .font(.sans(9, weight: .bold))
+                    .kerning(0.5)
+            }
+            .foregroundStyle(selected ? .white : .secondary)
+            .frame(width: 70, height: 54)
+        }
+        .buttonStyle(.plain)
+        .glassEffect(
+            selected ? .regular.tint(Color.green500).interactive() : .regular.interactive(),
+            in: Capsule()
+        )
+        .glassEffectID(i, in: dockNamespace)
     }
 
     @ViewBuilder
@@ -107,42 +122,4 @@ struct MacRootView: View {
     }
 }
 
-private struct DockItem: View {
-    let icon: String
-    let label: String
-    let isSelected: Bool
-    let namespace: Namespace.ID
-    let action: () -> Void
-
-    @State private var hovering = false
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 3) {
-                Image(systemName: icon)
-                    .font(.system(size: 16, weight: .medium))
-                Text(label.uppercased())
-                    .font(.sans(9, weight: .bold))
-                    .kerning(0.5)
-            }
-            .foregroundStyle(isSelected ? .white : (hovering ? .primary : .secondary))
-            .frame(width: 70, height: 54)
-            .background {
-                if isSelected {
-                    Capsule()
-                        .fill(Color.green500)
-                        .matchedGeometryEffect(id: "dockpill", in: namespace)
-                } else if hovering {
-                    Capsule().fill(Color.primary.opacity(0.06))
-                }
-            }
-            .contentShape(Capsule())
-            .scaleEffect(hovering && !isSelected ? 1.06 : 1)
-        }
-        .buttonStyle(.plain)
-        .onHover { inside in
-            withAnimation(.easeOut(duration: 0.14)) { hovering = inside }
-        }
-    }
-}
 #endif
