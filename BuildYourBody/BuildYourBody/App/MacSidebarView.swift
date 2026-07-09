@@ -35,39 +35,49 @@ struct MacRootView: View {
 
     private var floatingDock: some View {
         GlassEffectContainer {
-            HStack(spacing: 2) {
+            HStack(spacing: 4) {
                 ForEach(items.indices, id: \.self) { i in
                     dockButton(i)
                 }
             }
-            .padding(5)
+            .padding(7)
             .glassEffect(.regular.interactive(), in: Capsule())
+            .overlay(
+                Capsule().strokeBorder(.white.opacity(0.35), lineWidth: 0.5)
+            )
+            .shadow(color: Color.green900.opacity(0.14), radius: 22, y: 10)
         }
     }
 
     private func dockButton(_ i: Int) -> some View {
         let selected = selection == i
         return Button {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+            withAnimation(.spring(response: 0.42, dampingFraction: 0.72)) {
                 selection = i
             }
         } label: {
-            HStack(spacing: 7) {
+            HStack(spacing: 8) {
                 Image(systemName: items[i].icon)
-                    .font(.system(size: 15, weight: .medium))
+                    .font(.system(size: 15, weight: .semibold))
+                    .symbolEffect(.bounce, value: selected)
                 if selected {
                     Text(items[i].label)
-                        .font(.sans(13, weight: .semibold))
+                        .font(.sans(13, weight: .bold))
                         .fixedSize()
+                        .transition(.opacity.combined(with: .move(edge: .leading)))
                 }
             }
             .foregroundStyle(selected ? .white : .secondary)
-            .padding(.horizontal, selected ? 16 : 12)
-            .frame(height: 44)
+            .padding(.horizontal, selected ? 20 : 15)
+            .frame(height: 46)
             .background {
                 if selected {
                     Capsule()
-                        .fill(Color.green500)
+                        .fill(
+                            LinearGradient(colors: [.green500, .green700],
+                                           startPoint: .topLeading, endPoint: .bottomTrailing)
+                        )
+                        .shadow(color: Color.green700.opacity(0.4), radius: 8, y: 3)
                         .matchedGeometryEffect(id: "activePill", in: dockNamespace)
                 }
             }
