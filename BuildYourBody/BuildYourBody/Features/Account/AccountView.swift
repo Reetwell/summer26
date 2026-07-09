@@ -328,31 +328,50 @@ struct AccountView: View {
     private var macLayout: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                // Green hero banner
-                HStack(spacing: Spacing.lg) {
+                // Green hero banner — rounded, inset card
+                HStack(alignment: .top, spacing: Spacing.lg) {
                     Text("RR")
                         .font(.serifDisplay(34))
                         .foregroundStyle(.white)
-                        .frame(width: 96, height: 96)
+                        .frame(width: 92, height: 92)
                         .background(.white.opacity(0.18), in: Circle())
                         .overlay(Circle().stroke(.white.opacity(0.3), lineWidth: 1))
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 6) {
                         Text("Reece Rothwell")
                             .font(.serifDisplay(40))
                             .foregroundStyle(.white)
                         Text("Member since June 2026")
                             .font(.sans(14))
                             .foregroundStyle(.white.opacity(0.8))
+                        HStack(spacing: 8) {
+                            heroChip("trophy.fill", "Level 12")
+                            heroChip("flame.fill", "6 day streak")
+                        }
+                        .padding(.top, 6)
                     }
                     Spacer()
+                    // Fills the right-side gap with a clear action
+                    Button {} label: {
+                        HStack(spacing: 7) {
+                            Image(systemName: "square.and.pencil").font(.system(size: 13, weight: .semibold))
+                            Text("Edit profile").font(.sans(14, weight: .bold))
+                        }
+                        .foregroundStyle(Color.green700)
+                        .padding(.horizontal, 20).padding(.vertical, 12)
+                        .background(.white, in: Capsule())
+                    }
+                    .buttonStyle(ScaleButtonStyle())
                 }
-                .padding(40)
-                .padding(.bottom, 72)
+                .padding(32)
+                .padding(.bottom, 64)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
                     LinearGradient(colors: [Color(hex: "#0F7A5C"), Color.green900],
-                                   startPoint: .topLeading, endPoint: .bottomTrailing)
+                                   startPoint: .topLeading, endPoint: .bottomTrailing),
+                    in: RoundedRectangle(cornerRadius: 28)
                 )
+                .padding(.horizontal, 40)
+                .padding(.top, Spacing.md)
 
                 // Overlapping stat cards
                 HStack(spacing: 20) {
@@ -360,8 +379,8 @@ struct AccountView: View {
                     macStatCard("dumbbell.fill", Color(hex: "#4A90D9"), "24", "WORKOUTS")
                     macStatCard("chart.line.downtrend.xyaxis", .green500, "−1.4kg", "THIS MONTH")
                 }
-                .padding(.horizontal, 40)
-                .offset(y: -56)
+                .padding(.horizontal, 64)
+                .offset(y: -52)
                 .padding(.bottom, -34)
 
                 // Two columns
@@ -434,6 +453,17 @@ struct AccountView: View {
             Text(text).font(.serifDisplay(28)).foregroundStyle(Color.green700)
             Divider()
         }
+    }
+
+    private func heroChip(_ icon: String, _ text: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon).font(.system(size: 11))
+            Text(text).font(.sans(12, weight: .semibold))
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 12).padding(.vertical, 7)
+        .background(.white.opacity(0.16), in: Capsule())
+        .overlay(Capsule().stroke(.white.opacity(0.18), lineWidth: 1))
     }
 
     private func macStatCard(_ icon: String, _ tint: Color, _ value: String, _ label: String) -> some View {
