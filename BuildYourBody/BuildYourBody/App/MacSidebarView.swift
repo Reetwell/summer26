@@ -72,23 +72,23 @@ struct MacRootView: View {
         }
     }
 
-    // MARK: floating glass dock (proper Liquid Glass)
+    // MARK: floating glass dock — single Liquid Glass bar, sliding active pill
 
     private var floatingDock: some View {
-        GlassEffectContainer(spacing: 8) {
-            HStack(spacing: 8) {
-                ForEach(items.indices, id: \.self) { i in
-                    dockButton(i)
-                }
+        HStack(spacing: 4) {
+            ForEach(items.indices, id: \.self) { i in
+                dockButton(i)
             }
         }
+        .padding(6)
+        .glassEffect(.regular.interactive(), in: Capsule())
         .shadow(color: Color.green900.opacity(0.18), radius: 24, y: 12)
     }
 
     private func dockButton(_ i: Int) -> some View {
         let selected = selection == i
         return Button {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+            withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) {
                 selection = i
             }
         } label: {
@@ -100,14 +100,17 @@ struct MacRootView: View {
                     .kerning(0.5)
             }
             .foregroundStyle(selected ? .white : .secondary)
-            .frame(width: 70, height: 54)
+            .frame(width: 78, height: 48)
+            .background {
+                if selected {
+                    Capsule()
+                        .fill(Color.green500)
+                        .matchedGeometryEffect(id: "activePill", in: dockNamespace)
+                }
+            }
+            .contentShape(Capsule())
         }
         .buttonStyle(.plain)
-        .glassEffect(
-            selected ? .regular.tint(Color.green500).interactive() : .regular.interactive(),
-            in: Capsule()
-        )
-        .glassEffectID(i, in: dockNamespace)
     }
 
     @ViewBuilder
