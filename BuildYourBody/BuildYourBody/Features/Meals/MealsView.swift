@@ -65,6 +65,26 @@ struct MealsView: View {
         .buttonStyle(ScaleButtonStyle())
     }
 
+    // Compact shopping pill for the macOS headline row
+    private var shoppingPill: some View {
+        Button {
+            showShopping = true
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "cart.fill").font(.system(size: 14))
+                Text("Shopping list").font(.sans(14, weight: .semibold))
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 18).padding(.vertical, 12)
+            .background(
+                LinearGradient(colors: [.green500, .green700], startPoint: .topLeading, endPoint: .bottomTrailing),
+                in: Capsule()
+            )
+            .shadow(color: Color.green700.opacity(0.3), radius: 8, y: 3)
+        }
+        .buttonStyle(ScaleButtonStyle())
+    }
+
     private var eatenKcal: Int    { meals.filter(\.eaten).reduce(0) { $0 + $1.kcal } }
     private var eatenProtein: Int { meals.filter(\.eaten).reduce(0) { $0 + $1.protein } }
     private var eatenCarbs: Int   { meals.filter(\.eaten).reduce(0) { $0 + $1.carbs } }
@@ -102,12 +122,17 @@ struct MealsView: View {
             Divider()
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    // Big headline
-                    (Text("\(max(kcalTarget - eatenKcal, 0)) kcal").foregroundStyle(Color.green700)
-                     + Text("\nleft today").foregroundStyle(.primary))
-                        .font(.serifDisplay(64))
-                        .lineSpacing(-6)
-                        .contentTransition(.numericText())
+                    // Big headline + shopping access
+                    HStack(alignment: .top) {
+                        (Text("\(max(kcalTarget - eatenKcal, 0)) kcal").foregroundStyle(Color.green700)
+                         + Text("\nleft today").foregroundStyle(.primary))
+                            .font(.serifDisplay(64))
+                            .lineSpacing(-6)
+                            .contentTransition(.numericText())
+                        Spacer()
+                        shoppingPill
+                            .padding(.top, 8)
+                    }
 
                     // Macro strip
                     HStack(spacing: Spacing.xl) {
@@ -129,10 +154,6 @@ struct MealsView: View {
                             mealCardMac($meals[3]).frame(maxWidth: .infinity)
                         }
                     }
-
-                    // Shopping list CTA
-                    shoppingCTA
-                        .padding(.top, 20)
                 }
                 .padding(56)
                 .padding(.bottom, 96)
@@ -333,19 +354,18 @@ struct MealsView: View {
                 .padding(.vertical, Spacing.md)
                 .slideIn(delay: 0.12)
 
+                // Shopping list — prominent, right under the day summary
+                shoppingCTA
+                    .slideIn(delay: 0.14)
+
                 // Meal cards
                 VStack(spacing: Spacing.md) {
                     ForEach(Array(meals.enumerated()), id: \.element.id) { i, meal in
                         mealCardIOS($meals[i])
-                            .slideIn(delay: 0.16 + Double(i) * 0.06)
+                            .slideIn(delay: 0.18 + Double(i) * 0.06)
                     }
                 }
-                .padding(.top, Spacing.xs)
-
-                // Shopping list CTA
-                shoppingCTA
-                    .padding(.top, Spacing.md)
-                    .slideIn(delay: 0.4)
+                .padding(.top, Spacing.md)
 
                 // Recipes section
                 HStack {
