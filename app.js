@@ -2863,6 +2863,7 @@ function ensureSupabase(){
 // up auth-state changes.
 async function initAuth(){
   _otpInjectPanel();
+  _injectAgeCheck();
   reflectAuth();
   if (!syncConfigured()) return;            // placeholders not filled yet
   const ok = await ensureSupabase();
@@ -2973,11 +2974,28 @@ function playWelcome(name){
     setTimeout(() => { ov.classList.remove('show', 'out'); resolve(); }, 2600);
   });
 }
+// Age-declaration checkbox (minors compliance) — injected into the sign-up form,
+// only visible in 'up' mode, required to submit. app.js-owned (no index.html edit).
+function _injectAgeCheck(){
+  const form = document.getElementById('auth-form');
+  const cta = document.getElementById('auth-cta');
+  if (!form || !cta || document.getElementById('auth-age-field')) return;
+  const wrap = document.createElement('label');
+  wrap.className = 'signin-age hide';
+  wrap.id = 'auth-age-field';
+  wrap.setAttribute('for', 'auth-age');
+  wrap.innerHTML =
+    '<input type="checkbox" id="auth-age"> ' +
+    '<span>I confirm I am 13 or older</span>';
+  form.insertBefore(wrap, cta);
+}
+
 function authSetMode(mode){
   _authMode = (mode === 'up') ? 'up' : 'in';
   const up = _authMode === 'up';
   document.querySelectorAll('#auth-seg button').forEach(b => b.classList.toggle('on', b.dataset.mode === _authMode));
   const nameField = document.getElementById('auth-name-field'); if (nameField) nameField.classList.toggle('hide', !up);
+  const ageField = document.getElementById('auth-age-field'); if (ageField) ageField.classList.toggle('hide', !up);
   const title = document.getElementById('auth-title'); if (title) title.textContent = up ? 'Create your account' : 'Welcome back';
   const sub = document.getElementById('auth-sub'); if (sub) sub.textContent = up ? 'Apple, Google, or just an email — it’s free.' : 'Sign in to pick up where you left off.';
   const cta = document.getElementById('auth-cta'); if (cta) cta.textContent = up ? 'Create account' : 'Sign in';
@@ -2997,6 +3015,8 @@ async function authSubmit(){
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { showToast('Enter a valid email.', 'error'); return; }
   if (password.length < 6) { showToast('Password must be at least 6 characters.', 'error'); return; }
   if (_authMode === 'up' && !name) { showToast('Enter your name.', 'error'); return; }
+  const ageBox = document.getElementById('auth-age');
+  if (_authMode === 'up' && ageBox && !ageBox.checked) { showToast('Please confirm you are 13 or older.', 'error'); return; }
   const btn = document.getElementById('auth-cta');
   const restore = _authMode === 'up' ? 'Create account' : 'Sign in';
   if (btn) { btn.disabled = true; btn.textContent = _authMode === 'up' ? 'Creating account…' : 'Signing in…'; }
@@ -3009,9 +3029,20 @@ async function authSubmit(){
       // when there's a session, onAuthStateChange takes over (plays welcome).
     } else {
       const { error } = await sb.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      _pendingWelcome = true;
-      // onAuthStateChange takes over (plays welcome).
+      if (error) {
+        // Unverified account trying to sign in → send them to verify instead.
+        const msg = (error.message || '').toLowerCase();
+        if (error.code === 'email_not_confirmed' || msg.indexOf('not confirmed') !== -1 || msg.indexOf('not verified') !== -1) {
+          showToast('Verify your email first — we sent you a code.', 'info');
+          try { await sb.auth.resend({ type: 'signup', email }); } catch(_){}
+          showOtpStep(email);
+        } else {
+          throw error;
+        }
+      } else {
+        _pendingWelcome = true;
+        // onAuthStateChange takes over (plays welcome).
+      }
     }
   } catch(e){ showToast((e && e.message) || 'Could not sign in', 'error'); }
   finally { if (btn) { btn.disabled = false; btn.textContent = restore; } }
@@ -3119,7 +3150,7 @@ async function otpVerify(){
     hideOtpStep();
     // onAuthStateChange fires → onAuth() → playWelcome()
   } catch(e){
-    showToast((e && e.message) || "That code didn't match — try again.", 'error');
+    showToast('Invalid code, try again', 'error');
     const input = document.getElementById('otp-code');
     if (input){ input.value = ''; input.focus(); }
   } finally {
