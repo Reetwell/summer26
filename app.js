@@ -2862,6 +2862,7 @@ function ensureSupabase(){
 // Startup: create the client (if configured), restore any session, and wire
 // up auth-state changes.
 async function initAuth(){
+  _otpInjectPanel();
   reflectAuth();
   if (!syncConfigured()) return;            // placeholders not filled yet
   const ok = await ensureSupabase();
@@ -3003,8 +3004,8 @@ async function authSubmit(){
     if (_authMode === 'up') {
       const { data, error } = await sb.auth.signUp({ email, password, options: { data: { name } } });
       if (error) throw error;
-      if (data.session) { _pendingWelcome = true; }   // signed in immediately
-      else { showToast('Account created — check your email to confirm, then sign in.', 'info'); authSetMode('in'); }
+      if (data.session) { _pendingWelcome = true; }   // auto-confirmed (shouldn't happen with OTP on)
+      else { showOtpStep(email); }
       // when there's a session, onAuthStateChange takes over (plays welcome).
     } else {
       const { error } = await sb.auth.signInWithPassword({ email, password });
@@ -3043,6 +3044,116 @@ async function authForgot(){
     if (error) throw error;
     showToast('Password reset link sent — check your email.', 'success');
   } catch(e){ showToast((e && e.message) || 'Could not send reset email', 'error'); }
+}
+
+// ---- OTP email-verification step (shown after signUp when OTP is enabled) ----
+let _otpEmail = '';
+let _resendTimer = null;
+
+function _otpInjectPanel(){
+  const sheet = document.querySelector('.sigate-sheet');
+  if (!sheet || document.getElementById('otp-panel')) return;
+  const panel = document.createElement('div');
+  panel.id = 'otp-panel';
+  panel.style.display = 'none';
+  panel.innerHTML =
+    '<div class="signin-field">' +
+      '<label for="otp-code">6-digit code</label>' +
+      '<input class="signin-input" id="otp-code" type="text" inputmode="numeric" pattern="[0-9]*" ' +
+        'maxlength="6" placeholder="000000" autocomplete="one-time-code" ' +
+        'autocapitalize="none" spellcheck="false">' +
+    '</div>' +
+    '<button class="sigate-cta" id="otp-verify-btn" type="button" onclick="otpVerify()">Verify</button>' +
+    '<div class="sigate-forgot"><a id="otp-resend" onclick="otpResend()" style="cursor:pointer">Resend code</a></div>' +
+    '<div class="sigate-toggle"><a onclick="hideOtpStep()" style="cursor:pointer">← Use a different email</a></div>';
+  sheet.appendChild(panel);
+  // auto-submit when 6 digits entered
+  document.getElementById('otp-code').addEventListener('input', function(){
+    const v = this.value.replace(/\D/g,'').slice(0,6);
+    this.value = v;
+    if (v.length === 6) otpVerify();
+  });
+}
+
+const _OTP_HIDE_SELS = ['#auth-form','#auth-forgot','#auth-toggle','.sbtn.apple','.sbtn.google','.sigate-or','.sigate-fine','#auth-seg'];
+
+function _setOtpPanelVisible(on){
+  const panel = document.getElementById('otp-panel');
+  if (panel) panel.style.display = on ? '' : 'none';
+  _OTP_HIDE_SELS.forEach(sel => {
+    document.querySelectorAll(sel).forEach(el => { el.style.display = on ? 'none' : ''; });
+  });
+}
+
+function showOtpStep(email){
+  _otpEmail = email;
+  const title = document.getElementById('auth-title');
+  const sub   = document.getElementById('auth-sub');
+  if (title) title.textContent = 'Check your email';
+  if (sub)   sub.textContent   = 'Enter the 6-digit code we sent to ' + email + '.';
+  _setOtpPanelVisible(true);
+  const input = document.getElementById('otp-code');
+  if (input){ input.value = ''; setTimeout(() => input.focus(), 80); }
+  _startResendCooldown(60);   // just sent — enforce 60 s before resend
+}
+
+function hideOtpStep(){
+  _setOtpPanelVisible(false);
+  _otpEmail = '';
+  if (_resendTimer){ clearInterval(_resendTimer); _resendTimer = null; }
+  const link = document.getElementById('otp-resend');
+  if (link){ link.style.pointerEvents = ''; link.textContent = 'Resend code'; }
+  authSetMode('in');
+}
+
+async function otpVerify(){
+  if (!sb) return;
+  const raw = (document.getElementById('otp-code').value || '').replace(/\D/g,'');
+  if (raw.length !== 6){ showToast('Enter the 6-digit code from your email.', 'error'); return; }
+  const btn = document.getElementById('otp-verify-btn');
+  if (btn){ btn.disabled = true; btn.textContent = 'Verifying…'; }
+  try {
+    const { error } = await sb.auth.verifyOtp({ email: _otpEmail, token: raw, type: 'signup' });
+    if (error) throw error;
+    _pendingWelcome = true;
+    hideOtpStep();
+    // onAuthStateChange fires → onAuth() → playWelcome()
+  } catch(e){
+    showToast((e && e.message) || "That code didn't match — try again.", 'error');
+    const input = document.getElementById('otp-code');
+    if (input){ input.value = ''; input.focus(); }
+  } finally {
+    if (btn){ btn.disabled = false; btn.textContent = 'Verify'; }
+  }
+}
+
+function _startResendCooldown(secs){
+  if (_resendTimer){ clearInterval(_resendTimer); }
+  const link = document.getElementById('otp-resend');
+  if (link){ link.style.pointerEvents = 'none'; link.textContent = 'Resend in ' + secs + 's'; }
+  _resendTimer = setInterval(function(){
+    secs--;
+    if (link) link.textContent = secs > 0 ? 'Resend in ' + secs + 's' : 'Resend code';
+    if (secs <= 0){
+      clearInterval(_resendTimer); _resendTimer = null;
+      if (link) link.style.pointerEvents = '';
+    }
+  }, 1000);
+}
+
+async function otpResend(){
+  if (!sb || !_otpEmail) return;
+  const link = document.getElementById('otp-resend');
+  if (link){ link.style.pointerEvents = 'none'; link.textContent = 'Sending…'; }
+  try {
+    const { error } = await sb.auth.resend({ type: 'signup', email: _otpEmail });
+    if (error) throw error;
+    showToast('New code sent — check your email.', 'success');
+    _startResendCooldown(60);
+  } catch(e){
+    showToast((e && e.message) || 'Could not resend the code.', 'error');
+    if (link){ link.style.pointerEvents = ''; link.textContent = 'Resend code'; }
+  }
 }
 
 async function authSignOut(){
