@@ -1,12 +1,18 @@
 import SwiftUI
+import Supabase
 
 struct AccountView: View {
     @Environment(AppState.self) private var appState
     private let todayStore = TodayStore.shared
+    private let ts = TrainingStore.shared
     @State private var showReminders = false
     @State private var showLeague = false
     @State private var notificationsOn = false
-    private let rank = RankState.sample
+    @State private var showDelete = false
+    @State private var deleteText = ""
+    @State private var deleting = false
+    @State private var deleteError: String?
+    private let rank = RankState.fresh
 
     var body: some View {
         #if os(macOS)
@@ -66,9 +72,9 @@ struct AccountView: View {
                     }
 
                     HStack(spacing: Spacing.sm) {
-                        heroStat(value: "6", label: "day streak")
-                        heroStat(value: "24", label: "workouts")
-                        heroStat(value: "-1.4kg", label: "this month")
+                        heroStat(value: "\(ts.currentStreak)", label: "day streak")
+                        heroStat(value: "\(ts.totalWorkouts)", label: "workouts")
+                        heroStat(value: "—", label: "this month")
                     }
                 }
                 .padding(Spacing.md)
@@ -177,6 +183,20 @@ struct AccountView: View {
                 .buttonStyle(ScaleButtonStyle())
                 .slideIn(delay: 0.24)
 
+                // Delete account (AADC / GDPR data-deletion)
+                Button {
+                    deleteText = ""; deleteError = nil; showDelete = true
+                } label: {
+                    Text("Delete my account")
+                        .font(.sans(15, weight: .semibold))
+                        .foregroundStyle(Color(hex: "#C0392B"))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(Color(hex: "#C0392B").opacity(0.08), in: RoundedRectangle(cornerRadius: Radius.lg))
+                }
+                .buttonStyle(ScaleButtonStyle())
+                .slideIn(delay: 0.26)
+
                 Text("Build Your Body · v1.0")
                     .font(.sans(11))
                     .foregroundStyle(.tertiary)
@@ -190,6 +210,104 @@ struct AccountView: View {
         .background(Color.bbBackground)
         .hideNavigationBar()
         .sheet(isPresented: $showLeague) { LeagueView(isPresented: $showLeague) }
+        .sheet(isPresented: $showDelete) { deleteSheet }
+    }
+
+    // MARK: - Delete account
+
+    private var deleteSheet: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: Spacing.md) {
+                Text("This permanently deletes your account and all your data. This can’t be undone.")
+                    .font(.sans(15))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Text("Type DELETE to confirm")
+                    .font(.sans(13, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                TextField("DELETE", text: $deleteText)
+                    .textFieldStyle(.roundedBorder)
+                    .autocorrectionDisabled()
+                    #if os(iOS)
+                    .textInputAutocapitalization(.characters)
+                    #endif
+
+                if let deleteError {
+                    Text(deleteError)
+                        .font(.sans(13))
+                        .foregroundStyle(Color(hex: "#C0392B"))
+                }
+
+                Button {
+                    Task { await deleteAccount() }
+                } label: {
+                    HStack {
+                        if deleting { ProgressView().tint(.white) }
+                        Text(deleting ? "Deleting…" : "Delete my account")
+                            .font(.sans(15, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(Color(hex: "#C0392B").opacity(deleteArmed ? 1 : 0.4),
+                               in: RoundedRectangle(cornerRadius: Radius.lg))
+                }
+                .buttonStyle(ScaleButtonStyle())
+                .disabled(!deleteArmed || deleting)
+
+                Spacer()
+            }
+            .padding(Spacing.lg)
+            .navigationTitle("Delete my account")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { showDelete = false }
+                }
+            }
+        }
+        #if os(iOS)
+        .presentationDetents([.medium])
+        #endif
+    }
+
+    private var deleteArmed: Bool {
+        deleteText.trimmingCharacters(in: .whitespaces).uppercased() == "DELETE"
+    }
+
+    private func deleteAccount() async {
+        deleting = true
+        deleteError = nil
+        defer { deleting = false }
+        do {
+            let token = try await appState.supabase.auth.session.accessToken
+            guard let url = URL(string: "https://summerbody.me-e29.workers.dev/account/delete") else {
+                throw URLError(.badURL)
+            }
+            var req = URLRequest(url: url)
+            req.httpMethod = "POST"
+            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            let (_, resp) = try await URLSession.shared.data(for: req)
+            guard let http = resp as? HTTPURLResponse, http.statusCode == 200 else {
+                throw URLError(.badServerResponse)
+            }
+            clearLocalData()
+            await appState.signOut()
+            showDelete = false
+        } catch {
+            deleteError = "Couldn’t delete your account — please try again."
+        }
+    }
+
+    private func clearLocalData() {
+        let defaults = UserDefaults.standard
+        for key in defaults.dictionaryRepresentation().keys where key.hasPrefix("sbp-") || key.hasPrefix("bb-") {
+            defaults.removeObject(forKey: key)
+        }
     }
 
     private var remindersSheet: some View {
@@ -352,8 +470,8 @@ struct AccountView: View {
                             .font(.sans(14))
                             .foregroundStyle(.white.opacity(0.8))
                         HStack(spacing: 8) {
-                            heroChip("trophy.fill", "Level 12")
-                            heroChip("flame.fill", "6 day streak")
+                            heroChip("trophy.fill", "Level \(rank.level)")
+                            heroChip("flame.fill", "\(ts.currentStreak) day streak")
                         }
                         .padding(.top, 6)
                     }
@@ -383,9 +501,9 @@ struct AccountView: View {
 
                 // Overlapping stat cards
                 HStack(spacing: 20) {
-                    macStatCard("flame.fill", Color(hex: "#E8A13A"), "6", "DAY STREAK")
-                    macStatCard("dumbbell.fill", Color(hex: "#4A90D9"), "24", "WORKOUTS")
-                    macStatCard("chart.line.downtrend.xyaxis", .green500, "−1.4kg", "THIS MONTH")
+                    macStatCard("flame.fill", Color(hex: "#E8A13A"), "\(ts.currentStreak)", "DAY STREAK")
+                    macStatCard("dumbbell.fill", Color(hex: "#4A90D9"), "\(ts.totalWorkouts)", "WORKOUTS")
+                    macStatCard("chart.line.downtrend.xyaxis", .green500, "—", "THIS MONTH")
                 }
                 .padding(.horizontal, 64)
                 .offset(y: -52)
@@ -445,6 +563,17 @@ struct AccountView: View {
                         }
                         .buttonStyle(ScaleButtonStyle())
                         .padding(.top, 4)
+                        Button {
+                            deleteText = ""; deleteError = nil; showDelete = true
+                        } label: {
+                            Text("Delete my account")
+                                .font(.sans(15, weight: .semibold))
+                                .foregroundStyle(Color(hex: "#C0392B"))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
+                                .background(Color(hex: "#C0392B").opacity(0.08), in: RoundedRectangle(cornerRadius: Radius.lg))
+                        }
+                        .buttonStyle(ScaleButtonStyle())
                         Text("Build Your Body · v1.0")
                             .font(.sans(11))
                             .foregroundStyle(.tertiary)
@@ -460,6 +589,7 @@ struct AccountView: View {
         .background(Color.bbBackground)
         .hideNavigationBar()
         .sheet(isPresented: $showLeague) { LeagueView(isPresented: $showLeague) }
+        .sheet(isPresented: $showDelete) { deleteSheet }
     }
 
     private func macSectionHeader(_ text: String) -> some View {

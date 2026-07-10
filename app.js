@@ -2864,6 +2864,7 @@ function ensureSupabase(){
 async function initAuth(){
   _otpInjectPanel();
   _injectAgeCheck();
+  _injectDeleteAccount();
   reflectAuth();
   if (!syncConfigured()) return;            // placeholders not filled yet
   const ok = await ensureSupabase();
@@ -3192,6 +3193,112 @@ async function authSignOut(){
   try { localStorage.removeItem('sbp-onboarded'); } catch(_){}  // explicit sign-out → gate returns next launch
   await sb.auth.signOut();   // local data stays; syncing just stops
   showToast('Signed out — your data stays on this device', 'info');
+}
+
+// ---- Delete my account (AADC / GDPR data-deletion-on-request, Path A) ----
+// Injects a red "Delete my account" row into the signed-in card + a confirm
+// modal (typing DELETE to arm it). On success: wipe all sbp-*/bb-* local keys
+// and sign out to the front door. app.js-owned — no index.html edit.
+function _injectDeleteAccount(){
+  const inn = document.getElementById('auth-in');
+  if (inn && !document.getElementById('danger-zone')){
+    const dz = document.createElement('div');
+    dz.id = 'danger-zone';
+    dz.className = 'signin-card';
+    dz.style.cssText = 'margin-top:14px';
+    dz.innerHTML =
+      '<div class="food-hint" style="margin-bottom:10px">Danger zone</div>' +
+      '<button id="delete-acct-row" onclick="openDeleteAccount()" ' +
+        'style="width:100%;text-align:left;display:flex;align-items:center;gap:10px;' +
+        'padding:12px 14px;border:1px solid #e7c9c6;background:#fdf3f2;color:#c0392b;' +
+        'border-radius:12px;font-weight:600;font-family:inherit;font-size:15px;cursor:pointer">' +
+        '<i class="fa-solid fa-trash-can" aria-hidden="true"></i> Delete my account</button>';
+    inn.appendChild(dz);
+  }
+  if (!document.getElementById('delete-acct-modal')){
+    const m = document.createElement('div');
+    m.id = 'delete-acct-modal';
+    m.style.cssText = 'display:none;position:fixed;inset:0;z-index:250;';
+    m.innerHTML =
+      '<div class="modal-overlay" onclick="closeDeleteAccount()"></div>' +
+      '<div class="modal-panel">' +
+        '<div class="modal-header"><div>' +
+          '<div class="modal-title">Delete my account</div>' +
+          '<div class="modal-sub">This can’t be undone.</div>' +
+        '</div><button class="modal-close" onclick="closeDeleteAccount()"><i class="fa-solid fa-xmark"></i></button></div>' +
+        '<div class="modal-body">' +
+          '<p style="margin:0 0 16px;line-height:1.5;color:var(--text-secondary)">' +
+            'This permanently deletes your account and all your data. This can’t be undone.</p>' +
+          '<label for="delete-acct-input" style="display:block;margin-bottom:6px;font-size:14px">' +
+            'Type <b>DELETE</b> to confirm</label>' +
+          '<input class="signin-input" id="delete-acct-input" type="text" placeholder="DELETE" ' +
+            'autocomplete="off" autocapitalize="characters" spellcheck="false" oninput="_deleteInputChange()">' +
+          '<button class="sigate-cta" id="delete-acct-confirm" disabled onclick="confirmDeleteAccount()" ' +
+            'style="background:#d9463e;margin-top:14px">Delete my account</button>' +
+          '<button onclick="closeDeleteAccount()" ' +
+            'style="width:100%;margin-top:8px;background:none;border:none;color:var(--text-secondary);' +
+            'font-family:inherit;font-size:15px;padding:10px;cursor:pointer">Cancel</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(m);
+  }
+}
+
+function openDeleteAccount(){
+  const m = document.getElementById('delete-acct-modal');
+  const inp = document.getElementById('delete-acct-input');
+  const btn = document.getElementById('delete-acct-confirm');
+  if (inp) inp.value = '';
+  if (btn){ btn.disabled = true; btn.textContent = 'Delete my account'; }
+  if (m) m.style.display = 'block';
+  if (inp) setTimeout(() => inp.focus(), 80);
+}
+
+function closeDeleteAccount(){
+  const m = document.getElementById('delete-acct-modal');
+  if (m) m.style.display = 'none';
+}
+
+function _deleteInputChange(){
+  const inp = document.getElementById('delete-acct-input');
+  const btn = document.getElementById('delete-acct-confirm');
+  if (btn) btn.disabled = ((inp.value || '').trim().toUpperCase() !== 'DELETE');
+}
+
+function _clearAllLocalData(){
+  const keys = [];
+  for (let i = 0; i < localStorage.length; i++){
+    const k = localStorage.key(i);
+    if (k && (k.indexOf('sbp-') === 0 || k.indexOf('bb-') === 0)) keys.push(k);
+  }
+  keys.forEach(k => localStorage.removeItem(k));
+}
+
+async function confirmDeleteAccount(){
+  if (!sb || !authUser){ showToast('You’re not signed in.', 'error'); return; }
+  const btn = document.getElementById('delete-acct-confirm');
+  if (btn){ btn.disabled = true; btn.textContent = 'Deleting…'; }
+  try {
+    const { data } = await sb.auth.getSession();
+    const token = data && data.session && data.session.access_token;
+    if (!token) throw new Error('No active session');
+    const res = await fetch(REMINDER_BACKEND.replace(/\/$/, '') + '/account/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+    });
+    if (!res.ok) throw new Error('status ' + res.status);
+    const body = await res.json().catch(() => ({}));
+    if (!body.ok) throw new Error('delete not confirmed');
+    // Success → wipe everything local and drop to the signed-out front door.
+    _clearAllLocalData();
+    try { await sb.auth.signOut(); } catch(_){}
+    closeDeleteAccount();
+    showToast('Your account and all your data have been deleted.', 'success');
+    setTimeout(() => location.reload(), 1000);
+  } catch(e){
+    showToast('Couldn’t delete your account — please try again.', 'error');
+    if (btn){ btn.disabled = false; btn.textContent = 'Delete my account'; }
+  }
 }
 
 function syncNow(){
