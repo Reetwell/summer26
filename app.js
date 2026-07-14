@@ -96,9 +96,26 @@ function seedMealPlanFromDOM(){
   return data;
 }
 function mpSave(){ localStorage.setItem('sbp-mealplan', JSON.stringify(MP_DATA)); }
+// Upgrade an existing saved meal plan to the current shape (mirrors tpInit/migrateSplit).
+// v2 adds: stable meal ids (needed to key the meal log) + guaranteed arrays. Non-destructive.
+function migrateMealPlan(mp){
+  if(!mp || !mp.phases) return mp;
+  Object.values(mp.phases).forEach(ph => {
+    ph.days = ph.days || {};
+    Object.values(ph.days).forEach(day => {
+      if(!Array.isArray(day.meals)) day.meals = [];
+      day.meals.forEach(m => { if(!m.id) m.id = mpUid(); });
+    });
+  });
+  mp.v = 2;
+  return mp;
+}
 function mpInit(){
   MP_DATA = loadStore('sbp-mealplan', null);
-  if(MP_DATA && MP_DATA.phases){ renderMealPlan(); return; }
+  if(MP_DATA && MP_DATA.phases){
+    if(MP_DATA.v !== 2){ MP_DATA = migrateMealPlan(MP_DATA); mpSave(); }
+    renderMealPlan(); return;
+  }
   // No plan yet. Seed a sensible default so the page isn't empty, then — if this
   // is a genuine first run (not just a returning user who skipped) — offer the
   // friendly onboarding that builds a personalised plan from the recipe library.
@@ -108,15 +125,37 @@ function mpInit(){
   if(localStorage.getItem('sbp-mealplan-onboarded') !== '1'){ setTimeout(openMealOnboarding, 600); }
 }
 function mpTbox(label, val){ return '<div class="tbox"><div class="tbox-label">' + label + '</div><div class="tbox-val">' + esc(String(val)) + '</div></div>'; }
+function mpLogBar(pid, dayKey, m){
+  const log = mealLogFor(dayKey, m.id);
+  const a = (fn, icon, label) => '<button class="mp-log-btn" onclick="event.stopPropagation();' + fn + '"><i class="fa-solid ' + icon + '" aria-hidden="true"></i> ' + label + '</button>';
+  let status = '';
+  if(log){
+    const lbl = log.status === 'eaten' ? '<span class="mp-log-status ate">✓ Ate it</span>'
+      : log.status === 'skipped' ? '<span class="mp-log-status skip">⊘ Skipped</span>'
+      : '<span class="mp-log-status swap">↺ Had ' + esc(log.name || 'something else') + '</span>';
+    status = lbl + a("mealClearLog('" + pid + "','" + dayKey + "','" + m.id + "')", 'fa-rotate-left', 'Undo');
+  } else {
+    status = a("mealMarkEaten('" + pid + "','" + dayKey + "','" + m.id + "')", 'fa-check', 'Ate it')
+      + a("mealOpenSwap('" + pid + "','" + dayKey + "','" + m.id + "')", 'fa-arrows-rotate', 'Had something else')
+      + a("mealMarkSkipped('" + pid + "','" + dayKey + "','" + m.id + "')", 'fa-ban', 'Skip');
+  }
+  return '<div class="mp-logbar">' + status + '</div>';
+}
 function mpCardHtml(pid, dayKey, m){
   const t = MP_TYPES[m.type] || MP_TYPES.snack;
   const opts = Object.keys(MP_TYPES).map(k => '<option value="' + k + '"' + (k === m.type ? ' selected' : '') + '>' + MP_TYPES[k].label + '</option>').join('');
-  return '<div class="mp-card" data-pid="' + pid + '" data-day="' + dayKey + '" data-id="' + m.id + '">'
+  const eff = mealEffective(dayKey, m);
+  const statusCls = eff.status ? ' mp-logged mp-' + eff.status : '';
+  return '<div class="mp-card' + statusCls + '" data-pid="' + pid + '" data-day="' + dayKey + '" data-id="' + m.id + '">'
     + '<div class="mp-view" onclick="mpOpenEdit(this)">'
-      + '<div class="mp-vhead"><span class="tag ' + t.cls + '">' + t.label + '</span><span class="mp-vname">' + esc(m.name || 'Untitled') + '</span><span class="mp-vkcal">~' + (+m.kcal||0) + ' kcal</span></div>'
+      + '<div class="mp-vhead"><span class="tag ' + t.cls + '">' + t.label + '</span><span class="mp-vname">' + esc(m.name || 'Untitled') + '</span>'
+        + '<span class="mp-reorder"><button class="mp-icon" title="Move up" aria-label="Move up" onclick="event.stopPropagation();mpMoveMeal(\'' + pid + '\',\'' + dayKey + '\',\'' + m.id + '\',-1)">↑</button>'
+        + '<button class="mp-icon" title="Move down" aria-label="Move down" onclick="event.stopPropagation();mpMoveMeal(\'' + pid + '\',\'' + dayKey + '\',\'' + m.id + '\',1)">↓</button></span>'
+        + '<span class="mp-vkcal">~' + (+m.kcal||0) + ' kcal</span></div>'
       + (m.body ? '<div class="mp-vbody">' + esc(m.body) + '</div>' : '')
       + (m.note ? '<div class="card-note">' + esc(m.note) + '</div>' : '')
       + '<div class="mpills"><span class="pill pill-p">P: ' + (+m.p||0) + 'g</span><span class="pill pill-c">C: ' + (+m.c||0) + 'g</span><span class="pill pill-f">F: ' + (+m.f||0) + 'g</span></div>'
+      + mpLogBar(pid, dayKey, m)
       + '<div class="mp-edithint"><i class="fa-solid fa-pen" aria-hidden="true"></i> tap to edit</div>'
     + '</div>'
     + '<div class="mp-edit">'
@@ -129,17 +168,42 @@ function mpCardHtml(pid, dayKey, m){
     + '</div>'
     + '</div>';
 }
+// Keep the (static) phase tabs + subtitle in sync with the actual plan data, so
+// build-your-own (one "My plan" phase) doesn't show an empty Phase 2, and custom
+// labels show through.
+function mpSyncPhaseTabs(){
+  const wrap = document.querySelector('#meal-plan-view .phase-toggle');
+  if(!wrap || !MP_DATA || !MP_DATA.phases) return;
+  const ids = Object.keys(MP_DATA.phases);
+  let firstVisible = null;
+  wrap.querySelectorAll('.ptoggle').forEach(btn => {
+    const mm = /switchMealPhase\('([^']+)'/.exec(btn.getAttribute('onclick') || '');
+    const pid = mm && mm[1];
+    if(!pid) return;
+    const ph = MP_DATA.phases[pid];
+    if(ph){ btn.style.display = ''; btn.textContent = ph.label || pid; if(!firstVisible) firstVisible = { pid, btn }; }
+    else { btn.style.display = 'none'; btn.classList.remove('on'); const p = document.getElementById(pid); if(p) p.style.display = 'none'; }
+  });
+  // Ensure a visible phase is active if the previously-active one is now hidden.
+  if(firstVisible && !wrap.querySelector('.ptoggle.on:not([style*="none"])')){ switchMealPhase(firstVisible.pid, firstVisible.btn); }
+  // Subtitle: a single "My plan" phase = build-your-own.
+  const sub = document.querySelector('#sec-meals .page-header p');
+  if(sub && ids.length === 1 && (MP_DATA.phases[ids[0]].label || '').toLowerCase() === 'my plan'){
+    sub.textContent = 'Your own plan · edit any day, log what you actually eat';
+  }
+}
 function renderMealPlan(){
   if(!MP_DATA) return;
+  mpSyncPhaseTabs();
   Object.keys(MP_DATA.phases).forEach(pid => {
     const phase = MP_DATA.phases[pid];
     Object.keys(phase.days).forEach(dayKey => {
       const dc = document.getElementById(pid + '-' + dayKey);
       if(!dc) return;
       const day = phase.days[dayKey];
-      const tot = day.meals.reduce((a,m) => ({ kcal:a.kcal+(+m.kcal||0), p:a.p+(+m.p||0), c:a.c+(+m.c||0), f:a.f+(+m.f||0) }), {kcal:0,p:0,c:0,f:0});
+      const tot = day.meals.reduce((a,m) => { const e = mealEffective(dayKey, m); return { kcal:a.kcal+e.kcal, p:a.p+e.p, c:a.c+e.c, f:a.f+e.f, logged:a.logged||!!e.status }; }, {kcal:0,p:0,c:0,f:0,logged:false});
       let h = '<div class="mp-bento">'
-        + '<div class="mp-hero"><span class="n">' + tot.kcal.toLocaleString() + '</span><span class="u">kcal</span><span class="ctx">' + esc(phase.label || '') + '</span></div>'
+        + '<div class="mp-hero"><span class="n">' + tot.kcal.toLocaleString() + '</span><span class="u">kcal' + (tot.logged ? ' · actual' : '') + '</span><span class="ctx">' + esc(phase.label || '') + '</span></div>'
         + '<div class="mp-stat"><div class="l">Protein</div><div class="v">' + tot.p + 'g</div></div>'
         + '<div class="mp-stat"><div class="l">Carbs</div><div class="v">' + tot.c + 'g</div></div>'
         + '<div class="mp-stat"><div class="l">Fats</div><div class="v">' + tot.f + 'g</div></div>'
@@ -386,7 +450,51 @@ function buildPlanFromPrefs(lib, prefs){
   return data;
 }
 
+// First choice: build-your-own (empty week) vs generate-then-edit. Auto-generation
+// is never the only path.
 function openMealOnboarding(){
+  const m = _ensureMealChoiceModal();
+  m.style.display = 'block';
+}
+function _ensureMealChoiceModal(){
+  let m = document.getElementById('meal-choice-modal');
+  if(m) return m;
+  m = document.createElement('div');
+  m.id = 'meal-choice-modal';
+  m.style.cssText = 'display:none;position:fixed;inset:0;z-index:210;';
+  m.innerHTML =
+    '<div class="modal-overlay" onclick="mealCloseChoice()"></div>' +
+    '<div class="modal-panel"><div class="modal-header"><div>' +
+      '<div class="modal-title">Your meal plan</div>' +
+      '<div class="modal-sub">Two ways to start — both fully editable after</div>' +
+    '</div><button class="modal-close" onclick="mealCloseChoice()"><i class="fa-solid fa-xmark"></i></button></div>' +
+    '<div class="modal-body">' +
+      '<button class="meal-choice-opt" onclick="mealBuildOwn()">' +
+        '<i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>' +
+        '<span class="mc-t">Build my own</span>' +
+        '<span class="mc-s">Start from an empty week and fill in each day yourself.</span></button>' +
+      '<button class="meal-choice-opt" onclick="mealChoiceGenerate()">' +
+        '<i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>' +
+        '<span class="mc-t">Generate one I can edit</span>' +
+        '<span class="mc-s">We build a personalised week from your prefs — tweak anything after.</span></button>' +
+    '</div></div>';
+  document.body.appendChild(m);
+  return m;
+}
+function mealCloseChoice(){ const m = document.getElementById('meal-choice-modal'); if(m) m.style.display = 'none'; }
+function mealBuildOwn(){
+  MP_DATA = mpEmptyWeek();
+  mpSave();
+  localStorage.setItem('sbp-mealplan-onboarded', '1');
+  renderMealPlan();
+  mealCloseChoice();
+  showSection('meals');
+  const tabBtn = document.querySelector('.ptoggle[onclick*="mp1"]');
+  if(tabBtn) switchMealPhase('mp1', tabBtn);
+  showToast('Empty week ready — add your meals day by day', 'success');
+}
+function mealChoiceGenerate(){ mealCloseChoice(); openMealGenerate(); }
+function openMealGenerate(){
   _onb = { goal:'fatloss', cuisines:[], avoid:[], veg:false };
   document.querySelectorAll('#onb-modal .onb-chip, #onb-modal .onb-goal').forEach(c => c.classList.remove('on'));
   const nm = (typeof authUser !== 'undefined' && authUser && authUser.user_metadata && authUser.user_metadata.name) || '';
@@ -449,6 +557,169 @@ async function resetMealPlan(){
   MP_DATA = seedMealPlanFromDOM();   // keep a default visible behind the modal
   renderMealPlan();
   openMealOnboarding();
+}
+
+// ==================== MEAL LOGGING (actual vs planned) ====================
+// The plan is a weekday template; the log records what actually happened on a
+// real calendar date. Day totals recalc from logged actuals when present, else
+// fall back to the plan. Stored under sbp-meallog: { [iso]: { [mealId]: entry } }.
+let _mealLog = loadStore('sbp-meallog', {});
+const _MP_DAYK = ['mon','tue','wed','thu','fri','sat','sun'];
+function mealLogSave(){ localStorage.setItem('sbp-meallog', JSON.stringify(_mealLog)); }
+// ISO date of the given weekday-key in the current week (mirrors tpDateKey).
+function mealDayIso(dayKey){
+  const now = new Date(); const ti = (now.getDay() + 6) % 7; const t = _MP_DAYK.indexOf(dayKey);
+  if(t < 0) return null;
+  const d = new Date(now); d.setDate(now.getDate() + (t - ti));
+  return d.toISOString().slice(0, 10);
+}
+function mealLogFor(dayKey, mealId){
+  const iso = mealDayIso(dayKey); if(!iso) return null;
+  return (_mealLog[iso] && _mealLog[iso][mealId]) || null;
+}
+// Effective macros for a planned meal: logged actual when present, else the plan.
+function mealEffective(dayKey, m){
+  const log = mealLogFor(dayKey, m.id);
+  if(!log) return { kcal:+m.kcal||0, p:+m.p||0, c:+m.c||0, f:+m.f||0, status:null };
+  if(log.status === 'skipped') return { kcal:0, p:0, c:0, f:0, status:'skipped' };
+  return { kcal:+log.kcal||0, p:+log.p||0, c:+log.c||0, f:+log.f||0, status:log.status, name:log.name };
+}
+function mealSetLog(dayKey, mealId, status, entry){
+  const iso = mealDayIso(dayKey); if(!iso) return;
+  _mealLog[iso] = _mealLog[iso] || {};
+  if(status === 'clear'){ delete _mealLog[iso][mealId]; if(!Object.keys(_mealLog[iso]).length) delete _mealLog[iso]; }
+  else _mealLog[iso][mealId] = Object.assign({ status }, entry || {});
+  mealLogSave(); renderMealPlan();
+}
+// Quick actions from a plan card
+function mealMarkEaten(pid, dayKey, id){
+  const day = mpFindDay(pid, dayKey); if(!day) return;
+  const m = day.meals.find(x => x.id === id); if(!m) return;
+  mealSetLog(dayKey, id, 'eaten', { name:m.name, kcal:+m.kcal||0, p:+m.p||0, c:+m.c||0, f:+m.f||0 });
+  showToast('Logged — ate as planned', 'success');
+}
+function mealMarkSkipped(pid, dayKey, id){ mealSetLog(dayKey, id, 'skipped', {}); showToast('Marked as skipped', 'info'); }
+function mealClearLog(pid, dayKey, id){ mealSetLog(dayKey, id, 'clear'); showToast('Log cleared', 'info'); }
+
+// "I had something else" — swap modal (pick a recipe or type a custom entry)
+let _mealSwap = null;   // { pid, dayKey, id }
+async function mealOpenSwap(pid, dayKey, id){
+  _mealSwap = { pid, dayKey, id };
+  const modal = _ensureMealSwapModal();
+  const lib = await loadRecipeLibrary();
+  const sel = modal.querySelector('#msw-recipe');
+  sel.innerHTML = '<option value="">— pick from library —</option>' +
+    lib.map(r => '<option value="' + r.id + '">' + esc(r.name) + ' (' + r.kcal + ' kcal)</option>').join('');
+  ['name','kcal','p','c','f'].forEach(k => { const el = modal.querySelector('#msw-' + k); if(el) el.value = ''; });
+  modal.style.display = 'block';
+}
+function _ensureMealSwapModal(){
+  let m = document.getElementById('meal-swap-modal');
+  if(m) return m;
+  m = document.createElement('div');
+  m.id = 'meal-swap-modal';
+  m.style.cssText = 'display:none;position:fixed;inset:0;z-index:220;';
+  m.innerHTML =
+    '<div class="modal-overlay" onclick="mealCloseSwap()"></div>' +
+    '<div class="modal-panel"><div class="modal-header"><div>' +
+      '<div class="modal-title">I had something else</div>' +
+      '<div class="modal-sub">Log what you actually ate</div>' +
+    '</div><button class="modal-close" onclick="mealCloseSwap()"><i class="fa-solid fa-xmark"></i></button></div>' +
+    '<div class="modal-body">' +
+      '<label class="food-hint" for="msw-recipe">From your recipe library</label>' +
+      '<select class="food-input" id="msw-recipe" onchange="mealSwapPick(this.value)"></select>' +
+      '<div class="food-hint" style="margin:12px 0 4px">…or search the food database</div>' +
+      '<div class="msw-foodsearch"><input class="food-input" id="msw-food" placeholder="e.g. chicken breast" autocomplete="off" onkeydown="if(event.key===\'Enter\'){event.preventDefault();foodSearch();}">' +
+      '<button class="shop-act" onclick="foodSearch()"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Search</button></div>' +
+      '<div id="msw-food-results"></div>' +
+      '<div class="food-hint" style="margin:12px 0 4px">…or type it in</div>' +
+      '<input class="food-input" id="msw-name" placeholder="What you ate" autocomplete="off">' +
+      '<div class="mp-emac" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px">' +
+        '<input class="food-input" id="msw-kcal" type="number" min="0" placeholder="kcal">' +
+        '<input class="food-input" id="msw-p" type="number" min="0" placeholder="P">' +
+        '<input class="food-input" id="msw-c" type="number" min="0" placeholder="C">' +
+        '<input class="food-input" id="msw-f" type="number" min="0" placeholder="F">' +
+      '</div>' +
+      '<button class="sigate-cta" style="margin-top:14px" onclick="mealSwapSave()">Log it</button>' +
+    '</div></div>';
+  document.body.appendChild(m);
+  return m;
+}
+function mealCloseSwap(){ const m = document.getElementById('meal-swap-modal'); if(m) m.style.display = 'none'; _mealSwap = null; }
+async function mealSwapPick(rid){
+  if(!rid) return;
+  const lib = await loadRecipeLibrary();
+  const r = lib.find(x => x.id === rid); if(!r) return;
+  const m = document.getElementById('meal-swap-modal');
+  m.querySelector('#msw-name').value = r.name;
+  m.querySelector('#msw-kcal').value = r.kcal; m.querySelector('#msw-p').value = r.p;
+  m.querySelector('#msw-c').value = r.c; m.querySelector('#msw-f').value = r.f;
+}
+function mealSwapSave(){
+  if(!_mealSwap) return;
+  const m = document.getElementById('meal-swap-modal');
+  const val = id => m.querySelector('#msw-' + id).value;
+  const num = id => { const n = parseInt(val(id), 10); return (isNaN(n) || n < 0) ? 0 : n; };
+  const name = (val('name') || '').trim();
+  if(!name){ showToast('What did you eat?', 'error'); return; }
+  mealSetLog(_mealSwap.dayKey, _mealSwap.id, 'swapped', { name, kcal:num('kcal'), p:num('p'), c:num('c'), f:num('f') });
+  mealCloseSwap();
+  showToast('Logged what you actually ate', 'success');
+}
+// ---- Food database search (Worker → Open Food Facts). Macros are per 100g. ----
+let _foodResults = [];
+function foodServingGrams(serving){ const m = /(\d+(?:\.\d+)?)\s*g/i.exec(serving || ''); return m ? Math.round(parseFloat(m[1])) : 100; }
+function foodScale(food, grams){ const k = grams / 100; return { kcal:Math.round((+food.kcal||0)*k), p:Math.round((+food.p||0)*k), c:Math.round((+food.c||0)*k), f:Math.round((+food.f||0)*k) }; }
+async function foodSearch(){
+  const q = (document.getElementById('msw-food').value || '').trim();
+  const out = document.getElementById('msw-food-results');
+  if(q.length < 2){ out.innerHTML = '<div class="food-hint">Type at least 2 letters.</div>'; return; }
+  out.innerHTML = '<div class="food-hint">Searching…</div>';
+  try {
+    const r = await fetch(REMINDER_BACKEND.replace(/\/$/, '') + '/food/search?q=' + encodeURIComponent(q));
+    if(r.status === 429){ out.innerHTML = '<div class="food-hint">Too many searches — wait a moment.</div>'; return; }
+    if(!r.ok){ out.innerHTML = '<div class="food-hint">Couldn’t search — type it in below instead.</div>'; return; }
+    const data = await r.json();
+    _foodResults = (data && data.results) || [];
+    foodRenderResults();
+  } catch(_){ out.innerHTML = '<div class="food-hint">Offline — type it in below instead.</div>'; }
+}
+function foodRenderResults(){
+  const out = document.getElementById('msw-food-results');
+  if(!_foodResults.length){ out.innerHTML = '<div class="food-hint">No matches — type it in below.</div>'; return; }
+  out.innerHTML = _foodResults.slice(0, 8).map((f, i) => {
+    const g = foodServingGrams(f.serving);
+    const sub = [f.brand, (+f.kcal||0) + ' kcal/100g'].filter(Boolean).join(' · ');
+    return '<div class="msw-food-row"><div class="msw-food-info"><div class="msw-food-name">' + esc(f.name || 'Food') + '</div><div class="msw-food-sub">' + esc(sub) + '</div></div>'
+      + '<input class="food-input msw-food-g" type="number" min="1" value="' + g + '" aria-label="grams" style="width:66px">'
+      + '<button class="mp-add" style="margin:0" onclick="foodUse(' + i + ', this)">Use</button></div>';
+  }).join('');
+}
+function foodUse(i, btn){
+  const f = _foodResults[i]; if(!f) return;
+  const row = btn.closest('.msw-food-row');
+  const grams = Math.max(1, parseInt(row.querySelector('.msw-food-g').value, 10) || foodServingGrams(f.serving));
+  const s = foodScale(f, grams);
+  const m = document.getElementById('meal-swap-modal');
+  m.querySelector('#msw-name').value = f.name + (f.brand ? ' (' + f.brand + ')' : '') + ' — ' + grams + 'g';
+  m.querySelector('#msw-kcal').value = s.kcal; m.querySelector('#msw-p').value = s.p;
+  m.querySelector('#msw-c').value = s.c; m.querySelector('#msw-f').value = s.f;
+  const sel = m.querySelector('#msw-recipe'); if(sel) sel.value = '';
+  showToast('Filled ' + grams + 'g — tap “Log it” to save', 'info');
+}
+// Reorder a meal within its day
+function mpMoveMeal(pid, dayKey, id, dir){
+  const day = mpFindDay(pid, dayKey); if(!day) return;
+  const i = day.meals.findIndex(x => x.id === id); if(i < 0) return;
+  const j = i + dir; if(j < 0 || j >= day.meals.length) return;
+  const [it] = day.meals.splice(i, 1); day.meals.splice(j, 0, it);
+  mpSave(); renderMealPlan();
+}
+// Build-your-own: an empty week the user fills in day by day.
+function mpEmptyWeek(){
+  const days = {};
+  _MP_DAYK.forEach(d => { days[d] = { meals: [], tip: '' }; });
+  return { v:1, phases: { mp1: { label: 'My plan', days } } };
 }
 
 // ==================== EDITABLE TRAINING PLAN ====================
@@ -808,9 +1079,17 @@ function migrateSplit(sp){
 }
 function tpExItemHtml(ctx, pi, si, ei, e){
   return '<div class="tp-ex"><div class="tp-ex-info" onclick="exOpenRich(\'' + ctx + '\',' + pi + ',' + si + ',' + ei + ')" style="cursor:pointer"><span class="tp-ex-name">' + esc(e.name) + '</span><span class="tp-ex-sets">' + esc(e.sets || '') + '</span></div>'
+    + (ctx === 'live' ? '<button class="mp-icon" title="Move up" aria-label="Move exercise up" onclick="tpExMove(' + pi + ',' + si + ',' + ei + ',-1)">↑</button>'
+      + '<button class="mp-icon" title="Move down" aria-label="Move exercise down" onclick="tpExMove(' + pi + ',' + si + ',' + ei + ',1)">↓</button>' : '')
     + '<button class="mp-icon" title="Swap" aria-label="Swap exercise" onclick="tpSwapRich(\'' + ctx + '\',' + pi + ',' + si + ',' + ei + ')">↻</button>'
     + (ctx === 'live' ? '<button class="mp-icon" title="Remove" aria-label="Remove exercise" onclick="tpExDel(' + pi + ',' + si + ',' + ei + ')">✕</button>' : '')
     + '</div>';
+}
+function tpExMove(pi, si, ei, dir){
+  const ph = TP_DATA.phases[pi]; const s = ph && ph.sessions[si]; if(!s) return;
+  const j = ei + dir; if(j < 0 || j >= s.exercises.length) return;
+  const [it] = s.exercises.splice(ei, 1); s.exercises.splice(j, 0, it);
+  tpRefreshDetails();
 }
 function renderRichPhases(el, plan, ctx){
   if(!el || !plan || !plan.phases) return;
@@ -834,10 +1113,39 @@ let _tpSelDay = null, _tpActivePhase = 0;
 function tpDayOf(s){ return s.day || (s.name || '').split(' — ')[0]; }
 let _tpProg = loadStore('sbp-tp-progress', {});
 function tpDateKey(short){ const now = new Date(); const ti = (now.getDay() + 6) % 7; const t = WEEKDAYS.indexOf(short); const d = new Date(now); d.setDate(now.getDate() + (t - ti)); return d.toISOString().slice(0, 10); }
-function tpIsDone(short){ return !!_tpProg[tpDateKey(short)]; }
-function tpToggleDone(short){ const k = tpDateKey(short); if(_tpProg[k]) delete _tpProg[k]; else _tpProg[k] = true; localStorage.setItem('sbp-tp-progress', JSON.stringify(_tpProg)); renderTrainingToday(document.getElementById('tp-myweek'), TP_DATA); }
+// tp-progress value: true = done, 'skipped' = intentionally skipped (doesn't break
+// the streak). Older data stored only `true`, which still reads as done.
+function tpProgState(short){ return _tpProg[tpDateKey(short)] || null; }
+function tpIsDone(short){ return tpProgState(short) === true; }
+function tpIsSkipped(short){ return tpProgState(short) === 'skipped'; }
+function tpSaveProg(){ localStorage.setItem('sbp-tp-progress', JSON.stringify(_tpProg)); }
+function tpToggleDone(short){ const k = tpDateKey(short); if(_tpProg[k] === true) delete _tpProg[k]; else _tpProg[k] = true; tpSaveProg(); renderTrainingToday(document.getElementById('tp-myweek'), TP_DATA); }
+function tpSkipDay(short){ const k = tpDateKey(short); if(_tpProg[k] === 'skipped') delete _tpProg[k]; else _tpProg[k] = 'skipped'; tpSaveProg(); renderTrainingToday(document.getElementById('tp-myweek'), TP_DATA); showToast(_tpProg[k] ? 'Skipped — streak protected' : 'Skip undone', 'info'); }
 function tpWeekStat(phase){ const tr = phase.schedule.filter(d => d.type !== 'Rest'); return { done: tr.filter(d => tpIsDone(d.day)).length, total: tr.length }; }
-function tpStreak(phase){ let n = 0; const now = new Date(); for(let k = 0; k < 60; k++){ const d = new Date(now); d.setDate(now.getDate() - k); const short = WEEKDAYS[(d.getDay() + 6) % 7]; const sd = phase.schedule.find(x => x.day === short); if(!sd || sd.type === 'Rest') continue; if(_tpProg[d.toISOString().slice(0, 10)]) n++; else break; } return n; }
+function tpStreak(phase){ let n = 0; const now = new Date(); for(let k = 0; k < 60; k++){ const d = new Date(now); d.setDate(now.getDate() - k); const short = WEEKDAYS[(d.getDay() + 6) % 7]; const sd = phase.schedule.find(x => x.day === short); if(!sd || sd.type === 'Rest') continue; const st = _tpProg[d.toISOString().slice(0, 10)]; if(st === true) n++; else if(st === 'skipped') continue; else break; } return n; }
+// Reschedule: move a session + its schedule slot from one weekday to another.
+function tpReschedule(pi, fromDay, toDay){
+  const phase = TP_DATA.phases[pi]; if(!phase || fromDay === toDay) return;
+  const sess = phase.sessions.find(s => tpDayOf(s) === fromDay); if(!sess) return;
+  if(phase.sessions.some(s => tpDayOf(s) === toDay)){ showToast('That day already has a session — pick a rest day', 'error'); return; }
+  const oldName = sess.name; sess.day = toDay;
+  if(/ — /.test(oldName)) sess.name = toDay + ' — ' + oldName.split(' — ')[1];
+  const fromSlot = phase.schedule.find(d => d.day === fromDay);
+  const toSlot = phase.schedule.find(d => d.day === toDay);
+  if(fromSlot && toSlot){ toSlot.type = fromSlot.type; toSlot.cls = fromSlot.cls; fromSlot.type = 'Rest'; fromSlot.cls = 'd-rest'; }
+  _tpSelDay = toDay; tpSave(); renderTrainingToday(document.getElementById('tp-myweek'), TP_DATA);
+  showToast('Moved to ' + toDay, 'success');
+}
+function tpOpenReschedule(pi, fromDay){
+  const phase = TP_DATA.phases[pi]; if(!phase) return;
+  const free = WEEKDAYS.filter(d => d !== fromDay && !phase.sessions.some(s => tpDayOf(s) === d));
+  if(!free.length){ showToast('No free day to move to', 'info'); return; }
+  const choice = prompt('Move ' + fromDay + '’s session to which day?\nOptions: ' + free.join(', '));
+  if(!choice) return;
+  const norm = choice.trim().slice(0,3); const day = free.find(d => d.toLowerCase() === norm.toLowerCase());
+  if(!day){ showToast('Pick one of: ' + free.join(', '), 'error'); return; }
+  tpReschedule(pi, fromDay, day);
+}
 // ---- Readiness: daily check-in → score that tunes training (wearables auto-fill later) ----
 function rdTodayKey(){ return new Date().toISOString().slice(0, 10); }
 function rdLog(){ return loadStore('sbp-readiness', {}); }
@@ -897,9 +1205,12 @@ function renderTrainingToday(el, plan){
   if(sess){
     const exs = sess.exercises.map((e, ei) => '<div class="tpt-ex" onclick="exOpenRich(\'live\',' + pi + ',' + sIdx + ',' + ei + ')"><span class="tpt-ex-n">' + esc(e.name) + '</span><span class="tpt-ex-s">' + esc(e.sets || '') + '</span></div>').join('');
     const done = tpIsDone(selDay);
-    hero = '<div class="tpt-hero"><div class="tpt-hero-top"><span class="tpt-lbl">' + (isToday ? 'Today · ' : '') + esc(selDay) + '</span><span class="tpt-focus">' + esc(sess.focus) + '</span></div>'
+    const skipped = tpIsSkipped(selDay);
+    hero = '<div class="tpt-hero"><div class="tpt-hero-top"><span class="tpt-lbl">' + (isToday ? 'Today · ' : '') + esc(selDay) + '</span><span class="tpt-focus">' + esc(sess.focus) + (skipped ? ' · skipped' : '') + '</span></div>'
       + '<div class="tpt-title">' + esc((sess.name.split(' — ')[1]) || sess.focus) + '</div><div class="tpt-exlist">' + exs + '</div>'
-      + '<button class="tpt-done' + (done ? ' is-done' : '') + '" onclick="tpToggleDone(\'' + selDay + '\')">' + (done ? '<i class="fa-solid fa-check" aria-hidden="true"></i> Done' : 'Mark as done') + '</button></div>';
+      + '<button class="tpt-done' + (done ? ' is-done' : '') + '" onclick="tpToggleDone(\'' + selDay + '\')">' + (done ? '<i class="fa-solid fa-check" aria-hidden="true"></i> Done' : 'Mark as done') + '</button>'
+      + '<div class="tpt-hero-acts"><button class="tpt-mini' + (skipped ? ' on' : '') + '" onclick="tpSkipDay(\'' + selDay + '\')"><i class="fa-solid fa-forward" aria-hidden="true"></i> ' + (skipped ? 'Skipped' : 'Skip') + '</button>'
+      + '<button class="tpt-mini" onclick="tpOpenReschedule(' + pi + ',\'' + selDay + '\')"><i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Reschedule</button></div></div>';
   } else {
     hero = '<div class="tpt-hero tpt-rest"><div class="tpt-lbl">' + (isToday ? 'Today · ' : '') + esc(selDay) + '</div><div class="tpt-title">Rest day</div><div class="tpt-restsub">Recover well — back at it tomorrow.</div></div>';
   }
@@ -1143,7 +1454,76 @@ async function npCreate(){
   } catch(e){ showToast('Could not create phase', 'error'); }
   finally { if(btn){ btn.disabled = false; btn.textContent = 'Create phase'; } }
 }
+// ==================== PER-SET LOGGING (reps/weight, with history) ====================
+// sbp-setlogs: { [iso]: { [exId]: [{ r:reps, w:weight }] } }
+let _setLogs = loadStore('sbp-setlogs', {});
+let _exCur = null;   // exercise currently open in the detail modal
+function setLogSave(){ localStorage.setItem('sbp-setlogs', JSON.stringify(_setLogs)); }
+function setLogTodayKey(){ return new Date().toISOString().slice(0, 10); }
+function setLogGet(exId, iso){ return (_setLogs[iso] && _setLogs[iso][exId]) || []; }
+function setLogPut(exId, sets){
+  const iso = setLogTodayKey();
+  _setLogs[iso] = _setLogs[iso] || {};
+  if(!sets.length){ delete _setLogs[iso][exId]; if(!Object.keys(_setLogs[iso]).length) delete _setLogs[iso]; }
+  else _setLogs[iso][exId] = sets;
+  setLogSave();
+  // Logged sets feed Progress: a day with any logged set counts as a workout.
+  if(sets.length && typeof workoutLog !== 'undefined'){
+    if(!workoutLog[iso]){ workoutLog[iso] = true; localStorage.setItem('sbp-workouts', JSON.stringify(workoutLog)); if(typeof updateWorkoutStats === 'function') updateWorkoutStats(); }
+  }
+}
+// Most recent PAST date (not today) with logged sets for this exercise.
+function setLogLast(exId){
+  const today = setLogTodayKey();
+  const dates = Object.keys(_setLogs).filter(iso => iso < today && _setLogs[iso][exId] && _setLogs[iso][exId].length).sort().reverse();
+  return dates.length ? { iso: dates[0], sets: _setLogs[dates[0]][exId] } : null;
+}
+function exSetAdd(){
+  if(!_exCur) return;
+  const sets = setLogGet(_exCur.id, setLogTodayKey()).slice();
+  const last = sets[sets.length - 1];
+  sets.push(last ? { r:last.r, w:last.w } : { r:'', w:'' });
+  setLogPut(_exCur.id, sets); exRenderSetLog(_exCur);
+}
+function exSetChange(i, field, val){
+  if(!_exCur) return;
+  const sets = setLogGet(_exCur.id, setLogTodayKey()).slice();
+  if(!sets[i]) return;
+  const n = parseFloat(val); sets[i][field] = (isNaN(n) || n < 0) ? '' : n;
+  setLogPut(_exCur.id, sets);   // no re-render — keep focus in the input
+}
+function exSetDel(i){
+  if(!_exCur) return;
+  const sets = setLogGet(_exCur.id, setLogTodayKey()).slice();
+  sets.splice(i, 1); setLogPut(_exCur.id, sets); exRenderSetLog(_exCur);
+}
+function exRenderSetLog(ex){
+  let panel = document.getElementById('exd-setlog');
+  if(!panel){
+    panel = document.createElement('div');
+    panel.id = 'exd-setlog';
+    const steps = document.getElementById('exd-steps');
+    if(steps && steps.parentNode) steps.parentNode.insertBefore(panel, steps);
+    else document.querySelector('#exercise-detail-modal .modal-body, #exercise-detail-modal .modal-panel')?.appendChild(panel);
+  }
+  const sets = setLogGet(ex.id, setLogTodayKey());
+  const last = setLogLast(ex.id);
+  const lastLine = last
+    ? '<div class="exd-lastlog">Last time (' + esc(last.iso.slice(5)) + '): ' + last.sets.map(s => (s.w ? s.w + 'kg×' : '') + (s.r || '–')).join(', ') + '</div>'
+    : '<div class="exd-lastlog">No history yet — log your first sets below.</div>';
+  const rows = sets.map((s, i) =>
+    '<div class="exd-setrow"><span class="exd-setn">' + (i + 1) + '</span>'
+    + '<input class="food-input" type="number" min="0" inputmode="numeric" placeholder="reps" value="' + (s.r === '' || s.r == null ? '' : s.r) + '" oninput="exSetChange(' + i + ',\'r\',this.value)">'
+    + '<input class="food-input" type="number" min="0" inputmode="decimal" placeholder="kg" value="' + (s.w === '' || s.w == null ? '' : s.w) + '" oninput="exSetChange(' + i + ',\'w\',this.value)">'
+    + '<button class="mp-icon" title="Remove set" aria-label="Remove set" onclick="exSetDel(' + i + ')">✕</button></div>'
+  ).join('');
+  panel.innerHTML = '<div class="exd-setlog-h">Log your sets</div>' + lastLine
+    + '<div class="exd-setrows">' + rows + '</div>'
+    + '<button class="mp-add" onclick="exSetAdd()">+ Add set</button>';
+}
 function exShow(ex){
+  _exCur = ex;
+  exRenderSetLog(ex);
   document.getElementById('exd-name').textContent = ex.name;
   document.getElementById('exd-sets').textContent = ex.sets || '';
   buildBodyMaps();
@@ -2813,7 +3193,7 @@ let remState = loadStore('sbp-reminders', { enabled:false, protein:'09:00', crea
 const SUPABASE_URL = 'https://owqyrgufwvqgbrpdpskx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93cXlyZ3Vmd3ZxZ2JycGRwc2t4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MzczOTQsImV4cCI6MjA5NjMxMzM5NH0.Z_zUJbKvO6-FBbKheDmlVu46XjT9toFaVlct12IY8zU';
 
-const SYNC_KEYS = ['sbp-today','sbp-weight','sbp-workouts','sbp-session-logs','sbp-shop','sbp-mealshop','sbp-mealplan','sbp-trainingplan','sbp-tp-progress','sbp-readiness','sbp-recipes'];
+const SYNC_KEYS = ['sbp-today','sbp-weight','sbp-workouts','sbp-session-logs','sbp-shop','sbp-mealshop','sbp-mealplan','sbp-trainingplan','sbp-tp-progress','sbp-readiness','sbp-recipes','sbp-meallog','sbp-setlogs'];
 const SYNC_KEY_SET = new Set(SYNC_KEYS);
 
 // Capture the real setter BEFORE patching, so our own sync writes don't recurse.
