@@ -968,17 +968,19 @@ function tpRenderWeek(el, plan, ctx){
   }).join('');
   el.innerHTML = (ctx === 'live' ? sum : '') + '<div class="tp-week">' + cards + '</div>';
 }
-function tpSwap(ctx, di, ei){
+async function tpSwap(ctx, di, ei){
   const plan = (ctx === 'preview') ? (_tonb && _tonb.plan) : TP_DATA;
-  if(!plan || !plan.days[di]) return;
-  if(!EX_LIB_CACHE) return;
+  if(!plan || !plan.days || !plan.days[di]) return;
+  const lib = EX_LIB_CACHE || await loadExerciseLibrary();
+  if(!lib || !lib.length){ showToast('Couldn’t load alternatives — try again', 'error'); return; }
   const day = plan.days[di];
   const ex = day.exercises[ei]; if(!ex) return;
   const used = day.exercises.map(e => e.id);
-  const alt = swapAlternative(EX_LIB_CACHE, { id:ex.id, muscle:ex.muscle }, plan.location, used);
+  const alt = swapAlternative(lib, { id:ex.id, muscle:ex.muscle }, plan.location, used);
+  if(!alt || alt.id === ex.id){ showToast('No other option for this muscle', 'info'); return; }
   day.exercises[ei] = { id:alt.id, name:alt.name, muscle:alt.muscle, sets:alt.sets };
   if(ctx === 'preview'){ tpRenderWeek(document.getElementById('tonb-preview'), _tonb.plan, 'preview'); }
-  else { tpSave(); tpRenderWeek(document.getElementById('tp-myweek'), TP_DATA, 'live'); showToast('Swapped', 'info'); }
+  else { tpSave(); tpRenderWeek(document.getElementById('tp-myweek'), TP_DATA, 'live'); showToast('Swapped to ' + alt.name, 'success'); }
 }
 
 // ---- Training onboarding: goal → days → location → per-day focus → preview ----
@@ -1139,13 +1141,33 @@ function tpReschedule(pi, fromDay, toDay){
 function tpOpenReschedule(pi, fromDay){
   const phase = TP_DATA.phases[pi]; if(!phase) return;
   const free = WEEKDAYS.filter(d => d !== fromDay && !phase.sessions.some(s => tpDayOf(s) === d));
-  if(!free.length){ showToast('No free day to move to', 'info'); return; }
-  const choice = prompt('Move ' + fromDay + '’s session to which day?\nOptions: ' + free.join(', '));
-  if(!choice) return;
-  const norm = choice.trim().slice(0,3); const day = free.find(d => d.toLowerCase() === norm.toLowerCase());
-  if(!day){ showToast('Pick one of: ' + free.join(', '), 'error'); return; }
-  tpReschedule(pi, fromDay, day);
+  if(!free.length){ showToast('No free day to move to — every day has a session', 'info'); return; }
+  const m = _ensureReschedModal();
+  const sess = phase.sessions.find(s => tpDayOf(s) === fromDay);
+  m.querySelector('#resched-sub').textContent = 'Move ' + (sess ? (sess.focus + ' ') : '') + 'from ' + fromDay + ' to:';
+  m.querySelector('#resched-days').innerHTML = free.map(d =>
+    '<button class="resched-day" onclick="tpDoReschedule(' + pi + ',\'' + fromDay + '\',\'' + d + '\')">' + esc(d) + '</button>'
+  ).join('');
+  m.style.display = 'block';
 }
+function _ensureReschedModal(){
+  let m = document.getElementById('resched-modal');
+  if(m) return m;
+  m = document.createElement('div');
+  m.id = 'resched-modal';
+  m.style.cssText = 'display:none;position:fixed;inset:0;z-index:220;';
+  m.innerHTML =
+    '<div class="modal-overlay" onclick="tpCloseReschedule()"></div>' +
+    '<div class="modal-panel"><div class="modal-header"><div>' +
+      '<div class="modal-title">Reschedule session</div>' +
+      '<div class="modal-sub" id="resched-sub"></div>' +
+    '</div><button class="modal-close" onclick="tpCloseReschedule()"><i class="fa-solid fa-xmark"></i></button></div>' +
+    '<div class="modal-body"><div class="resched-daygrid" id="resched-days"></div></div></div>';
+  document.body.appendChild(m);
+  return m;
+}
+function tpCloseReschedule(){ const m = document.getElementById('resched-modal'); if(m) m.style.display = 'none'; }
+function tpDoReschedule(pi, fromDay, toDay){ tpCloseReschedule(); tpReschedule(pi, fromDay, toDay); }
 // ---- Readiness: daily check-in → score that tunes training (wearables auto-fill later) ----
 function rdTodayKey(){ return new Date().toISOString().slice(0, 10); }
 function rdLog(){ return loadStore('sbp-readiness', {}); }
@@ -1368,15 +1390,18 @@ function exOpenRich(ctx, pi, si, ei){
   const ex = s.exercises[ei]; if(!ex) return;
   exShow(ex);
 }
-function tpSwapRich(ctx, pi, si, ei){
-  const plan = exPlanFor(ctx); if(!plan || !plan.phases || !EX_LIB_CACHE) return;
+async function tpSwapRich(ctx, pi, si, ei){
+  const plan = exPlanFor(ctx); if(!plan || !plan.phases) return;
   const s = plan.phases[pi] && plan.phases[pi].sessions[si]; if(!s) return;
   const ex = s.exercises[ei]; if(!ex) return;
+  const lib = EX_LIB_CACHE || await loadExerciseLibrary();   // lazy-load so swap never silently no-ops
+  if(!lib || !lib.length){ showToast('Couldn’t load alternatives — try again', 'error'); return; }
   const used = s.exercises.map(e => e.id);
-  const alt = swapAlternative(EX_LIB_CACHE, { id:ex.id, muscle:ex.muscle }, plan.location || 'gym', used);
+  const alt = swapAlternative(lib, { id:ex.id, muscle:ex.muscle }, plan.location || 'gym', used);
+  if(!alt || alt.id === ex.id){ showToast('No other option for this muscle', 'info'); return; }
   s.exercises[ei] = { id:alt.id, name:alt.name, muscle:alt.muscle, sets:alt.sets };
   if(ctx === 'preview'){ renderRichPhases(document.getElementById('tonb-preview'), _tonb.plan, 'preview'); }
-  else { tpRefreshDetails(); showToast('Swapped', 'info'); }
+  else { tpRefreshDetails(); showToast('Swapped to ' + alt.name, 'success'); }
 }
 // ---- Plan editing: phases (add/duplicate/delete) + exercises (add/remove) ----
 function tpRefreshDetails(){
