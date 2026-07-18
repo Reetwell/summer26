@@ -110,7 +110,7 @@ final class RecipeStore {
     private func load() {
         guard let data = UserDefaults.standard.data(forKey: key),
               let decoded = try? JSONDecoder().decode([Recipe].self, from: data) else {
-            recipes = Self.sampleRecipes
+            recipes = []   // fresh install — no saved recipes yet
             return
         }
         recipes = decoded
@@ -120,37 +120,4 @@ final class RecipeStore {
         guard let data = try? JSONEncoder().encode(recipes) else { return }
         UserDefaults.standard.set(data, forKey: key)
     }
-
-    // MARK: - Sample data
-
-    static let sampleRecipes: [Recipe] = [
-        Recipe(
-            id: "sample-1",
-            url: "https://www.tiktok.com/@highproteinpaul/video/1234",
-            canonicalUrl: "https://www.tiktok.com/@highproteinpaul/video/1234",
-            platform: "tiktok",
-            embedId: "1234",
-            title: "High Protein Chicken Bowl",
-            author: "@highproteinpaul",
-            thumbnail: "",
-            ingredients: ["200g chicken breast", "150g rice", "1 tbsp olive oil", "mixed veg", "soy sauce"],
-            steps: ["Cook rice.", "Season chicken, pan-fry 6 min each side.", "Stir-fry veg.", "Combine and drizzle soy sauce."],
-            macros: Recipe.Macros(p: 52, c: 68, f: 11, kcal: 590),
-            ts: Date().addingTimeInterval(-86400).timeIntervalSince1970
-        ),
-        Recipe(
-            id: "sample-2",
-            url: "https://www.youtube.com/watch?v=abc",
-            canonicalUrl: "https://www.youtube.com/watch?v=abc",
-            platform: "youtube",
-            embedId: "abc",
-            title: "Overnight Oats (40g Protein)",
-            author: "FitFoodieNation",
-            thumbnail: "",
-            ingredients: ["80g oats", "300ml milk", "1 scoop whey protein", "1 banana", "honey"],
-            steps: ["Mix oats, protein powder and milk.", "Refrigerate overnight.", "Top with banana and honey."],
-            macros: Recipe.Macros(p: 42, c: 72, f: 9, kcal: 540),
-            ts: Date().addingTimeInterval(-172800).timeIntervalSince1970
-        )
-    ]
 }

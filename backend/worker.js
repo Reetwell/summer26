@@ -6,14 +6,24 @@
  * service worker asks /due which reminder to show. This keeps the crypto here
  * to just the VAPID JWT (ES256), which is simple and reliable.
  *
- * Required bindings (see backend/SETUP.md):
+ * Required bindings (Worker → Settings → Variables and Secrets):
  *   KV namespace binding:  REMINDERS
- *   Secret:                VAPID_PRIVATE_JWK   (JSON string of the private JWK)
- *   Var:                   VAPID_PUBLIC_KEY    (base64url applicationServerKey)
- *   Var:                   VAPID_SUBJECT       (mailto:you@example.com)
+ *   Secret:  VAPID_PRIVATE_JWK          (JSON string of the EC private JWK)
+ *   Secret:  ANTHROPIC_API_KEY          (enables /recipe/extract)
+ *   Secret:  SUPABASE_SERVICE_ROLE_KEY  (enables /wearable/* token store)
+ *   Secret:  OURA_ID, OURA_SECRET       (Oura Ring OAuth)
+ *   Secret:  WHOOP_ID, WHOOP_SECRET     (Whoop OAuth)
+ *   Secret:  FITBIT_ID, FITBIT_SECRET   (Fitbit OAuth)
+ *   Var:     VAPID_PUBLIC_KEY           (base64url applicationServerKey)
+ *   Var:     VAPID_SUBJECT              (mailto:you@example.com)
+ *   Var:     SUPABASE_URL               (https://owqyrgufwvqgbrpdpskx.supabase.co)
  *
  * Cron trigger: every 5 minutes  (see SETUP.md for the exact expression)
  */
+
+import { wearables } from './wearables.js';
+import { account } from './account.js';
+import { food } from './food.js';
 
 const MESSAGES = {
   protein:  { title: "Protein time 🥤", body: "Have your whey protein shake." },
@@ -89,6 +99,10 @@ export default {
           extractionQuality: draft._quality || "empty",
         }), origin);
       }
+
+      if (url.pathname.startsWith("/wearable/")) return wearables(request, env, url.pathname);
+      if (url.pathname.startsWith("/account/")) return account(request, env, url.pathname);
+      if (url.pathname.startsWith("/food/")) return food(request, env, url.pathname);
 
       if (url.pathname === "/" ) return cors(json({ ok: true, service: "summerbody-reminders" }));
       return cors(json({ error: "not found" }, 404));
@@ -368,7 +382,8 @@ function json(obj, status = 200) {
 function cors(res) {
   res.headers.set("Access-Control-Allow-Origin", "*");
   res.headers.set("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-  res.headers.set("Access-Control-Allow-Headers", "Content-Type");
+  // Authorization needed for the Bearer-auth routes (/account/*, /wearable/*/sync).
+  res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
   return res;
 }
 

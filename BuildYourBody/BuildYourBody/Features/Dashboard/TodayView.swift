@@ -6,7 +6,7 @@ struct TodayView: View {
     @State private var showJunkEntry = false
     @State private var junkText = ""
     @State private var showLeague = false
-    private let rank = RankState.sample
+    private let rank = RankState.fresh
 
     private var dateString: String {
         Date.now.formatted(.dateTime.weekday(.wide).day().month(.wide))
@@ -33,16 +33,18 @@ struct TodayView: View {
                         Text("Today")
                             .font(.serifDisplay(34))
                         Spacer()
-                        HStack(spacing: 5) {
-                            Image(systemName: "flame.fill")
-                                .font(.system(size: 13))
-                            Text("6 day streak")
-                                .font(.sans(13, weight: .semibold))
+                        if tsStore.currentStreak > 0 {
+                            HStack(spacing: 5) {
+                                Image(systemName: "flame.fill")
+                                    .font(.system(size: 13))
+                                Text("\(tsStore.currentStreak) day streak")
+                                    .font(.sans(13, weight: .semibold))
+                            }
+                            .foregroundStyle(Color.green500)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 7)
+                            .background(Color.green500.opacity(0.12), in: Capsule())
                         }
-                        .foregroundStyle(Color.green500)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 7)
-                        .background(Color.green500.opacity(0.12), in: Capsule())
                     }
                 }
                 .slideIn()
@@ -54,18 +56,18 @@ struct TodayView: View {
                             Text("Nutrition")
                                 .font(.sans(15, weight: .semibold))
                             Spacer()
-                            Text("On track")
+                            Text("Not logged yet")
                                 .font(.sans(12, weight: .semibold))
-                                .foregroundStyle(Color.green500)
+                                .foregroundStyle(.secondary)
                         }
 
                         HStack(spacing: Spacing.lg) {
-                            CalorieRingView(consumed: 1840, target: 2600)
+                            CalorieRingView(consumed: 0, target: 2600)
 
                             VStack(spacing: Spacing.sm) {
-                                MacroBarView(label: "Protein", value: 128, target: 160, color: .green500, delay: 0.35)
-                                MacroBarView(label: "Carbs",   value: 210, target: 300, color: Color(hex: "#4A90D9"), delay: 0.45)
-                                MacroBarView(label: "Fat",     value: 52,  target: 80,  color: Color(hex: "#E8A13A"), delay: 0.55)
+                                MacroBarView(label: "Protein", value: 0, target: 160, color: .green500, delay: 0.35)
+                                MacroBarView(label: "Carbs",   value: 0, target: 300, color: Color(hex: "#4A90D9"), delay: 0.45)
+                                MacroBarView(label: "Fat",     value: 0, target: 80,  color: Color(hex: "#E8A13A"), delay: 0.55)
                             }
                         }
                     }
@@ -80,37 +82,68 @@ struct TodayView: View {
                 ReadinessBannerView()
                     .slideIn(delay: 0.12)
 
-                // Today's training
+                // Today's training — live from the plan
                 BBCard {
                     VStack(alignment: .leading, spacing: Spacing.sm) {
                         HStack {
                             Text("Today's training")
                                 .font(.sans(15, weight: .semibold))
                             Spacer()
-                            Text("Push · Week 3")
-                                .font(.sans(12))
-                                .foregroundStyle(.secondary)
-                        }
-
-                        HStack(spacing: Spacing.md) {
-                            Image(systemName: "dumbbell.fill")
-                                .font(.system(size: 18))
-                                .foregroundStyle(Color.green500)
-                                .frame(width: 44, height: 44)
-                                .background(Color.green500.opacity(0.12), in: RoundedRectangle(cornerRadius: Radius.md))
-
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Push Day A")
-                                    .font(.sans(16, weight: .semibold))
-                                Text("6 exercises · ~55 min")
-                                    .font(.sans(13))
+                            if let phase = tsStore.todayPhase {
+                                Text(phase.badge)
+                                    .font(.sans(12))
                                     .foregroundStyle(.secondary)
                             }
-                            Spacer()
                         }
 
-                        BBButton(title: "Start workout") {}
-                            .padding(.top, 4)
+                        if let session = tsStore.todaySession(), session.focus != "Rest" {
+                            HStack(spacing: Spacing.md) {
+                                Image(systemName: "dumbbell.fill")
+                                    .font(.system(size: 18))
+                                    .foregroundStyle(Color.green500)
+                                    .frame(width: 44, height: 44)
+                                    .background(Color.green500.opacity(0.12), in: RoundedRectangle(cornerRadius: Radius.md))
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(session.name)
+                                        .font(.sans(16, weight: .semibold))
+                                    Text("\(session.exercises.count) exercises · \(session.duration)")
+                                        .font(.sans(13))
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                            }
+
+                            if tsStore.isDone() {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(Color.green500)
+                                    Text("Done today — great work")
+                                        .font(.sans(14, weight: .semibold))
+                                        .foregroundStyle(Color.green700)
+                                }
+                                .padding(.top, 4)
+                            } else {
+                                BBButton(title: "Start workout") {}
+                                    .padding(.top, 4)
+                            }
+                        } else {
+                            HStack(spacing: Spacing.md) {
+                                Image(systemName: "zzz")
+                                    .font(.system(size: 18))
+                                    .foregroundStyle(Color.green500.opacity(0.6))
+                                    .frame(width: 44, height: 44)
+                                    .background(Color.green500.opacity(0.08), in: RoundedRectangle(cornerRadius: Radius.md))
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Rest day")
+                                        .font(.sans(16, weight: .semibold))
+                                    Text("Recovery is part of the plan.")
+                                        .font(.sans(13))
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                            }
+                        }
                     }
                 }
                 .slideIn(delay: 0.18)
@@ -123,7 +156,7 @@ struct TodayView: View {
                     quickStat(icon: "figure.walk", value: "—", label: "steps")
                     #endif
                     quickStat(icon: "drop.fill", value: String(format: "%.1fL", todayStore.todayLog.water), label: "water")
-                    quickStat(icon: "scalemass.fill", value: "74.2kg", label: "weight")
+                    quickStat(icon: "scalemass.fill", value: "—", label: "weight")
                 }
                 .slideIn(delay: 0.24)
 
@@ -323,23 +356,19 @@ struct TodayView: View {
                     VStack(alignment: .leading, spacing: Spacing.md) {
                         Text("NUTRITION").font(.sans(11, weight: .bold)).foregroundStyle(.secondary).kerning(1.4)
                         HStack(alignment: .firstTextBaseline, spacing: 6) {
-                            Text("1.8k").font(.serifDisplay(44)).foregroundStyle(Color.green700)
+                            Text("0").font(.serifDisplay(44)).foregroundStyle(Color.green700)
                             Text("/ 2,600 kcal").font(.sans(16)).foregroundStyle(.secondary)
                         }
                         HStack(spacing: Spacing.lg) {
-                            macroCol("142g", "Protein")
-                            macroCol("210g", "Carbs")
-                            macroCol("54g", "Fat")
+                            macroCol("0g", "Protein")
+                            macroCol("0g", "Carbs")
+                            macroCol("0g", "Fat")
                         }
                     }
                     Spacer()
                     ZStack {
                         Circle().stroke(Color.green500.opacity(0.13), lineWidth: 12)
-                        Circle().trim(from: 0, to: 0.7)
-                            .stroke(AngularGradient(colors: [.green500, .green700], center: .center, startAngle: .degrees(-90), endAngle: .degrees(270)),
-                                    style: StrokeStyle(lineWidth: 12, lineCap: .round))
-                            .rotationEffect(.degrees(-90))
-                        Text("70%").font(.serifDisplay(24)).foregroundStyle(Color.green700)
+                        Text("0%").font(.serifDisplay(24)).foregroundStyle(.secondary)
                     }
                     .frame(width: 130, height: 130)
                 }
@@ -354,10 +383,10 @@ struct TodayView: View {
                         .frame(maxWidth: .infinity)
                     let g = [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)]
                     LazyVGrid(columns: g, spacing: 16) {
-                        statTile("figure.walk", "8,412", "Steps")
-                        statTile("drop.fill", "2.4L", "Water")
-                        statTile("scalemass.fill", "74.2", "kg")
-                        statTile("bolt.fill", "6", "Days", highlight: true)
+                        statTile("figure.walk", "—", "Steps")
+                        statTile("drop.fill", String(format: "%.1fL", todayStore.todayLog.water), "Water")
+                        statTile("scalemass.fill", "—", "kg")
+                        statTile("bolt.fill", "\(tsStore.currentStreak)", "Days", highlight: true)
                     }
                     .frame(width: 300)
                 }
@@ -386,9 +415,11 @@ struct TodayView: View {
                 .offset(x: 40, y: 30)
             VStack(alignment: .leading) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("NEXT SESSION").font(.sans(11, weight: .bold)).kerning(1.4).foregroundStyle(Color(hex: "#86f8c9"))
-                    Text("Upper Body Alpha").font(.serifDisplay(28)).foregroundStyle(.white)
-                    Text("45 min · Strength").font(.sans(14)).foregroundStyle(.white.opacity(0.8))
+                    Text("TODAY'S SESSION").font(.sans(11, weight: .bold)).kerning(1.4).foregroundStyle(Color(hex: "#86f8c9"))
+                    Text(tsStore.todaySession().map { $0.focus == "Rest" ? "Rest day" : $0.name } ?? "No session")
+                        .font(.serifDisplay(28)).foregroundStyle(.white)
+                    Text(tsStore.todaySession().map { $0.exercises.isEmpty ? "Recovery is part of the plan" : "\($0.exercises.count) exercises · \($0.duration)" } ?? "")
+                        .font(.sans(14)).foregroundStyle(.white.opacity(0.8))
                 }
                 Spacer()
                 Button {} label: {

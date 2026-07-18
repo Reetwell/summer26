@@ -106,7 +106,7 @@ final class ShoppingStore {
            let decoded = try? JSONDecoder().decode([ShopItem].self, from: data) {
             items = decoded
         } else {
-            items = Self.sampleItems
+            items = []   // fresh install — empty list until built from a meal plan
         }
     }
 
@@ -130,20 +130,6 @@ final class ShoppingStore {
         if t.contains("creatine") || t.contains("whey") || t.contains("vitamin") || t.contains("supplement") { return "Supplements" }
         return "Other"
     }
-
-    static let sampleItems: [ShopItem] = [
-        ShopItem(name: "Chicken breast", amount: "1.2 kg", category: "Protein"),
-        ShopItem(name: "Salmon fillets", amount: "4",      category: "Protein"),
-        ShopItem(name: "Greek yogurt",   amount: "1 kg",   category: "Protein"),
-        ShopItem(name: "Eggs",           amount: "12",     category: "Protein"),
-        ShopItem(name: "Basmati rice",   amount: "1 kg",   category: "Carbs"),
-        ShopItem(name: "Oats",           amount: "500 g",  category: "Carbs"),
-        ShopItem(name: "Bananas",        amount: "6",      category: "Carbs"),
-        ShopItem(name: "Broccoli",       amount: "2 heads",category: "Produce"),
-        ShopItem(name: "Spinach",        amount: "400 g",  category: "Produce"),
-        ShopItem(name: "Avocados",       amount: "2",      category: "Produce"),
-        ShopItem(name: "Creatine monohydrate", amount: "500 g", category: "Supplements")
-    ]
 }
 
 private extension Array {

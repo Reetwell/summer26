@@ -81,6 +81,11 @@ final class TrainingStore {
         currentWeekDates().filter { progress[isoDate($0)] == true }.count
     }
 
+    // Total completed sessions ever (real — 0 on a fresh install)
+    var totalWorkouts: Int {
+        progress.values.filter { $0 }.count
+    }
+
     var sessionsPlannedThisWeek: Int {
         guard activePhaseIndex < plan.phases.count else { return 0 }
         return plan.phases[activePhaseIndex].sessions.filter { $0.focus != "Rest" }.count

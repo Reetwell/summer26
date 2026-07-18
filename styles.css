@@ -1,11 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap');
 
 :root {
-  --green-50: #E1F5EE;
-  --green-100: #9FE1CB;
-  --green-500: #1D9E75;
-  --green-700: #0F6E56;
-  --green-900: #085041;
+  --green-50: #E0EDEA;
+  --green-100: #94C0B4;
+  --green-500: #00694c;
+  --green-700: #00543D;
+  --green-900: #003F2E;
   --blue-50: #E6F1FB;
   --blue-100: #B5D4F4;
   --blue-500: #378ADD;
@@ -138,7 +138,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .signin-note { color:var(--text-tertiary); font-size:12px; line-height:1.5; margin-top:14px; text-align:center; }
 
 /* ---------- Welcome overlay (post sign-in) ---------- */
-.welcome-ov { position:fixed; inset:0; z-index:300; display:none; align-items:center; justify-content:center; background:linear-gradient(160deg,#0F6E56,#085041); }
+.welcome-ov { position:fixed; inset:0; z-index:300; display:none; align-items:center; justify-content:center; background:linear-gradient(160deg,#00543D,#003F2E); }
 .welcome-ov.show { display:flex; animation:welcomeFade .45s ease; }
 .welcome-ov.out { animation:welcomeOut .55s ease forwards; }
 .welcome-inner { text-align:center; color:#fff; padding:24px; }
@@ -414,7 +414,7 @@ html.gated, html.gated body { overflow:hidden; }
   flex: 0 0 auto; width: 58px; height: 58px; margin: 0 4px; margin-top: -26px;
   border-radius: 50%; border: 4px solid var(--bg); background: var(--green-500);
   color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 10px 22px -8px rgba(29,158,117,.7); transition: transform .15s, background .15s;
+  box-shadow: 0 10px 22px -8px rgba(0,105,76,.7); transition: transform .15s, background .15s;
 }
 .bnav-fab:active { transform: scale(.92); }
 .bnav-fab svg { width: 26px; height: 26px; stroke: #fff; stroke-width: 2.4; stroke-linecap: round; fill: none; transition: transform .2s; }
@@ -505,7 +505,7 @@ html.gated, html.gated body { overflow:hidden; }
 .tbox-val { font-size: 17px; font-weight: 600; color: var(--text-primary); }
 
 /* TIP BOXES */
-.tip { padding: 10px 14px; margin-top: 10px; background: var(--green-50); border: 1px solid rgba(29,158,117,0.22); border-radius: var(--radius-md); font-size: 12px; color: var(--green-900); line-height: 1.6; }
+.tip { padding: 10px 14px; margin-top: 10px; background: var(--green-50); border: 1px solid rgba(0,105,76,0.22); border-radius: var(--radius-md); font-size: 12px; color: var(--green-900); line-height: 1.6; }
 
 /* Editable meal-plan controls */
 .mp-card-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
@@ -648,7 +648,7 @@ select.food-input { width: 100%; }
 .tpt-phasepill { background: var(--green-50); color: var(--green-900); border: none; border-radius: 999px; padding: 7px 14px; font-weight: 600; font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background .12s; }
 .tpt-phasepill:hover { background: var(--green-100); }
 .tpt-wk-lbl { font-size: 12px; color: var(--text-tertiary); }
-.tpt-hero { background: linear-gradient(150deg, var(--green-700), var(--green-900)); color: #fff; border-radius: var(--radius-xl); padding: 18px 20px; margin-bottom: 12px; box-shadow: 0 16px 34px -18px rgba(15,110,86,.7); }
+.tpt-hero { background: linear-gradient(150deg, var(--green-700), var(--green-900)); color: #fff; border-radius: var(--radius-xl); padding: 18px 20px; margin-bottom: 12px; box-shadow: 0 16px 34px -18px rgba(0,84,61,.7); }
 .tpt-hero-top { display: flex; align-items: center; justify-content: space-between; }
 .tpt-lbl { font-size: 12px; color: var(--green-100); }
 .tpt-focus { font-size: 11px; font-weight: 600; background: rgba(255,255,255,.16); color: #fff; padding: 2px 11px; border-radius: 999px; }
@@ -855,7 +855,7 @@ select.food-input { width: 100%; }
 .shop-item:active { transform: scale(.985); }
 .shop-item.done {
   opacity: .52;
-  background: var(--green-50); border-color: rgba(29,158,117,.18);
+  background: var(--green-50); border-color: rgba(0,105,76,.18);
 }
 .shop-item.done .item-name { text-decoration: line-through; text-decoration-color: var(--text-tertiary); color: var(--text-secondary); }
 
@@ -989,7 +989,7 @@ select.food-input { width: 100%; }
 .dtile-wt .n { font-family: 'DM Serif Display', serif; font-size: 28px; line-height: 1; }
 .dtile-wt .delta { font-weight: 600; font-size: 13px; margin-top: 3px; }
 .dtile-wt svg { width: 100%; margin-top: auto; }
-.dtile-wk { background: linear-gradient(150deg, var(--green-700), var(--green-900)); color: #fff; border: none; box-shadow: 0 16px 34px -18px rgba(15,110,86,.7); }
+.dtile-wk { background: linear-gradient(150deg, var(--green-700), var(--green-900)); color: #fff; border: none; box-shadow: 0 16px 34px -18px rgba(0,84,61,.7); }
 .dtile-wk h5 { color: var(--green-100); }
 .dtile-wk .t { font-family: 'DM Serif Display', serif; font-size: 20px; line-height: 1.1; }
 .dtile-wk .ex { font-size: 13px; color: rgba(255,255,255,.82); margin-top: 8px; line-height: 1.6; }
@@ -1078,7 +1078,7 @@ select.food-input { width: 100%; }
   .dtile-wt .delta { font-weight: 600; font-size: 13px; margin-top: 3px; }
   .dtile-wt svg { width: 100%; margin-top: auto; }
 
-  .dtile-wk { grid-column: span 2; background: linear-gradient(150deg, var(--green-700), var(--green-900)); color: #fff; border: none; box-shadow: 0 16px 34px -18px rgba(15,110,86,.7); }
+  .dtile-wk { grid-column: span 2; background: linear-gradient(150deg, var(--green-700), var(--green-900)); color: #fff; border: none; box-shadow: 0 16px 34px -18px rgba(0,84,61,.7); }
   .dtile-wk h5 { color: var(--green-100); }
   .dtile-wk .t { font-family: 'DM Serif Display', serif; font-size: 22px; line-height: 1.1; }
   .dtile-wk .ex { font-size: 13px; color: rgba(255,255,255,.82); margin-top: 8px; line-height: 1.6; }
@@ -1254,7 +1254,7 @@ select.food-input { width: 100%; }
 .today-nudge svg { width: 18px; height: 18px; flex-shrink: 0; stroke: var(--amber-500); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
 /* Start-session hero (new look) */
-.today-hero { position: relative; overflow: hidden; border-radius: var(--radius-xl); padding: 22px 22px 24px; margin-bottom: 16px; color: #fff; background: linear-gradient(150deg, var(--green-500), var(--green-900)); box-shadow: 0 14px 30px -16px rgba(29,158,117,.55); }
+.today-hero { position: relative; overflow: hidden; border-radius: var(--radius-xl); padding: 22px 22px 24px; margin-bottom: 16px; color: #fff; background: linear-gradient(150deg, var(--green-500), var(--green-900)); box-shadow: 0 14px 30px -16px rgba(0,105,76,.55); }
 .today-hero::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120px 120px at 16% 22%, rgba(255,255,255,.16), transparent 70%), radial-gradient(170px 170px at 88% 78%, rgba(255,255,255,.12), transparent 70%); }
 .today-hero > * { position: relative; z-index: 1; }
 .th-lbl { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--green-100); }
@@ -1408,7 +1408,7 @@ html.show-splash .splash {
   align-items: center;
   justify-content: center;
   padding-bottom: 18vh; /* nudge the wordmark above dead-centre */
-  background: #0F6E56;
+  background: #00543D;
   /* default state: visible. .splash-done fades the whole layer out — a long,
      gentle ease so it dissolves into the app instead of snapping. */
   opacity: 1;
@@ -1456,9 +1456,9 @@ html.show-splash .splash.splash-done {
 
 /* ---- Deep-link pulse highlight ---- */
 @keyframes logPulse {
-  0%   { box-shadow: 0 0 0 0 rgba(29,158,117,0); }
-  20%  { box-shadow: 0 0 0 4px rgba(29,158,117,0.35); }
-  100% { box-shadow: 0 0 0 0 rgba(29,158,117,0); }
+  0%   { box-shadow: 0 0 0 0 rgba(0,105,76,0); }
+  20%  { box-shadow: 0 0 0 4px rgba(0,105,76,0.35); }
+  100% { box-shadow: 0 0 0 0 rgba(0,105,76,0); }
 }
 .log-pulse {
   animation: logPulse 1.8s ease 2;
@@ -1559,8 +1559,8 @@ html.show-splash .splash.splash-done {
     --gray-400: #6A6A65;
     --gray-600: #999892;
     /* Tinted backgrounds become translucent on dark surfaces */
-    --green-50:  rgba(29,158,117,0.14);
-    --green-100: rgba(29,158,117,0.24);
+    --green-50:  rgba(0,105,76,0.14);
+    --green-100: rgba(0,105,76,0.24);
     --blue-50:   rgba(55,138,221,0.14);
     --blue-100:  rgba(55,138,221,0.24);
     --amber-50:  rgba(186,117,23,0.16);
@@ -1613,7 +1613,7 @@ html.show-splash .splash.splash-done {
 
   /* Phase timeline */
   .tl-a { color: var(--green-500); }
-  .tl-b { background: rgba(29,158,117,0.20); color: var(--green-500); }
+  .tl-b { background: rgba(0,105,76,0.20); color: var(--green-500); }
   .tl-c { color: var(--blue-500); }
 
   /* Amber accent: -900 → -500 */
@@ -1634,7 +1634,7 @@ html.show-splash .splash.splash-done {
   .score-good  { color: var(--amber-500); }
 
   /* Readiness */
-  .rd-good                   { background: rgba(29,158,117,0.12); }
+  .rd-good                   { background: rgba(0,105,76,0.12); }
   .rd-good .rd-score         { color: var(--green-500); }
   .rd-ok .rd-score           { color: var(--amber-500); }
   .rd-low                    { background: rgba(226,75,74,0.14); }
@@ -1684,10 +1684,10 @@ html.show-splash .splash.splash-done {
 
   /* Log session card */
   .log-btn-icon { background: var(--green-50); color: var(--green-500); }
-  .log-session-btn:hover { background: rgba(29,158,117,0.08); }
+  .log-session-btn:hover { background: rgba(0,105,76,0.08); }
 
   /* Tip box borders adjust for dark */
-  .tip  { border-color: rgba(29,158,117,0.28); }
+  .tip  { border-color: rgba(0,105,76,0.28); }
   .tip2 { border-color: rgba(55,138,221,0.28); }
 }
 
@@ -1725,7 +1725,7 @@ html.show-splash .splash.splash-done {
   background: linear-gradient(150deg, var(--green-500), var(--green-900));
   border: none; border-radius: var(--radius-xl);
   padding: 28px 24px 24px;
-  box-shadow: 0 14px 30px -16px rgba(29,158,117,.55);
+  box-shadow: 0 14px 30px -16px rgba(0,105,76,.55);
   color: #fff; position: relative; overflow: hidden;
 }
 #sec-account #auth-in .signin-card::before {
@@ -1830,3 +1830,150 @@ html.show-splash .splash.splash-done {
   .section.active#sec-account #auth-out,
   .section.active#sec-account .today-block { animation: none; }
 }
+
+/* ====================================================================
+   PLAN CONTROL + DAILY LOGGING — Stitch-inspired (design chat, CSS only)
+   ====================================================================
+   Every selector below targets markup that ALREADY EXISTS and renders
+   today (checked against app.js before writing a line of this) — this
+   is a restyle of live, wired, previously-unstyled features, not a
+   spec for new ones. The one exception is clearly marked at the end.
+
+   1) PLAN CHOICE  — #meal-choice-modal (app.js:_ensureMealChoiceModal)
+      .meal-choice-opt / .mc-t / .mc-s — reuses .modal-panel chrome.
+   2) DAILY FUEL   — .totals-grid .tbox (the Cals/Protein/Carbs/Fats
+      boxes rendered per day, mpCardHtml's totals-grid sibling). Adding
+      an optional .tbox-bar > .tbox-bar-fill child (set --pct 0-100
+      inline) turns the number into a progress bar — additive, degrades
+      to today's plain number if the child is never added.
+   3) MEAL LOG BAR — .mp-card.mp-logged(.mp-eaten/.mp-skipped/.mp-swapped)
+      .mp-logbar > .mp-log-btn, .mp-log-status(.ate/.skip/.swap)
+      (app.js mpLogBar/mpCardHtml). Reorder already ships via the
+      existing .mp-reorder/.mp-icon ↑↓ buttons — untouched, still valid.
+   4) "I HAD SOMETHING ELSE" SHEET — #meal-swap-modal (app.js
+      _ensureMealSwapModal): same .modal-overlay/.modal-panel chrome,
+      turned into a bottom sheet via ID scoping (same pattern already
+      used for #readiness-modal/#wearable-modal). Contents:
+      .msw-foodsearch, #msw-food-results > .msw-food-row(-info/-name/-sub).
+   5) TRAINING PER-SET GRID — #exd-setlog (app.js exRenderSetLog, lives
+      inside #exercise-detail-modal): .exd-setlog-h, .exd-lastlog,
+      .exd-setrows > .exd-setrow > .exd-setn. Inputs/remove-btn already
+      reuse .food-input/.mp-icon — no change needed there.
+   6) RESCHEDULE PILL — .tpt-mini (app.js tpOpenReschedule), the
+      training-plan day-reschedule action — real, was unstyled.
+   7) FORWARD-LOOKING ONLY: a from-scratch "active session" page (hero +
+      per-exercise swap + Finish CTA) doesn't exist in app.js yet — the
+      current session logger (openSessionLogger) uses a flat checklist,
+      not Stitch's per-exercise set-grid list. .sess-* below is a small,
+      clearly-scoped head start for whenever the features chat builds
+      that page; nothing references it today.
+   ==================================================================== */
+
+/* ---- 1) Plan choice ("Build my own" vs "Generate one I can edit") ---- */
+#meal-choice-modal .modal-body { display: flex; flex-direction: column; gap: 12px; }
+.meal-choice-opt { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; width: 100%; padding: 26px 22px; border: 1.5px solid var(--border); border-radius: var(--radius-xl); background: var(--surface); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: border-color .15s, background .15s, transform .15s, box-shadow .15s; }
+.meal-choice-opt:hover { border-color: var(--green-100); background: var(--green-50); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.meal-choice-opt:active { transform: translateY(-2px) scale(.985); }
+.meal-choice-opt > i { width: 56px; height: 56px; border-radius: 50%; background: var(--green-50); color: var(--green-700); display: flex; align-items: center; justify-content: center; font-size: 22px; transition: transform .15s; }
+.meal-choice-opt:hover > i { transform: scale(1.06); }
+.mc-t { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+.mc-s { font-size: 13px; color: var(--text-secondary); line-height: 1.55; max-width: 280px; }
+@media (prefers-reduced-motion: reduce) { .meal-choice-opt { transition: border-color .15s, background .15s; } .meal-choice-opt:hover { transform: none; } }
+
+/* ---- 2) Daily Fuel — optional progress-bar upgrade for .tbox (additive) ---- */
+.tbox-bar { height: 6px; border-radius: 3px; background: var(--gray-200); overflow: hidden; margin-top: 6px; }
+.tbox-bar-fill { display: block; height: 100%; border-radius: 3px; width: calc(var(--pct, 0) * 1%); transition: width .8s cubic-bezier(0.16,1,0.3,1) .1s; background: var(--green-500); }
+.totals-grid .tbox:nth-child(2) .tbox-bar-fill { background: var(--blue-500); }
+.totals-grid .tbox:nth-child(3) .tbox-bar-fill { background: var(--purple-500); }
+.totals-grid .tbox:nth-child(4) .tbox-bar-fill { background: var(--green-500); }
+@starting-style { .section.active .tbox-bar-fill { width: 0; } }
+@media (prefers-reduced-motion: reduce) { .tbox-bar-fill { transition: none; } }
+
+/* ---- 3) Meal card daily-log bar (eaten / had-something-else / skipped) ---- */
+.mp-card.mp-logged.mp-eaten   { border-color: var(--green-100); background: var(--green-50); }
+.mp-card.mp-logged.mp-skipped { opacity: .68; }
+.mp-card.mp-logged.mp-swapped { border-color: var(--blue-100); }
+.mp-logbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.mp-log-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; border: 1.5px solid var(--border-strong); background: var(--surface); color: var(--text-secondary); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: .01em; cursor: pointer; transition: background .15s, border-color .15s, color .15s, transform .1s; }
+.mp-log-btn:hover { border-color: var(--green-500); color: var(--green-900); background: var(--green-50); }
+.mp-log-btn:active { transform: scale(.95); }
+.mp-log-btn i { font-size: 10px; }
+.mp-log-status { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: .01em; }
+.mp-log-status.ate  { background: var(--green-500); color: #fff; }
+.mp-log-status.skip { background: var(--gray-100); color: var(--text-secondary); }
+.mp-log-status.swap { background: var(--blue-50); color: var(--blue-900); }
+/* Undo is the only .mp-log-btn that follows a .mp-log-status — target it precisely
+   so the three primary actions (Ate it / Had something else / Skip) keep the pill style */
+.mp-log-status + .mp-log-btn { margin-left: auto; background: transparent; border-color: transparent; color: var(--text-tertiary); padding: 7px 10px; }
+.mp-log-status + .mp-log-btn:hover { background: var(--gray-100); border-color: transparent; color: var(--text-primary); }
+
+/* ---- 4) "I had something else" — bottom sheet (ID-scoped, matches the
+   existing #readiness-modal/#wearable-modal centred-variant pattern) ---- */
+#meal-swap-modal .modal-panel {
+  top: auto; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: min(520px, 100vw); max-height: 85vh;
+  border-radius: 20px 20px 0 0; display: flex; flex-direction: column;
+}
+#meal-swap-modal .modal-header { position: relative; padding-top: 22px; flex-shrink: 0; }
+#meal-swap-modal .modal-header::before { content: ""; position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 36px; height: 4px; border-radius: 2px; background: var(--border-strong); }
+#meal-swap-modal .modal-body { overflow-y: auto; padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+@starting-style { #meal-swap-modal .modal-panel { transform: translateX(-50%) translateY(100%); } }
+#meal-swap-modal .modal-panel { transition: transform .32s cubic-bezier(0.32,0.72,0,1), opacity .22s ease; }
+@media (min-width: 700px) {
+  @starting-style { #meal-swap-modal .modal-panel { transform: translateX(-50%) translateY(24px); } }
+}
+
+.msw-foodsearch { display: flex; gap: 8px; margin-bottom: 10px; }
+.msw-foodsearch .food-input { flex: 1; }
+#msw-food-results { display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px; }
+.msw-food-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); }
+.msw-food-info { flex: 1; min-width: 0; }
+.msw-food-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.msw-food-sub { font-size: 11px; color: var(--text-tertiary); }
+
+/* ---- 5) Training per-set weight×reps log grid (#exd-setlog) ---- */
+#exd-setlog { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+.exd-setlog-h { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-tertiary); margin-bottom: 8px; }
+.exd-lastlog { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 12px; }
+.exd-setrows { display: flex; flex-direction: column; gap: 7px; margin-bottom: 10px; }
+.exd-setrow { display: grid; grid-template-columns: 24px 1fr 1fr 32px; align-items: center; gap: 8px; padding: 6px; border-radius: var(--radius-md); background: var(--gray-50); }
+.exd-setn { text-align: center; font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.exd-setrow .food-input { width: 100%; min-width: 0; padding: 9px 4px; text-align: center; }
+.exd-setrow .mp-icon { justify-self: center; flex-shrink: 0; }
+
+/* ---- 6) Reschedule pill (training-plan day view) ---- */
+.tpt-mini { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px; border: 1.5px solid var(--border-strong); background: var(--surface); color: var(--green-700); font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: background .12s, border-color .12s; }
+.tpt-mini:hover { background: var(--green-50); border-color: var(--green-500); }
+.tpt-mini i { font-size: 11px; }
+
+/* ---- 7) Forward-looking: active-session page (not wired yet — see header note) ---- */
+.sess-hero { display: flex; align-items: center; justify-content: space-between; gap: 14px; background: var(--gray-100); border-radius: var(--radius-xl); padding: 20px 20px 22px; margin-bottom: 14px; }
+.sess-badge { display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 3px 10px; border-radius: 999px; background: var(--green-50); color: var(--green-900); margin-bottom: 8px; }
+.sess-title { font-family: 'DM Serif Display', serif; font-size: 23px; color: var(--text-primary); line-height: 1.1; }
+.sess-meta { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+.sess-finish-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 17px; border: none; border-radius: 999px; background: var(--green-500); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; box-shadow: 0 14px 30px -16px rgba(0,105,76,.55); transition: background .15s, transform .1s, box-shadow .15s; }
+.sess-finish-btn:hover { background: var(--green-700); transform: translateY(-1px); }
+.sess-finish-btn:active { transform: scale(.985); }
+@media (prefers-reduced-motion: reduce) { .sess-finish-btn:hover { transform: none; } }
+
+/* Entrance: stagger real meal-log cards + set rows in (reuses acctCardIn) */
+.section.active .mp-card.mp-logged:nth-child(1) { animation: acctCardIn .3s ease-out .04s both; }
+.section.active .mp-card.mp-logged:nth-child(2) { animation: acctCardIn .3s ease-out .09s both; }
+.section.active .mp-card.mp-logged:nth-child(n+3) { animation: acctCardIn .3s ease-out .14s both; }
+.exd-setrow { animation: acctCardIn .22s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .section.active .mp-card.mp-logged, .exd-setrow { animation: none; }
+}
+
+@media (min-width: 700px) {
+  #meal-swap-modal .modal-panel { border-radius: var(--radius-lg); max-height: 80vh; }
+}
+
+/* Dark-mode fixups (same -900-on-tint → -500 pattern as the rest of the file) */
+@media (prefers-color-scheme: dark) {
+  .sess-badge { color: var(--green-500); }
+  .mp-log-status.swap { color: var(--blue-500); }
+  .msw-food-sub { color: var(--gray-400); }
+  .tpt-mini { color: var(--green-500); }
+}
+

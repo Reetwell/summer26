@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BB Rank Badges v2 — faceted gem hex</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  body { background:#F9F6F0; font-family:'DM Sans',sans-serif; color:#1A1A18; margin:0; padding:40px 48px 64px; }
+  h1 { font-family:'DM Serif Display',serif; font-weight:400; font-size:30px; margin:0 0 4px; }
+  .sub { color:#5F5E5A; font-size:14px; margin-bottom:36px; }
+  .row-lg { display:flex; gap:34px; align-items:flex-end; margin-bottom:10px; }
+  .cell { text-align:center; }
+  .cell .nm { margin-top:10px; font-weight:700; font-size:14px; }
+  .cell .cl { color:#888780; font-size:11px; }
+  .lbl { font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#888780; margin:38px 0 12px; }
+  .row-sm { display:flex; gap:22px; align-items:center; }
+  .lb { background:#fff; border:1px solid rgba(0,0,0,.08); border-radius:14px; padding:4px 18px; max-width:560px; margin-top:10px; }
+  .lb-row { display:flex; align-items:center; gap:12px; padding:9px 0; border-bottom:1px solid rgba(0,0,0,.06); font-size:14px; }
+  .lb-row:last-child { border-bottom:none; }
+  .lb-row .pos { width:18px; color:#888780; font-weight:700; font-size:13px; }
+  .lb-row .nme { flex:1; font-weight:500; }
+  .lb-row .pts { color:#5F5E5A; font-size:13px; }
+  .grn { background:#1D9E75; border-radius:14px; padding:18px 22px; display:inline-flex; gap:22px; margin-top:10px; }
+</style>
+</head>
+<body>
+<h1>Rank badges v2 — faceted gem hex</h1>
+<div class="sub">One silhouette, five materials · R6 2.0 discipline, Build Your Body identity</div>
+
+<div class="row-lg" id="large"></div>
+<div class="lbl">Small — 28px and 20px (profile / leaderboard scale)</div>
+<div class="row-sm" id="small"></div>
+<div class="lbl">In context — leaderboard row on white</div>
+<div class="lb" id="board"></div>
+<div class="lbl">On brand green (league header)</div>
+<div class="grn" id="green"></div>
+
+<script>
+const TIERS = [
+  { name:'Bronze',   from:'#D69A5C', to:'#8A5A2B', deep:'#5E3A17', streak:0,    irid:false, extra:null,      lite:'#F0C79A' },
+  { name:'Silver',   from:'#DEE4EA', to:'#98A2AD', deep:'#5F6A75', streak:0.10, irid:false, extra:'brushed', lite:'#FFFFFF' },
+  { name:'Gold',     from:'#F5CB55', to:'#C9922A', deep:'#8F6212', streak:0.14, irid:false, extra:'ring',    lite:'#FFE9A8' },
+  { name:'Platinum', from:'#9AE7D6', to:'#3FA894', deep:'#256B5E', streak:0.16, irid:false, extra:'frost',   lite:'#EAFFF9' },
+  { name:'Diamond',  from:'#9AD4FF', to:'#4A90D9', deep:'#2B5E96', streak:0.18, irid:true,  extra:null,      lite:'#E4F3FF' },
+];
+
+function badge(t, size, idp){
+  const id = idp + t.name;
+  const irid = t.irid ? `
+    <linearGradient id="ir${id}" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#B8F0FF" stop-opacity=".28"/>
+      <stop offset=".45" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="1" stop-color="#C9B8FF" stop-opacity=".24"/>
+    </linearGradient>` : '';
+  const iridFace = t.irid ? `<polygon points="41,17 79,17 104,66 79,115 41,115 16,66" fill="url(#ir${id})"/>` : '';
+  const sparkle = t.irid ? `
+    <path d="M78 28 l2.2 5.8 5.8 2.2 -5.8 2.2 -2.2 5.8 -2.2 -5.8 -5.8 -2.2 5.8 -2.2 Z" fill="#FFFFFF" opacity=".9"/>
+    <path d="M44 84 l1.5 4 4 1.5 -4 1.5 -1.5 4 -1.5 -4 -4 -1.5 4 -1.5 Z" fill="#FFFFFF" opacity=".55"/>` : '';
+  const streak = t.streak ? `<polygon points="28,34 48,24 92,62 72,72" fill="#FFFFFF" opacity="${t.streak}"/>` : '';
+  let extra = '';
+  if(t.extra === 'brushed') extra = `
+    <line x1="24" y1="46" x2="96" y2="46" stroke="#FFFFFF" stroke-opacity=".14" stroke-width="1.4"/>
+    <line x1="20" y1="76" x2="100" y2="76" stroke="#FFFFFF" stroke-opacity=".10" stroke-width="1.2"/>
+    <line x1="26" y1="98" x2="94" y2="98" stroke="#FFFFFF" stroke-opacity=".08" stroke-width="1"/>`;
+  if(t.extra === 'ring') extra = `
+    <polygon points="44.8,25.7 75.2,25.7 94.3,66 75.2,106.3 44.8,106.3 25.7,66"
+      fill="none" stroke="${t.lite}" stroke-opacity=".55" stroke-width="1.6"/>`;
+  if(t.extra === 'frost') extra = `
+    <polygon points="41,17 79,17 104,66 79,115 41,115 16,66"
+      fill="none" stroke="${t.lite}" stroke-opacity=".5" stroke-width="1.6"/>
+    <path d="M30 42 l6 -3 M88 40 l-6 -3 M32 94 l6 3 M90 92 l-6 3" stroke="${t.lite}" stroke-opacity=".6" stroke-width="1.4" stroke-linecap="round"/>`;
+  return `
+<svg width="${size}" viewBox="0 0 120 132" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${t.name} rank badge">
+  <defs>
+    <linearGradient id="g${id}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${t.from}"/><stop offset="1" stop-color="${t.to}"/>
+    </linearGradient>
+    <linearGradient id="r${id}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${t.to}"/><stop offset="1" stop-color="${t.deep}"/>
+    </linearGradient>
+    <linearGradient id="w${id}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E9E9E4"/>
+    </linearGradient>
+    ${irid}
+  </defs>
+  <polygon points="38,8 82,8 112,66 82,124 38,124 8,66" fill="url(#r${id})" stroke="${t.deep}" stroke-width="2"/>
+  <polyline points="10.5,64 39.5,10.5 80.5,10.5" fill="none" stroke="${t.lite}" stroke-opacity=".65" stroke-width="2.4" stroke-linecap="round"/>
+  <polyline points="109.5,68 80.5,121.5 39.5,121.5" fill="none" stroke="#000000" stroke-opacity=".28" stroke-width="2.4" stroke-linecap="round"/>
+  <polygon points="41,17 79,17 104,66 79,115 41,115 16,66" fill="url(#g${id})"/>
+  <polygon points="41,17 79,17 60,62" fill="#FFFFFF" opacity=".22"/>
+  <polygon points="79,17 104,66 60,62" fill="#FFFFFF" opacity=".08"/>
+  <polygon points="104,66 79,115 60,62" fill="#000000" opacity=".14"/>
+  <polygon points="79,115 41,115 60,62" fill="#000000" opacity=".22"/>
+  <polygon points="41,115 16,66 60,62" fill="#000000" opacity=".08"/>
+  <polygon points="16,66 41,17 60,62" fill="#FFFFFF" opacity=".13"/>
+  <polygon points="50.1,35.9 69.9,35.9 83.4,62 69.9,88.1 50.1,88.1 36.6,62" fill="url(#g${id})"/>
+  <polygon points="50.1,35.9 69.9,35.9 83.4,62 69.9,88.1 50.1,88.1 36.6,62" fill="#FFFFFF" opacity=".06" stroke="#FFFFFF" stroke-opacity=".28" stroke-width="1"/>
+  <polygon points="41,17 79,17 75.5,22 44.5,22" fill="#FFFFFF" opacity=".5"/>
+  <polygon points="41,115 79,115 75.5,110 44.5,110" fill="#000000" opacity=".26"/>
+  ${streak}
+  ${extra}
+  ${iridFace}
+  <g fill="${t.deep}" opacity=".45" transform="translate(0,1.8)">
+    <rect x="40" y="59" width="40" height="6" rx="3"/>
+    <rect x="50" y="44" width="7" height="36" rx="3.5"/>
+    <rect x="63" y="44" width="7" height="36" rx="3.5"/>
+    <rect x="42" y="51" width="6" height="22" rx="3"/>
+    <rect x="72" y="51" width="6" height="22" rx="3"/>
+  </g>
+  <g fill="url(#w${id})">
+    <rect x="40" y="59" width="40" height="6" rx="3"/>
+    <rect x="50" y="44" width="7" height="36" rx="3.5"/>
+    <rect x="63" y="44" width="7" height="36" rx="3.5"/>
+    <rect x="42" y="51" width="6" height="22" rx="3"/>
+    <rect x="72" y="51" width="6" height="22" rx="3"/>
+  </g>
+  ${sparkle}
+</svg>`;
+}
+
+const large = document.getElementById('large');
+TIERS.forEach(t => {
+  large.insertAdjacentHTML('beforeend',
+    `<div class="cell">${badge(t,116,'L')}<div class="nm">${t.name}</div><div class="cl">${t.from} → ${t.to}</div></div>`);
+});
+const small = document.getElementById('small');
+TIERS.forEach(t => small.insertAdjacentHTML('beforeend', badge(t,28,'S')));
+TIERS.forEach(t => small.insertAdjacentHTML('beforeend', badge(t,20,'T')));
+
+const names = [['4','You','412 pts','Gold'],['5','Quiet Falcon','398 pts','Gold'],['6','Steady Otter','371 pts','Silver'],['7','Calm Heron','344 pts','Bronze']];
+const board = document.getElementById('board');
+names.forEach(([pos,n,p,tier]) => {
+  const t = TIERS.find(x => x.name === tier);
+  board.insertAdjacentHTML('beforeend',
+    `<div class="lb-row"><span class="pos">${pos}</span>${badge(t,26,'B'+pos)}<span class="nme">${n}</span><span class="pts">${p}</span></div>`);
+});
+const green = document.getElementById('green');
+TIERS.forEach(t => green.insertAdjacentHTML('beforeend', badge(t,44,'G')));
+</script>
+</body>
+</html>

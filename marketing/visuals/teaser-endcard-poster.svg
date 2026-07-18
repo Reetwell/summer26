@@ -1,0 +1,44 @@
+<svg viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg" role="img" width="1080" height="1920">
+<title>Build Your Body teaser end-card poster</title>
+<desc>Cream poster with a serif headline "the gym app that isn't a spreadsheet", three feature pills, and the tagline Stay Focused with a coming late August line.</desc>
+<defs>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&amp;family=DM+Sans:wght@400;500&amp;display=swap');
+.serif{font-family:'DM Serif Display',Georgia,serif;}
+.sans{font-family:'DM Sans',system-ui,sans-serif;}
+</style>
+</defs>
+<rect width="1080" height="1920" fill="#F9F6F0"/>
+<circle cx="1010" cy="150" r="240" fill="#E0EDEA"/>
+<circle cx="150" cy="1780" r="180" fill="#E0EDEA"/>
+<text x="90" y="150" class="sans" font-size="40" font-weight="500" fill="#00543D">@bb.app</text>
+<text x="990" y="150" text-anchor="end" class="sans" font-size="34" fill="#00694c">the free one</text>
+
+<text x="88" y="520" class="serif" font-size="132" fill="#003F2E">the gym app</text>
+<text x="88" y="650" class="serif" font-size="132" fill="#003F2E">that isn’t a</text>
+<text x="88" y="780" class="serif" font-size="132" fill="#00694c">spreadsheet.</text>
+
+<g class="sans" font-size="42" fill="#00543D" font-weight="500">
+<rect x="88" y="900" width="600" height="92" rx="46" fill="#E0EDEA"/>
+<circle cx="140" cy="946" r="9" fill="#00694c"/>
+<text x="170" y="960">paste a TikTok → a recipe</text>
+
+<rect x="88" y="1020" width="560" height="92" rx="46" fill="#E0EDEA"/>
+<circle cx="140" cy="1066" r="9" fill="#00694c"/>
+<text x="170" y="1080">meals + shopping list, sorted</text>
+
+<rect x="88" y="1140" width="600" height="92" rx="46" fill="#E0EDEA"/>
+<circle cx="140" cy="1186" r="9" fill="#00694c"/>
+<text x="170" y="1200">rank up for showing up</text>
+</g>
+
+<line x1="90" y1="1400" x2="990" y2="1400" stroke="#94C0B4" stroke-width="2"/>
+
+<text x="90" y="1560" class="sans" font-size="48" font-weight="500" fill="#00694c">coming late August</text>
+<text x="86" y="1720" class="serif" font-style="italic" font-size="150" fill="#00543D">Stay Focused</text>
+
+<rect x="882" y="1770" width="108" height="108" rx="28" fill="#00694c"/>
+<rect x="908" y="1818" width="56" height="12" rx="6" fill="#F9F6F0"/>
+<rect x="902" y="1802" width="14" height="44" rx="5" fill="#F9F6F0"/>
+<rect x="956" y="1802" width="14" height="44" rx="5" fill="#F9F6F0"/>
+</svg>

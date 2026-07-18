@@ -226,34 +226,28 @@ struct TrainingView: View {
         let state: WeekDayState.DayState
     }
 
-    private let railWeek: [RailDay] = [
-        .init(label: "MON", num: 12, kind: "PUSH", state: .done),
-        .init(label: "TUE", num: 13, kind: "PULL", state: .done),
-        .init(label: "WED", num: 14, kind: "REST", state: .rest),
-        .init(label: "TODAY", num: 15, kind: "PUSH", state: .today),
-        .init(label: "FRI", num: 16, kind: "LEGS", state: .upcoming),
-        .init(label: "SAT", num: 17, kind: "PULL", state: .upcoming),
-        .init(label: "SUN", num: 18, kind: "REST", state: .rest)
-    ]
-
-    private struct Lift: Identifiable {
-        let id = UUID(); let name: String; let kg: String; let frac: CGFloat; let delta: String
+    // Live week rail from the plan + logged progress
+    private var railWeek: [RailDay] {
+        var cal = Calendar.current; cal.firstWeekday = 2
+        guard let start = cal.dateInterval(of: .weekOfYear, for: Date())?.start else { return [] }
+        let fmt = DateFormatter(); fmt.dateFormat = "EEE"; fmt.locale = Locale(identifier: "en_US_POSIX")
+        let phase = ts.plan.phases[safe: ts.activePhaseIndex]
+        return (0..<7).compactMap { off -> RailDay? in
+            guard let d = cal.date(byAdding: .day, value: off, to: start) else { return nil }
+            let weekday = fmt.string(from: d)
+            let isToday = cal.isDateInToday(d)
+            let session = phase?.sessions.first { $0.day == weekday }
+            let isRest = session?.focus == "Rest" || session == nil
+            let isDone = ts.progress[ts.isoDate(d)] == true
+            let state: WeekDayState.DayState = isDone ? .done : (isToday ? .today : (isRest ? .rest : .upcoming))
+            return RailDay(
+                label: isToday ? "TODAY" : weekday.uppercased(),
+                num: cal.component(.day, from: d),
+                kind: isRest ? "REST" : (session?.focus.uppercased() ?? ""),
+                state: state
+            )
+        }
     }
-    private let topLifts: [Lift] = [
-        .init(name: "Bench Press", kg: "80", frac: 0.78, delta: "+5 kg"),
-        .init(name: "Squat", kg: "110", frac: 0.64, delta: "+10 kg"),
-        .init(name: "Deadlift", kg: "140", frac: 0.71, delta: "+7.5 kg"),
-        .init(name: "Overhead Press", kg: "52.5", frac: 0.55, delta: "+2.5 kg")
-    ]
-
-    private struct PR: Identifiable {
-        let id = UUID(); let name: String; let detail: String; let kg: String
-    }
-    private let prs: [PR] = [
-        .init(name: "Bench Press", detail: "Tuesday · +5 kg", kg: "80 kg"),
-        .init(name: "Lat Pulldown", detail: "Monday · +5 kg", kg: "65 kg"),
-        .init(name: "Leg Press", detail: "Monday · +10 kg", kg: "180 kg")
-    ]
 
     private var macLayout: some View {
         HStack(spacing: 0) {
@@ -263,12 +257,12 @@ struct TrainingView: View {
                 VStack(alignment: .leading, spacing: Spacing.lg) {
                     // Data headline
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("WEEK 3 OF 6 · HYPERTROPHY PHASE")
+                        Text((ts.todayPhase?.name ?? "No active plan").uppercased())
                             .font(.sans(11, weight: .bold))
                             .foregroundStyle(.secondary)
                             .kerning(1.6)
-                        (Text("12,400 kg").foregroundStyle(Color.green700)
-                         + Text("\nlifted this week.").foregroundStyle(.primary))
+                        (Text("\(ts.sessionsThisWeek) of \(ts.sessionsPlannedThisWeek)").foregroundStyle(Color.green700)
+                         + Text("\nsessions done this week.").foregroundStyle(.primary))
                             .font(.serifDisplay(52))
                             .lineSpacing(2)
                     }
@@ -276,11 +270,10 @@ struct TrainingView: View {
 
                     // Stats strip
                     HStack(spacing: 40) {
-                        macStat("SESSIONS", "4", sub: "/ 5")
-                        macStat("NEW PRS", "3", up: "↑")
-                        macStat("STREAK", "6", sub: "days")
-                        macStat("VS LAST WEEK", "", up: "+8%")
-                        macStat("TIME UNDER LOAD", "3h 42m")
+                        macStat("SESSIONS", "\(ts.sessionsThisWeek)", sub: "/ \(ts.sessionsPlannedThisWeek)")
+                        macStat("STREAK", "\(ts.currentStreak)", sub: "days")
+                        macStat("TOTAL", "\(ts.totalWorkouts)", sub: "workouts")
+                        macStat("PHASES", "\(ts.plan.phases.count)", sub: "in plan")
                     }
                     .slideIn(delay: 0.05)
 
@@ -346,50 +339,52 @@ struct TrainingView: View {
         .background(Color.bbSurface)
     }
 
+    @ViewBuilder
     private var heroCard: some View {
+        let session = ts.todaySession()
+        let isTraining = session != nil && session?.focus != "Rest"
         VStack(alignment: .leading, spacing: 0) {
-            Text("TODAY · PUSH DAY A")
+            Text(isTraining ? "TODAY · \(session!.focus.uppercased())" : "TODAY")
                 .font(.sans(11, weight: .bold))
                 .foregroundStyle(.white.opacity(0.72))
                 .kerning(1.4)
-            Text("Chest, shoulders & triceps")
+            Text(isTraining ? session!.name : "Rest day")
                 .font(.serifDisplay(34))
                 .foregroundStyle(.white)
                 .padding(.top, 8)
-            Text("6 exercises · ~55 min")
+            Text(isTraining ? "\(session!.exercises.count) exercises · \(session!.duration)" : "Recovery is part of the plan.")
                 .font(.sans(14))
                 .foregroundStyle(.white.opacity(0.78))
                 .padding(.top, 4)
 
-            // Exercise chips
-            HStack(spacing: 8) {
-                ForEach(["Bench Press", "Incline DB Press", "Overhead Press", "+3 more"], id: \.self) { c in
-                    Text(c)
-                        .font(.sans(12.5))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 13).padding(.vertical, 7)
-                        .background(.white.opacity(0.14), in: Capsule())
-                        .overlay(Capsule().stroke(.white.opacity(0.16), lineWidth: 1))
+            if isTraining {
+                HStack(spacing: 8) {
+                    ForEach(heroChips(for: session!), id: \.self) { c in
+                        Text(c)
+                            .font(.sans(12.5))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 13).padding(.vertical, 7)
+                            .background(.white.opacity(0.14), in: Capsule())
+                            .overlay(Capsule().stroke(.white.opacity(0.16), lineWidth: 1))
+                    }
                 }
+                .padding(.vertical, 18)
             }
-            .padding(.vertical, 18)
 
             Spacer(minLength: 0)
 
-            HStack(spacing: 16) {
+            if isTraining {
                 Button {} label: {
                     HStack(spacing: 9) {
-                        Image(systemName: "play.fill").font(.system(size: 13))
-                        Text("Start workout").font(.sans(15, weight: .bold))
+                        Image(systemName: ts.isDone() ? "checkmark" : "play.fill").font(.system(size: 13))
+                        Text(ts.isDone() ? "Completed today" : "Start workout").font(.sans(15, weight: .bold))
                     }
                     .foregroundStyle(Color.green900)
                     .padding(.horizontal, 26).padding(.vertical, 14)
                     .background(.white, in: RoundedRectangle(cornerRadius: 14))
                 }
                 .buttonStyle(ScaleButtonStyle())
-                Text("Last time: 12,400 kg · beat it")
-                    .font(.sans(13))
-                    .foregroundStyle(.white.opacity(0.66))
+                .disabled(ts.isDone())
             }
         }
         .padding(28)
@@ -400,23 +395,32 @@ struct TrainingView: View {
         )
     }
 
+    private func heroChips(for session: TrainingPlan.Session) -> [String] {
+        let shown = Array(session.exercises.prefix(3))
+        let rest = session.exercises.count - shown.count
+        return rest > 0 ? shown + ["+\(rest) more"] : shown
+    }
+
     private var rightStack: some View {
-        VStack(spacing: 16) {
+        let planned = max(ts.sessionsPlannedThisWeek, 1)
+        let frac = min(Double(ts.sessionsThisWeek) / Double(planned), 1)
+        let remaining = max(ts.sessionsPlannedThisWeek - ts.sessionsThisWeek, 0)
+        return VStack(spacing: 16) {
             BBCard {
                 VStack(alignment: .leading, spacing: 14) {
                     Text("SESSIONS THIS WEEK").font(.sans(11, weight: .bold)).foregroundStyle(.secondary).kerning(1.3)
                     HStack(spacing: 16) {
                         ZStack {
                             Circle().stroke(Color.green500.opacity(0.13), lineWidth: 8)
-                            Circle().trim(from: 0, to: 0.8)
+                            Circle().trim(from: 0, to: frac)
                                 .stroke(Color.green500, style: StrokeStyle(lineWidth: 8, lineCap: .round))
                                 .rotationEffect(.degrees(-90))
-                            Text("80%").font(.serifDisplay(17))
+                            Text("\(Int(frac * 100))%").font(.serifDisplay(17))
                         }
                         .frame(width: 66, height: 66)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("4/5").font(.serifDisplay(28))
-                            Text("1 to go — Saturday").font(.sans(12.5)).foregroundStyle(.secondary)
+                            Text("\(ts.sessionsThisWeek)/\(ts.sessionsPlannedThisWeek)").font(.serifDisplay(28))
+                            Text(remaining == 0 ? "All done — nice week" : "\(remaining) to go").font(.sans(12.5)).foregroundStyle(.secondary)
                         }
                     }
                 }
@@ -424,17 +428,9 @@ struct TrainingView: View {
             BBCard {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("VOLUME TREND").font(.sans(11, weight: .bold)).foregroundStyle(.secondary).kerning(1.3)
-                    HStack(alignment: .firstTextBaseline, spacing: 3) {
-                        Text("12.4k").font(.serifDisplay(28))
-                        Text("kg").font(.sans(14)).foregroundStyle(.secondary)
-                    }
-                    Sparkline()
-                        .stroke(Color.green500, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
-                        .frame(height: 40)
-                    HStack(spacing: 4) {
-                        Text("+8%").font(.sans(12.5, weight: .bold)).foregroundStyle(Color.green500)
-                        Text("vs last week").font(.sans(12.5)).foregroundStyle(.secondary)
-                    }
+                    Text("—").font(.serifDisplay(28)).foregroundStyle(.secondary)
+                    Text("Log workouts to track your volume over time.")
+                        .font(.sans(12.5)).foregroundStyle(.secondary)
                 }
             }
         }
@@ -442,64 +438,34 @@ struct TrainingView: View {
 
     private var topLiftsCard: some View {
         BBCard {
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 12) {
                 Text("TOP LIFTS · PROGRESS").font(.sans(11, weight: .bold)).foregroundStyle(.secondary).kerning(1.3)
-                    .padding(.bottom, 12)
-                ForEach(topLifts) { lift in
-                    HStack(spacing: 12) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack {
-                                Text(lift.name).font(.sans(14.5, weight: .medium))
-                                Spacer()
-                                (Text(lift.kg).font(.serifDisplay(19))
-                                 + Text(" kg").font(.sans(12)).foregroundStyle(.secondary))
-                            }
-                            GeometryReader { geo in
-                                ZStack(alignment: .leading) {
-                                    Capsule().fill(Color.green500.opacity(0.12))
-                                    Capsule().fill(Color.green500).frame(width: geo.size.width * lift.frac)
-                                }
-                            }
-                            .frame(height: 5)
-                        }
-                        Text(lift.delta)
-                            .font(.sans(12, weight: .bold))
-                            .foregroundStyle(Color.green500)
-                            .padding(.horizontal, 9).padding(.vertical, 4)
-                            .background(Color.green500.opacity(0.1), in: Capsule())
-                    }
-                    .padding(.vertical, 11)
-                    if lift.id != topLifts.last?.id { Divider() }
+                HStack(spacing: 12) {
+                    Image(systemName: "chart.bar.fill")
+                        .font(.system(size: 16)).foregroundStyle(Color.green500)
+                        .frame(width: 40, height: 40)
+                        .background(Color.green500.opacity(0.1), in: RoundedRectangle(cornerRadius: 11))
+                    Text("No lifts logged yet — your top lifts appear here as you train.")
+                        .font(.sans(13)).foregroundStyle(.secondary)
                 }
+                .padding(.vertical, 6)
             }
         }
     }
 
     private var prsCard: some View {
         BBCard {
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 12) {
                 Text("NEW RECORDS THIS WEEK").font(.sans(11, weight: .bold)).foregroundStyle(.secondary).kerning(1.3)
-                    .padding(.bottom, 6)
-                ForEach(prs) { pr in
-                    HStack(spacing: 12) {
-                        Image(systemName: "trophy.fill")
-                            .font(.system(size: 14))
-                            .foregroundStyle(Color(hex: "#B47A17"))
-                            .frame(width: 34, height: 34)
-                            .background(Color(hex: "#E8A13A").opacity(0.14), in: RoundedRectangle(cornerRadius: 10))
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text(pr.name).font(.sans(14, weight: .medium))
-                            Text(pr.detail).font(.sans(12)).foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        Text(pr.kg).font(.serifDisplay(19))
-                    }
-                    .padding(.vertical, 10)
-                    if pr.id != prs.last?.id { Divider() }
+                HStack(spacing: 12) {
+                    Image(systemName: "trophy")
+                        .font(.system(size: 16)).foregroundStyle(Color(hex: "#B47A17"))
+                        .frame(width: 40, height: 40)
+                        .background(Color(hex: "#E8A13A").opacity(0.14), in: RoundedRectangle(cornerRadius: 11))
+                    Text("No records yet — hit a new best to see it here.")
+                        .font(.sans(13)).foregroundStyle(.secondary)
                 }
-                Text("Next target: Squat 115 kg — you're close.")
-                    .font(.sans(12.5)).foregroundStyle(.secondary)
-                    .padding(.top, 12)
+                .padding(.vertical, 6)
             }
         }
     }
@@ -640,19 +606,3 @@ struct TrainingView: View {
     }
 }
 
-#if os(macOS)
-// Rising volume sparkline
-struct Sparkline: Shape {
-    func path(in rect: CGRect) -> Path {
-        let pts: [CGFloat] = [0.72, 0.60, 0.66, 0.44, 0.52, 0.24, 0.16]
-        var p = Path()
-        for (i, v) in pts.enumerated() {
-            let x = rect.width * CGFloat(i) / CGFloat(pts.count - 1)
-            let y = rect.height * v
-            if i == 0 { p.move(to: CGPoint(x: x, y: y)) }
-            else { p.addLine(to: CGPoint(x: x, y: y)) }
-        }
-        return p
-    }
-}
-#endif

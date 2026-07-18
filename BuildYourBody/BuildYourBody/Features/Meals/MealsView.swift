@@ -15,8 +15,8 @@ struct Meal: Identifiable {
 
 struct MealsView: View {
     @State private var meals = [
-        Meal(slot: "Breakfast", name: "Greek yogurt bowl", kcal: 420, protein: 32, carbs: 48, fat: 12, icon: "sunrise.fill", tint: Color(hex: "#E8A13A"), eaten: true),
-        Meal(slot: "Lunch", name: "Chicken burrito bowl", kcal: 640, protein: 45, carbs: 70, fat: 18, icon: "sun.max.fill", tint: Color(hex: "#4A90D9"), eaten: true),
+        Meal(slot: "Breakfast", name: "Greek yogurt bowl", kcal: 420, protein: 32, carbs: 48, fat: 12, icon: "sunrise.fill", tint: Color(hex: "#E8A13A")),
+        Meal(slot: "Lunch", name: "Chicken burrito bowl", kcal: 640, protein: 45, carbs: 70, fat: 18, icon: "sun.max.fill", tint: Color(hex: "#4A90D9")),
         Meal(slot: "Snack", name: "Protein shake + banana", kcal: 310, protein: 28, carbs: 38, fat: 5, icon: "bolt.fill", tint: Color(hex: "#8E6FD8")),
         Meal(slot: "Dinner", name: "Salmon, rice & greens", kcal: 720, protein: 42, carbs: 68, fat: 26, icon: "moon.stars.fill", tint: .green500)
     ]
