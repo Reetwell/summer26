@@ -628,10 +628,12 @@ function _ensureMealSwapModal(){
     '<div class="modal-body">' +
       '<label class="food-hint" for="msw-recipe">From your recipe library</label>' +
       '<select class="food-input" id="msw-recipe" onchange="mealSwapPick(this.value)"></select>' +
-      '<div class="food-hint" style="margin:12px 0 4px">…or search the food database</div>' +
-      '<div class="msw-foodsearch"><input class="food-input" id="msw-food" placeholder="e.g. chicken breast" autocomplete="off" onkeydown="if(event.key===\'Enter\'){event.preventDefault();foodSearch();}">' +
-      '<button class="shop-act" onclick="foodSearch()"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Search</button></div>' +
-      '<div id="msw-food-results"></div>' +
+      (FOOD_DB_ENABLED ?
+        '<div class="food-hint" style="margin:12px 0 4px">…or search the food database</div>' +
+        '<div class="msw-foodsearch"><input class="food-input" id="msw-food" placeholder="e.g. chicken breast" autocomplete="off" onkeydown="if(event.key===\'Enter\'){event.preventDefault();foodSearch();}">' +
+        '<button class="shop-act" onclick="foodSearch()"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Search</button></div>' +
+        '<div id="msw-food-results"></div>'
+      : '') +
       '<div class="food-hint" style="margin:12px 0 4px">…or type it in</div>' +
       '<input class="food-input" id="msw-name" placeholder="What you ate" autocomplete="off">' +
       '<div class="mp-emac" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px">' +
@@ -667,6 +669,9 @@ function mealSwapSave(){
   showToast('Logged what you actually ate', 'success');
 }
 // ---- Food database search (Worker → Open Food Facts). Macros are per 100g. ----
+// Post-launch feature: the /food/search backend isn't production-ready, so the
+// search UI stays hidden at launch. Flip to true once the Worker route is live.
+const FOOD_DB_ENABLED = false;
 let _foodResults = [];
 function foodServingGrams(serving){ const m = /(\d+(?:\.\d+)?)\s*g/i.exec(serving || ''); return m ? Math.round(parseFloat(m[1])) : 100; }
 function foodScale(food, grams){ const k = grams / 100; return { kcal:Math.round((+food.kcal||0)*k), p:Math.round((+food.p||0)*k), c:Math.round((+food.c||0)*k), f:Math.round((+food.f||0)*k) }; }
@@ -3331,11 +3336,16 @@ async function pullMerge(){
   return changed;
 }
 
-// Mark any key whose local timestamp beats what's on the server as dirty, push.
+// Push a local key when the server has no copy of it, or when our local
+// timestamp beats the server's. The "no copy yet" case is essential: data
+// created while logged-out never stamps sbp-sync-meta (that only happens for
+// signed-in writes), so on first sign-in those keys have local ts 0 AND remote
+// ts 0 — a strict ">" would never seed them and nothing would ever push.
 async function pushNewer(){
   const meta = getSyncMeta();
   for (const k of SYNC_KEYS) {
     if (localStorage.getItem(k) == null) continue;
+    if (!(k in _remoteT)) { _dirty.add(k); continue; }   // server has no row — seed it
     if ((meta[k] || 0) > (_remoteT[k] || 0)) _dirty.add(k);
   }
   await pushDirty();
