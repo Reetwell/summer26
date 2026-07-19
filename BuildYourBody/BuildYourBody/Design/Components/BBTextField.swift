@@ -9,7 +9,7 @@ struct BBTextField: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
             Text(label)
-                .font(.sans(13, weight: .semibold))
+                .font(.bbSubhead)
                 .foregroundStyle(.secondary)
 
             Group {
@@ -19,7 +19,7 @@ struct BBTextField: View {
                     TextField(placeholder, text: $text)
                 }
             }
-            .font(.sans(15))
+            .font(.bbBody)
             .padding(.horizontal, 18)
             .padding(.vertical, 15)
             .background(.regularMaterial, in: RoundedRectangle(cornerRadius: Radius.md))

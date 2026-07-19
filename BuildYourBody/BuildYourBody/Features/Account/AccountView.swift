@@ -492,7 +492,7 @@ struct AccountView: View {
                 .padding(.bottom, 64)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
-                    LinearGradient(colors: [Color(hex: "#0F7A5C"), Color.green900],
+                    LinearGradient(colors: [Color.green500, Color.green900],
                                    startPoint: .topLeading, endPoint: .bottomTrailing),
                     in: RoundedRectangle(cornerRadius: 28)
                 )

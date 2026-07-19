@@ -309,9 +309,10 @@ struct TodayView: View {
                     [0,1], [0.5,1], [1,1]
                 ],
                 colors: [
-                    Color(hex: "#008560"), Color(hex: "#0F6E56"), Color(hex: "#276656"),
-                    Color(hex: "#0F6E56"), Color(hex: "#00694c"), Color(hex: "#085041"),
-                    Color(hex: "#00513a"), Color(hex: "#063f30"), Color(hex: "#00694c")
+                    // #00694c ramp, light top-left → deep bottom-right (brand-consistent mesh)
+                    Color(hex: "#0A8A66"), Color(hex: "#00694c"), Color(hex: "#00543D"),
+                    Color(hex: "#00694c"), Color(hex: "#00543D"), Color(hex: "#003F2E"),
+                    Color(hex: "#00543D"), Color(hex: "#003F2E"), Color(hex: "#002A1F")
                 ]
             )
             .ignoresSafeArea()

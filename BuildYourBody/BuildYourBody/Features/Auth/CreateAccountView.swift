@@ -50,7 +50,7 @@ struct CreateAccountView: View {
                             .font(.system(size: 16, weight: .semibold))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
-                            .background(Color(hex: "#1D9E75"))
+                            .background(Color.green500)
                             .foregroundStyle(.white)
                             .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
@@ -66,7 +66,7 @@ struct CreateAccountView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
-                        .foregroundStyle(Color(hex: "#1D9E75"))
+                        .foregroundStyle(Color.green500)
                 }
             }
         }

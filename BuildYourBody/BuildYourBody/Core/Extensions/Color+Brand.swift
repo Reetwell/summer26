@@ -1,11 +1,21 @@
 import SwiftUI
 
 extension Color {
-    static let green500 = Color(hex: "#1D9E75")
-    static let green700 = Color(hex: "#0F6E56")
-    static let green900 = Color(hex: "#085041")
-    static let green50  = Color(hex: "#E8F7F2")
+    // Brand green ramp — migrated to #00694c (matches web styles.css + rank effort-gem).
+    // The older brighter #1D9E75 survives only as the rank gem's top-facet glint.
+    static let green500 = Color(hex: "#00694c")
+    static let green700 = Color(hex: "#00543D")
+    static let green900 = Color(hex: "#003F2E")
+    static let green50  = Color(hex: "#E0EDEA")
     static let cream    = Color(hex: "#F9F6F0")
+
+    // MARK: Semantic accents
+    // Prefer these role names over the raw `green*` ramp at call sites, so intent is
+    // legible and a future palette change lands in one place. `bbBackground`/`bbSurface`
+    // (below) cover the adaptive light/dark surfaces.
+    static let bbAccent     = green500   // primary interactive / brand
+    static let bbAccentDeep = green900   // pressed / gradient end / text on tint
+    static let bbTint       = green50    // subtle brand fills, chips, tracks
 
     // Cream in light mode, near-black in dark — matches the web app
     #if os(iOS)

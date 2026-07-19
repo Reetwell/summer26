@@ -10,7 +10,7 @@ struct BBButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.sans(16, weight: .semibold))
+                .font(.bbHeadline)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
                 .background(background)
@@ -26,7 +26,7 @@ struct BBButton: View {
 
     private var background: Color {
         switch style {
-        case .primary:   return .green500
+        case .primary:   return .bbAccent
         case .secondary: return .clear
         case .ghost:     return .clear
         }
@@ -35,13 +35,13 @@ struct BBButton: View {
     private var foreground: Color {
         switch style {
         case .primary:   return .white
-        case .secondary: return .green500
-        case .ghost:     return .green500
+        case .secondary: return .bbAccent
+        case .ghost:     return .bbAccent
         }
     }
 
     private var borderColor: Color {
-        style == .secondary ? .green500.opacity(0.4) : .clear
+        style == .secondary ? .bbAccent.opacity(0.4) : .clear
     }
 }
 
