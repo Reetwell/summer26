@@ -1547,6 +1547,11 @@ html.show-splash .splash.splash-done {
   :root {
     --bg: #111110;
     --surface: #1C1C1A;
+    /* Brand green as foreground text: #00694c is only ~2.5:1 on these dark
+       surfaces (fails WCAG). Lift the ramp to the lighter brand green (the rank
+       "glint") so green text/links/active states hit ~5:1; white-on-green CTAs
+       stay AA for their bold text. Tints below stay deep via their own rgba(). */
+    --green-500: #1D9E75;
     --border: rgba(255,255,255,0.08);
     --border-strong: rgba(255,255,255,0.14);
     --text-primary: #F0EFE9;
