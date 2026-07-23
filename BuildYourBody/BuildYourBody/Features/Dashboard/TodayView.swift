@@ -446,6 +446,7 @@ struct TodayView: View {
             Image(systemName: icon).font(.system(size: 18)).foregroundStyle(Color.green500)
             Spacer()
             Text(value).font(.serifDisplay(30)).foregroundStyle(highlight ? Color.green700 : .primary)
+                .contentTransition(.numericText())
             Text(label.uppercased()).font(.sans(10)).foregroundStyle(.secondary).kerning(1.2)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

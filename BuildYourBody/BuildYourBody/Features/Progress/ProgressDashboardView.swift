@@ -93,6 +93,7 @@ struct ProgressDashboardView: View {
     private func heroStat(value: Int, label: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text("\(value)").font(.serifDisplay(56)).foregroundStyle(.white)
+                .contentTransition(.numericText())
             Text(label)
                 .font(.sans(10, weight: .bold))
                 .foregroundStyle(.white.opacity(0.7))

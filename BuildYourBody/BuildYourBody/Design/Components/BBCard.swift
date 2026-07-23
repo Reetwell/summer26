@@ -15,9 +15,12 @@ struct BBCard<Content: View>: View {
     }
 }
 
-// Staggered entrance — cards slide up + fade in, like the web's acctCardIn
+// Staggered entrance — cards slide up + fade in, like the web's acctCardIn.
+// Honors Reduce Motion: content appears instantly (no offset/fade) when the user
+// has asked the system to minimise motion.
 struct SlideIn: ViewModifier {
     let delay: Double
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var shown = false
 
     func body(content: Content) -> some View {
@@ -25,6 +28,7 @@ struct SlideIn: ViewModifier {
             .opacity(shown ? 1 : 0)
             .offset(y: shown ? 0 : 14)
             .onAppear {
+                guard !reduceMotion else { shown = true; return }
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.85).delay(delay)) {
                     shown = true
                 }

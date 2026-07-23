@@ -6,6 +6,7 @@ struct CalorieRingView: View {
     let target: Int
     var size: CGFloat = 150
     var lineWidth: CGFloat = 14
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var progress: CGFloat = 0
 
     private var fraction: CGFloat {
@@ -42,6 +43,7 @@ struct CalorieRingView: View {
         }
         .frame(width: size, height: size)
         .onAppear {
+            guard !reduceMotion else { progress = fraction; return }
             withAnimation(.spring(response: 1.1, dampingFraction: 0.9).delay(0.2)) {
                 progress = fraction
             }
@@ -56,6 +58,7 @@ struct MacroBarView: View {
     let target: Int
     let color: Color
     let delay: Double
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var progress: CGFloat = 0
 
     private var fraction: CGFloat {
@@ -86,6 +89,7 @@ struct MacroBarView: View {
             .frame(height: 7)
         }
         .onAppear {
+            guard !reduceMotion else { progress = fraction; return }
             withAnimation(.spring(response: 0.9, dampingFraction: 0.9).delay(delay)) {
                 progress = fraction
             }
