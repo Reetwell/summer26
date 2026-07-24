@@ -1136,8 +1136,20 @@ function tpToggleDone(short){
   renderTrainingToday(document.getElementById('tp-myweek'), TP_DATA);
 }
 function tpSkipDay(short){ const k = tpDateKey(short); if(_tpProg[k] === 'skipped') delete _tpProg[k]; else _tpProg[k] = 'skipped'; tpSaveProg(); renderTrainingToday(document.getElementById('tp-myweek'), TP_DATA); showToast(_tpProg[k] ? 'Skipped — streak protected' : 'Skip undone', 'info'); }
-function tpWeekStat(phase){ const tr = phase.schedule.filter(d => d.type !== 'Rest'); return { done: tr.filter(d => tpIsDone(d.day)).length, total: tr.length }; }
-function tpStreak(phase){ let n = 0; const now = new Date(); for(let k = 0; k < 60; k++){ const d = new Date(now); d.setDate(now.getDate() - k); const short = WEEKDAYS[(d.getDay() + 6) % 7]; const sd = phase.schedule.find(x => x.day === short); if(!sd || sd.type === 'Rest') continue; const st = _tpProg[d.toISOString().slice(0, 10)]; if(st === true) n++; else if(st === 'skipped') continue; else break; } return n; }
+// A phase's weekly schedule as a full 7-day array. v3 plans (built via onboarding
+// or migrateSplit) always carry `schedule`; older seeded/partial plans may not, so
+// derive one from the sessions' weekdays rather than throwing on `.filter`/`.find`.
+function tpPhaseSchedule(phase){
+  if(phase && Array.isArray(phase.schedule) && phase.schedule.length) return phase.schedule;
+  const trainMap = {};
+  ((phase && phase.sessions) || []).forEach(s => {
+    const day = tpDayOf(s);
+    if(WEEKDAYS.indexOf(day) >= 0) trainMap[day] = s.focus || (s.name || '').split(' — ')[1] || s.name || 'Session';
+  });
+  return WEEKDAYS.map(d => trainMap[d] ? { day:d, type:trainMap[d], cls:tpFocusCls(trainMap[d]) } : { day:d, type:'Rest', cls:'d-rest' });
+}
+function tpWeekStat(phase){ const tr = tpPhaseSchedule(phase).filter(d => d.type !== 'Rest'); return { done: tr.filter(d => tpIsDone(d.day)).length, total: tr.length }; }
+function tpStreak(phase){ const sched = tpPhaseSchedule(phase); let n = 0; const now = new Date(); for(let k = 0; k < 60; k++){ const d = new Date(now); d.setDate(now.getDate() - k); const short = WEEKDAYS[(d.getDay() + 6) % 7]; const sd = sched.find(x => x.day === short); if(!sd || sd.type === 'Rest') continue; const st = _tpProg[d.toISOString().slice(0, 10)]; if(st === true) n++; else if(st === 'skipped') continue; else break; } return n; }
 // Reschedule: move a session + its schedule slot from one weekday to another.
 function tpReschedule(pi, fromDay, toDay){
   const phase = TP_DATA.phases[pi]; if(!phase || fromDay === toDay) return;
@@ -1256,7 +1268,7 @@ function renderTrainingToday(el, plan){
   const upnext = nextSess ? '<div class="tpt-next" onclick="tpSelectDay(\'' + nextDay + '\')"><div><div class="tpt-next-lbl">Up next · ' + esc(nextDay) + '</div><div class="tpt-next-t">' + esc(nextSess.focus) + '</div><div class="tpt-next-x">' + nextSess.exercises.slice(0, 3).map(e => esc(e.name)).join(' · ') + '</div></div><i class="fa-solid fa-chevron-right" style="color:var(--text-tertiary)" aria-hidden="true"></i></div>' : '';
   const stat = tpWeekStat(phase), streak = tpStreak(phase), pct = stat.total ? Math.round(stat.done / stat.total * 100) : 0;
   const prog = '<div class="tpt-prog"><div class="tpt-prog-row"><span>This week</span><span>' + stat.done + ' / ' + stat.total + '</span></div><div class="tpt-prog-bar"><div style="width:' + pct + '%"></div></div><div class="tpt-streak"><i class="fa-solid fa-fire" aria-hidden="true"></i> ' + streak + '-day streak</div></div>';
-  const strip = phase.schedule.map(d => { const train = d.type !== 'Rest'; const ck = train && tpIsDone(d.day) ? '<span class="ck"><i class="fa-solid fa-check" aria-hidden="true"></i></span>' : ''; return '<div class="tpt-wk' + (d.day === selDay ? ' on' : '') + (train ? '' : ' rest') + '"' + (train ? ' onclick="tpSelectDay(\'' + d.day + '\')"' : '') + '>' + ck + '<span class="d">' + esc(d.day) + '</span><span class="f">' + esc(d.type) + '</span></div>'; }).join('');
+  const strip = tpPhaseSchedule(phase).map(d => { const train = d.type !== 'Rest'; const ck = train && tpIsDone(d.day) ? '<span class="ck"><i class="fa-solid fa-check" aria-hidden="true"></i></span>' : ''; return '<div class="tpt-wk' + (d.day === selDay ? ' on' : '') + (train ? '' : ' rest') + '"' + (train ? ' onclick="tpSelectDay(\'' + d.day + '\')"' : '') + '>' + ck + '<span class="d">' + esc(d.day) + '</span><span class="f">' + esc(d.type) + '</span></div>'; }).join('');
   const tip = phase.tip ? '<div class="tpt-tip"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i>' + esc(phase.tip) + '</div>' : '';
   el.innerHTML = '<div class="tpt-wrap">'
     + readinessBanner() + wearLink()
