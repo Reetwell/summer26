@@ -95,7 +95,7 @@ function seedMealPlanFromDOM(){
   });
   return data;
 }
-function mpSave(){ localStorage.setItem('sbp-mealplan', JSON.stringify(MP_DATA)); }
+function mpSave(){ localStorage.setItem('sbp-mealplan', JSON.stringify(MP_DATA)); if(typeof rankCheckMilestones === 'function') rankCheckMilestones(); }
 // Upgrade an existing saved meal plan to the current shape (mirrors tpInit/migrateSplit).
 // v2 adds: stable meal ids (needed to key the meal log) + guaranteed arrays. Non-destructive.
 function migrateMealPlan(mp){
@@ -589,7 +589,9 @@ function mealSetLog(dayKey, mealId, status, entry){
   _mealLog[iso] = _mealLog[iso] || {};
   if(status === 'clear'){ delete _mealLog[iso][mealId]; if(!Object.keys(_mealLog[iso]).length) delete _mealLog[iso]; }
   else _mealLog[iso][mealId] = Object.assign({ status }, entry || {});
-  mealLogSave(); renderMealPlan();
+  mealLogSave();
+  if(rankMealsDayComplete(iso)) rankOnMealsDay(iso);
+  renderMealPlan();
 }
 // Quick actions from a plan card
 function mealMarkEaten(pid, dayKey, id){
@@ -757,7 +759,7 @@ function seedTrainingFromDOM(){
   });
   return { v:1, phases };
 }
-function tpSave(){ localStorage.setItem('sbp-trainingplan', JSON.stringify(TP_DATA)); }
+function tpSave(){ localStorage.setItem('sbp-trainingplan', JSON.stringify(TP_DATA)); if(typeof rankCheckMilestones === 'function') rankCheckMilestones(); }
 function tpInit(){
   TP_DATA = loadStore('sbp-trainingplan', null);
   if(TP_DATA && TP_DATA.mode === 'split'){ TP_DATA = migrateSplit(TP_DATA); tpSave(); }
@@ -1126,7 +1128,13 @@ function tpProgState(short){ return _tpProg[tpDateKey(short)] || null; }
 function tpIsDone(short){ return tpProgState(short) === true; }
 function tpIsSkipped(short){ return tpProgState(short) === 'skipped'; }
 function tpSaveProg(){ localStorage.setItem('sbp-tp-progress', JSON.stringify(_tpProg)); }
-function tpToggleDone(short){ const k = tpDateKey(short); if(_tpProg[k] === true) delete _tpProg[k]; else _tpProg[k] = true; tpSaveProg(); renderTrainingToday(document.getElementById('tp-myweek'), TP_DATA); }
+function tpToggleDone(short){
+  const k = tpDateKey(short), wasDone = _tpProg[k] === true;
+  if(wasDone) delete _tpProg[k]; else _tpProg[k] = true;
+  tpSaveProg();
+  if(!wasDone) rankOnSessionDone(k);   // un-ticking never claws XP back — rank only goes up
+  renderTrainingToday(document.getElementById('tp-myweek'), TP_DATA);
+}
 function tpSkipDay(short){ const k = tpDateKey(short); if(_tpProg[k] === 'skipped') delete _tpProg[k]; else _tpProg[k] = 'skipped'; tpSaveProg(); renderTrainingToday(document.getElementById('tp-myweek'), TP_DATA); showToast(_tpProg[k] ? 'Skipped — streak protected' : 'Skip undone', 'info'); }
 function tpWeekStat(phase){ const tr = phase.schedule.filter(d => d.type !== 'Rest'); return { done: tr.filter(d => tpIsDone(d.day)).length, total: tr.length }; }
 function tpStreak(phase){ let n = 0; const now = new Date(); for(let k = 0; k < 60; k++){ const d = new Date(now); d.setDate(now.getDate() - k); const short = WEEKDAYS[(d.getDay() + 6) % 7]; const sd = phase.schedule.find(x => x.day === short); if(!sd || sd.type === 'Rest') continue; const st = _tpProg[d.toISOString().slice(0, 10)]; if(st === true) n++; else if(st === 'skipped') continue; else break; } return n; }
@@ -1205,6 +1213,7 @@ function saveReadiness(){
   const log = rdLog();
   log[rdTodayKey()] = { sleep:_rd.sleep, energy:_rd.energy, soreness:_rd.soreness, score: rdScore(_rd.sleep, _rd.energy, _rd.soreness), source:'manual' };
   localStorage.setItem('sbp-readiness', JSON.stringify(log));
+  rankOnReadiness(rdTodayKey());
   closeReadiness();
   if(TP_DATA && TP_DATA.mode === 'phases') renderTrainingToday(document.getElementById('tp-myweek'), TP_DATA);
   showToast('Readiness logged — plan tuned for today', 'success');
@@ -3212,6 +3221,362 @@ const REMINDER_BACKEND = "https://summerbody.me-e29.workers.dev"; // Cloudflare 
 
 let remState = loadStore('sbp-reminders', { enabled:false, protein:'09:00', creatine:'20:00' });
 
+// ==================== RANK: XP ENGINE + DIVISIONS ====================
+// Effort-only progression. XP comes from SHOWING UP — sessions completed, meals
+// logged, readiness check-ins, streaks — and NEVER from bodyweight, body
+// composition or how much you lift, so a beginner and an advanced lifter climb
+// at exactly the same rate.
+//
+// XP is monotonic: it only ever increases. No decay, no relegation, no loss for
+// a missed day, and un-ticking a completed session does not claw XP back
+// (non-shaming is a hard product rule). The weekly League is a separate
+// seasonal ladder and is not part of this engine.
+//
+// Shared contract with DESIGN + NATIVE — keep these identical across all three:
+//   localStorage 'bb-rank-xp' → integer total XP (synced)
+//   rankFromXp(totalXp)       → { tierIndex, tierName, division, pipsLit,
+//                                 xpIntoDivision, xpForDivision, isMaxRank }
+//   document event 'bb:rankchange' → { from, to, isPromotion }
+
+// ---- The one place to retune the ladder ----
+const RANK_CONFIG = {
+  divisionsPerTier: 3,
+  // Every tier is `xpPerDivision` x 3 wide, and each tier's base is derived from
+  // the tiers below it — so the table can't drift out of sync when retuned.
+  // Resulting cumulative thresholds:
+  //   Bronze       0 /    400 /    800  -> promote at  1,200
+  //   Silver   1,200 /  2,000 /  2,800  -> promote at  3,600
+  //   Gold     3,600 /  5,000 /  6,400  -> promote at  7,800
+  //   Platinum 7,800 / 10,000 / 12,200  -> promote at 14,400
+  //   Diamond 14,400 / 17,600 / 20,800  -> 24,000 = MAX RANK
+  tiers: [
+    { name: 'Bronze',   xpPerDivision: 400  },
+    { name: 'Silver',   xpPerDivision: 800  },
+    { name: 'Gold',     xpPerDivision: 1400 },
+    { name: 'Platinum', xpPerDivision: 2200 },
+    { name: 'Diamond',  xpPerDivision: 3200 }
+  ],
+  awards: {
+    session:    100,   // training session completed
+    mealsDay:    40,   // full day of meals logged
+    readiness:   15,   // daily readiness check-in
+    streakDay:   10,   // any activity that day
+    weekFull:   150,   // every scheduled training session that week done
+    weekGoal:   100,   // activity on all 7 days of the week
+    milestone:   50    // one-off (first plan built, first session, onboarding)
+  },
+  ledgerPruneDays: 180   // ledger entries older than this fold into the baseline
+};
+
+// Derived ladder: base = cumulative XP at Division 1 of each tier.
+const RANK_TABLE = (function(){
+  let base = 0;
+  return RANK_CONFIG.tiers.map(function(t, i){
+    const row = { index: i, name: t.name, xpPerDivision: t.xpPerDivision,
+                  base: base, size: t.xpPerDivision * RANK_CONFIG.divisionsPerTier };
+    base += row.size;
+    return row;
+  });
+})();
+const RANK_MAX_XP = RANK_TABLE[RANK_TABLE.length - 1].base + RANK_TABLE[RANK_TABLE.length - 1].size;
+
+// Pure: total XP -> rank state. No side effects, safe to call anywhere.
+// Enter a tier at Division 1 (1 pip); 3 pips = top of tier, and the next
+// threshold promotes to the next tier at Division 1.
+function rankFromXp(totalXp){
+  const D = RANK_CONFIG.divisionsPerTier;
+  let xp = Math.floor(Number(totalXp));
+  if(!isFinite(xp) || xp < 0) xp = 0;
+  if(xp >= RANK_MAX_XP){
+    const top = RANK_TABLE[RANK_TABLE.length - 1];
+    return { tierIndex: top.index, tierName: top.name, division: D, pipsLit: D,
+             xpIntoDivision: top.xpPerDivision, xpForDivision: top.xpPerDivision,
+             isMaxRank: true };
+  }
+  let t = RANK_TABLE[0];
+  for(let i = RANK_TABLE.length - 1; i >= 0; i--){ if(xp >= RANK_TABLE[i].base){ t = RANK_TABLE[i]; break; } }
+  const into = xp - t.base;
+  const div = Math.min(D, Math.floor(into / t.xpPerDivision) + 1);
+  return { tierIndex: t.index, tierName: t.name, division: div, pipsLit: div,
+           xpIntoDivision: into - (div - 1) * t.xpPerDivision,
+           xpForDivision: t.xpPerDivision, isMaxRank: false };
+}
+
+// ---- Ledger (dated, de-duped, auditable) ----
+// Total XP is DERIVED from the ledger: baseline + sum(entries). Every award
+// carries a stable id, so the same session/day can never be counted twice —
+// including a re-render firing the same hook. `baseline` absorbs pruned old
+// entries so the total stays monotonic even as the ledger is trimmed.
+const RANK_XP_KEY = 'bb-rank-xp';
+const RANK_LEDGER_KEY = 'bb-rank-ledger';
+
+function rankLedger(){
+  const l = loadStore(RANK_LEDGER_KEY, null);
+  if(!l || typeof l !== 'object' || !Array.isArray(l.entries)) return { baseline: 0, entries: [], migrated: false };
+  return { baseline: +l.baseline || 0, entries: l.entries, migrated: !!l.migrated };
+}
+function rankLedgerSave(l){ localStorage.setItem(RANK_LEDGER_KEY, JSON.stringify(l)); }
+function rankTotalFromLedger(l){
+  let n = +l.baseline || 0;
+  for(const e of l.entries) n += (+e.xp || 0);
+  return n;
+}
+// The cached total DESIGN/NATIVE read. Never trust it to be sane on the way in.
+function rankTotalXp(){
+  const n = Math.floor(Number(localStorage.getItem(RANK_XP_KEY)));
+  return (isFinite(n) && n > 0) ? n : 0;
+}
+function rankPrune(l){
+  const cutoff = Date.now() - RANK_CONFIG.ledgerPruneDays * 864e5;
+  const keep = [];
+  for(const e of l.entries){
+    if((+e.ts || 0) < cutoff) l.baseline = (+l.baseline || 0) + (+e.xp || 0);
+    else keep.push(e);
+  }
+  l.entries = keep;
+  return l;
+}
+// Persist + emit. `silent` suppresses the change event (used by the migration so
+// nobody gets a promotion animation for history they already earned).
+function rankCommit(l, silent){
+  const before = rankFromXp(rankTotalXp());
+  rankLedgerSave(l);
+  const total = rankTotalFromLedger(l);
+  localStorage.setItem(RANK_XP_KEY, String(total));
+  const after = rankFromXp(total);
+  renderRankCard();
+  if(!silent && (after.tierIndex !== before.tierIndex || after.division !== before.division)){
+    document.dispatchEvent(new CustomEvent('bb:rankchange', {
+      detail: { from: before, to: after, isPromotion: after.tierIndex > before.tierIndex }
+    }));
+  }
+}
+// Award a batch in one commit. Returns how many were actually new.
+function rankAwardBatch(items, silent, ledgerIn){
+  const l = ledgerIn || rankLedger();
+  const seen = new Set(l.entries.map(function(e){ return e.id; }));
+  let added = 0;
+  for(const it of (items || [])){
+    if(!it || !it.id || !(it.xp > 0) || seen.has(it.id)) continue;
+    seen.add(it.id);
+    l.entries.push({ id: it.id, type: it.type, xp: it.xp, ts: it.ts || Date.now() });
+    added++;
+  }
+  if(!added && !ledgerIn) return 0;   // nothing new — don't churn storage
+  rankPrune(l);
+  rankCommit(l, silent);
+  return added;
+}
+function rankAward(id, type, xp, ts){ return rankAwardBatch([{ id: id, type: type, xp: xp, ts: ts }]) > 0; }
+
+// ---- Date helpers ----
+// Every date key in the app is a toISOString() slice, i.e. a UTC calendar date.
+// So all arithmetic here stays in UTC too: parsing 'YYYY-MM-DD' as LOCAL midnight
+// and formatting back through toISOString() shifts the date by a day for anyone
+// east of UTC, which silently broke the weekly bonuses.
+function rankIso(d){ return (d || new Date()).toISOString().slice(0, 10); }
+function rankWeekKey(iso){                       // ISO Monday of that date's week
+  const d = new Date(iso + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
+  return d.toISOString().slice(0, 10);
+}
+function rankWeekDays(wk){
+  const d0 = new Date(wk + 'T00:00:00Z'), out = [];
+  for(let i = 0; i < 7; i++){ const d = new Date(d0); d.setUTCDate(d0.getUTCDate() + i); out.push(d.toISOString().slice(0, 10)); }
+  return out;                                     // [0] = Mon, matches WEEKDAYS
+}
+
+// ---- What counts as "done" ----
+// A full day of meals = every planned meal for that weekday has a log entry and
+// at least one was actually eaten (logging a day as all-skipped isn't effort).
+// Falls back to a 3-entry threshold when there's no plan to compare against.
+function rankPlannedMealIds(iso){
+  if(typeof MP_DATA === 'undefined' || !MP_DATA || !Array.isArray(MP_DATA.phases)) return null;
+  const dk = _MP_DAYK[(new Date(iso + 'T00:00:00Z').getUTCDay() + 6) % 7];
+  for(const ph of MP_DATA.phases){
+    const day = ph && ph.days && ph.days[dk];
+    if(day && Array.isArray(day.meals) && day.meals.length) return day.meals.map(function(m){ return m.id; });
+  }
+  return null;
+}
+function rankMealsDayComplete(iso){
+  const day = _mealLog && _mealLog[iso];
+  if(!day) return false;
+  const ids = Object.keys(day);
+  if(!ids.length) return false;
+  if(!ids.some(function(k){ return day[k] && day[k].status === 'eaten'; })) return false;
+  const planned = rankPlannedMealIds(iso);
+  if(planned && planned.length) return planned.every(function(id){ return !!day[id]; });
+  return ids.length >= 3;
+}
+function rankDayHasActivity(iso){
+  if(_tpProg && _tpProg[iso] === true) return true;
+  const rd = rdLog();
+  if(rd && rd[iso]) return true;
+  return rankMealsDayComplete(iso);
+}
+
+// ---- Award hooks (called from the existing feature code) ----
+// Each hook re-checks the underlying data itself, so calling one for a day that
+// didn't actually happen can't mint XP — the ledger de-dupes repeats, and these
+// guards stop a wrong call creating a *new* award.
+function rankOnSessionDone(iso){
+  iso = iso || rankIso();
+  if(!_tpProg || _tpProg[iso] !== true) return;
+  const A = RANK_CONFIG.awards;
+  rankAwardBatch([
+    { id: 'session:' + iso, type: 'session',    xp: A.session },
+    { id: 'streak:' + iso,  type: 'streakDay',  xp: A.streakDay },
+    { id: 'ms:first-session', type: 'milestone', xp: A.milestone }
+  ]);
+  rankCheckWeek(iso);
+}
+function rankOnMealsDay(iso){
+  iso = iso || rankIso();
+  if(!rankMealsDayComplete(iso)) return;
+  const A = RANK_CONFIG.awards;
+  rankAwardBatch([
+    { id: 'meals:' + iso,  type: 'mealsDay',  xp: A.mealsDay },
+    { id: 'streak:' + iso, type: 'streakDay', xp: A.streakDay }
+  ]);
+  rankCheckWeek(iso);
+}
+function rankOnReadiness(iso){
+  iso = iso || rankIso();
+  const log = rdLog();
+  if(!log || !log[iso]) return;
+  const A = RANK_CONFIG.awards;
+  rankAwardBatch([
+    { id: 'readiness:' + iso, type: 'readiness', xp: A.readiness },
+    { id: 'streak:' + iso,    type: 'streakDay', xp: A.streakDay }
+  ]);
+  rankCheckWeek(iso);
+}
+// Weekly bonuses: "full training week" = every scheduled session that week done;
+// "weekly goal" = something logged on all 7 days.
+function rankCheckWeek(iso){
+  const wk = rankWeekKey(iso), days = rankWeekDays(wk), A = RANK_CONFIG.awards, items = [];
+  if(days.every(rankDayHasActivity)) items.push({ id: 'goal:' + wk, type: 'weekGoal', xp: A.weekGoal });
+  const phase = (typeof TP_DATA !== 'undefined' && TP_DATA && Array.isArray(TP_DATA.phases))
+    ? TP_DATA.phases[typeof _tpActivePhase === 'number' ? _tpActivePhase : 0] : null;
+  if(phase && Array.isArray(phase.schedule)){
+    const training = phase.schedule.filter(function(s){ return s && s.type !== 'Rest'; });
+    if(training.length && training.every(function(s){
+      const i = WEEKDAYS.indexOf(s.day);
+      return i >= 0 && _tpProg[days[i]] === true;
+    })) items.push({ id: 'week:' + wk, type: 'weekFull', xp: A.weekFull });
+  }
+  if(items.length) rankAwardBatch(items);
+}
+let _rankMsDone = false;
+// True once startup is finished. Before that, plan saves are the app seeding a
+// default plan — not the user building one — so they don't earn the milestone.
+let _rankStarted = false;
+function rankCheckMilestones(){
+  if(_rankMsDone) return;
+  const A = RANK_CONFIG.awards, items = [];
+  if(localStorage.getItem('sbp-onboarded') === '1') items.push({ id: 'ms:onboarding', type: 'milestone', xp: A.milestone });
+  if(_rankStarted && typeof TP_DATA !== 'undefined' && TP_DATA && Array.isArray(TP_DATA.phases) && TP_DATA.phases.length)
+    items.push({ id: 'ms:first-plan', type: 'milestone', xp: A.milestone });
+  if(items.length === 2) _rankMsDone = true;   // nothing left to detect on later calls
+  rankAwardBatch(items);
+}
+
+// ---- Migration: back-fill from existing history (migrate-on-load) ----
+// Existing users have no bb-rank-xp. Replay their real history into the ledger
+// with the same ids the live hooks use, so nobody who's been using the app
+// resets to Bronze 1 and nothing gets double-counted later.
+function rankMigrate(){
+  const l = rankLedger();
+  if(l.migrated) return;
+  const A = RANK_CONFIG.awards, items = [];
+  const stamp = function(iso){ return Date.parse(iso + 'T12:00:00') || Date.now(); };
+  Object.keys(_tpProg || {}).forEach(function(iso){
+    if(_tpProg[iso] !== true) return;
+    items.push({ id: 'session:' + iso, type: 'session',   xp: A.session,   ts: stamp(iso) });
+    items.push({ id: 'streak:' + iso,  type: 'streakDay', xp: A.streakDay, ts: stamp(iso) });
+  });
+  const rd = rdLog();
+  Object.keys(rd || {}).forEach(function(iso){
+    items.push({ id: 'readiness:' + iso, type: 'readiness', xp: A.readiness, ts: stamp(iso) });
+    items.push({ id: 'streak:' + iso,    type: 'streakDay', xp: A.streakDay, ts: stamp(iso) });
+  });
+  Object.keys(_mealLog || {}).forEach(function(iso){
+    if(!rankMealsDayComplete(iso)) return;
+    items.push({ id: 'meals:' + iso,   type: 'mealsDay',  xp: A.mealsDay,  ts: stamp(iso) });
+    items.push({ id: 'streak:' + iso,  type: 'streakDay', xp: A.streakDay, ts: stamp(iso) });
+  });
+  // Milestones only count as back-fill when there's real prior usage: on a fresh
+  // install tpInit has already seeded a default plan, and that isn't "built".
+  const hasHistory = items.length > 0;
+  if(localStorage.getItem('sbp-onboarded') === '1') items.push({ id: 'ms:onboarding', type: 'milestone', xp: A.milestone });
+  if(hasHistory && typeof TP_DATA !== 'undefined' && TP_DATA && Array.isArray(TP_DATA.phases) && TP_DATA.phases.length)
+    items.push({ id: 'ms:first-plan', type: 'milestone', xp: A.milestone });
+  if(items.some(function(i){ return i.type === 'session'; }))
+    items.push({ id: 'ms:first-session', type: 'milestone', xp: A.milestone });
+  // Retro weekly goals: every week where all 7 days had activity.
+  const weeks = new Set();
+  items.forEach(function(i){ const m = /^(?:session|meals|readiness):(\d{4}-\d\d-\d\d)$/.exec(i.id); if(m) weeks.add(rankWeekKey(m[1])); });
+  weeks.forEach(function(wk){
+    if(rankWeekDays(wk).every(rankDayHasActivity)) items.push({ id: 'goal:' + wk, type: 'weekGoal', xp: A.weekGoal, ts: stamp(wk) });
+  });
+  l.migrated = true;
+  rankAwardBatch(items, true, l);   // silent — no promotion animation for old history
+}
+
+// ---- Render (markup + state only; DESIGN owns all visual styling) ----
+// Progress percentage is exposed as the --bb-rank-progress custom property so
+// the stylesheet decides how it's drawn.
+function rankCardHost(){
+  let host = document.getElementById('bb-rank-card');
+  if(host) return host;
+  const sec = document.getElementById('sec-progress');
+  if(!sec) return null;
+  host = document.createElement('div');
+  host.id = 'bb-rank-card';
+  host.className = 'bb-rank-card';
+  const hdr = sec.querySelector('.page-header');
+  if(hdr && hdr.nextSibling) sec.insertBefore(host, hdr.nextSibling);
+  else sec.insertBefore(host, sec.firstChild);
+  return host;
+}
+function renderRankCard(){
+  const host = rankCardHost(); if(!host) return;
+  const total = rankTotalXp(), r = rankFromXp(total);
+  const D = RANK_CONFIG.divisionsPerTier;
+  const pct = r.xpForDivision ? Math.round(r.xpIntoDivision / r.xpForDivision * 100) : 0;
+  host.dataset.tier = r.tierName.toLowerCase();
+  host.dataset.division = String(r.division);
+  if(r.isMaxRank) host.dataset.max = '1'; else delete host.dataset.max;
+  host.style.setProperty('--bb-rank-progress', pct + '%');
+  let pips = '';
+  for(let i = 1; i <= D; i++) pips += '<span class="bb-rank-pip' + (i <= r.pipsLit ? ' is-lit' : '') + '" aria-hidden="true"></span>';
+  const nextLabel = r.division < D
+    ? 'Division ' + (r.division + 1)
+    : (RANK_TABLE[r.tierIndex + 1] ? RANK_TABLE[r.tierIndex + 1].name : 'Max rank');
+  host.innerHTML =
+      '<div class="bb-rank-head">'
+    +   '<div class="bb-rank-tier">' + esc(r.tierName) + '</div>'
+    +   '<div class="bb-rank-division">Division ' + r.division + '</div>'
+    + '</div>'
+    + '<div class="bb-rank-pips" role="img" aria-label="' + esc(r.tierName) + ' division ' + r.division + ' of ' + D + '">' + pips + '</div>'
+    + '<div class="bb-rank-bar" role="progressbar" aria-valuemin="0" aria-valuemax="' + r.xpForDivision + '" aria-valuenow="' + r.xpIntoDivision + '">'
+    +   '<div class="bb-rank-bar-fill"></div>'
+    + '</div>'
+    + '<div class="bb-rank-xp">'
+    +   (r.isMaxRank
+          ? 'Max rank &middot; ' + total.toLocaleString() + ' XP'
+          : r.xpIntoDivision.toLocaleString() + ' / ' + r.xpForDivision.toLocaleString() + ' XP to ' + esc(nextLabel))
+    + '</div>';
+}
+
+function rankInit(){
+  rankMigrate();
+  rankCheckMilestones();
+  renderRankCard();
+  _rankStarted = true;   // from here on, a plan save is a real user action
+}
+
 // ==================== CROSS-DEVICE SYNC (Supabase) ====================
 // Data lives in Supabase Postgres (table app_data) keyed by the signed-in
 // user. localStorage stays as the offline cache; we mirror each synced key
@@ -3223,7 +3588,9 @@ let remState = loadStore('sbp-reminders', { enabled:false, protein:'09:00', crea
 const SUPABASE_URL = 'https://owqyrgufwvqgbrpdpskx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93cXlyZ3Vmd3ZxZ2JycGRwc2t4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MzczOTQsImV4cCI6MjA5NjMxMzM5NH0.Z_zUJbKvO6-FBbKheDmlVu46XjT9toFaVlct12IY8zU';
 
-const SYNC_KEYS = ['sbp-today','sbp-weight','sbp-workouts','sbp-session-logs','sbp-shop','sbp-mealshop','sbp-mealplan','sbp-trainingplan','sbp-tp-progress','sbp-readiness','sbp-recipes','sbp-meallog','sbp-setlogs'];
+// bb-rank-ledger syncs alongside bb-rank-xp: without it a second device has no
+// record of which awards were already granted and would re-award them.
+const SYNC_KEYS = ['sbp-today','sbp-weight','sbp-workouts','sbp-session-logs','sbp-shop','sbp-mealshop','sbp-mealplan','sbp-trainingplan','sbp-tp-progress','sbp-readiness','sbp-recipes','sbp-meallog','sbp-setlogs','bb-rank-xp','bb-rank-ledger'];
 const SYNC_KEY_SET = new Set(SYNC_KEYS);
 
 // Capture the real setter BEFORE patching, so our own sync writes don't recurse.
@@ -4185,6 +4552,7 @@ document.documentElement.classList.add('view-today');
 renderToday();
 mpInit();
 tpInit();
+rankInit();          // after mpInit/tpInit — the back-fill reads both plans
 initReminders();
 initAuth();
 initAccountSettings();
