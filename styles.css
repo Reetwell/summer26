@@ -2164,3 +2164,138 @@ html.show-splash .splash.splash-done {
   .rank-level { background: rgb(255 255 255 / .10); }
 }
 
+/* ============================================================================
+   PROGRESS-TAB RANK CARD  (#bb-rank-card)
+   Styles the effort-XP card app.js renders at the top of #sec-progress
+   (feat(rank) 0714169). Different element from the .rank-badge banner above:
+   this one is a flat summary card — tier + division, three pips, a progress
+   bar, an XP caption. Styling only; app.js owns the markup and the
+   --bb-rank-progress custom property (fill width) it sets on the host.
+
+   Meaning split, matching the product's core guardrail (rank = EFFORT, the
+   tier is just the label): the TIER METAL themes the card frame + name +
+   corner sheen (identity), while GREEN — the effort-gem — is every "you did
+   the work" element: the lit pips and the bar fill. Per-tier metal palettes
+   are the shipped v3 badge values (mockups/rank-badges-v3-banner.html /
+   native RankSystem.swift TierPalette).
+   ========================================================================== */
+
+.bb-rank-card {
+  /* metal palette (from / to / deep edge / light glint) — overridden per tier */
+  --tier-from: #D69A5C; --tier-to: #8A5A2B; --tier-deep: #5E3A17; --tier-lite: #F0C79A;
+  --tier-ink: #6B4A22;                 /* tier-name colour that clears AA on the card */
+  --bb-rank-progress: 0%;              /* fallback; app.js sets the real value */
+
+  position: relative; overflow: hidden;
+  margin: 0 0 18px; padding: 18px 20px;
+  border-radius: var(--radius-lg);
+  background: var(--surface, #fff);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+/* Soft metal sheen in the top-right corner — the only place raw tier colour
+   touches a large area, kept low-opacity so text never fights it. */
+.bb-rank-card::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(120% 90% at 100% 0%,
+      rgb(from var(--tier-from) r g b / .22) 0%,
+      rgb(from var(--tier-to)   r g b / .10) 34%,
+      transparent 62%);
+}
+.bb-rank-card > * { position: relative; z-index: 1; }
+
+/* ---- per-tier metal palettes (identity) ---- */
+.bb-rank-card[data-tier="bronze"]   { --tier-from:#D69A5C; --tier-to:#8A5A2B; --tier-deep:#5E3A17; --tier-lite:#F0C79A; --tier-ink:#6B4A22; }
+.bb-rank-card[data-tier="silver"]   { --tier-from:#DEE4EA; --tier-to:#98A2AD; --tier-deep:#4F5963; --tier-lite:#FFFFFF; --tier-ink:#5A636D; }
+.bb-rank-card[data-tier="gold"]     { --tier-from:#F5CB55; --tier-to:#C9922A; --tier-deep:#8F6212; --tier-lite:#FFE9A8; --tier-ink:#8A6412; }
+.bb-rank-card[data-tier="platinum"] { --tier-from:#9AE7D6; --tier-to:#3FA894; --tier-deep:#256B5E; --tier-lite:#EAFFF9; --tier-ink:#256B5E; }
+.bb-rank-card[data-tier="diamond"]  { --tier-from:#C9A0FF; --tier-to:#A98FD6; --tier-deep:#523A85; --tier-lite:#F1E9FF; --tier-ink:#6A4CA6; }
+
+/* ---- head: tier name + division ---- */
+.bb-rank-head {
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.bb-rank-tier {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 26px; line-height: 1.05; color: var(--tier-ink);
+}
+.bb-rank-division {
+  font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--text-secondary);
+  padding: 3px 9px; border-radius: 999px;
+  background: rgb(from var(--tier-to) r g b / .12);
+}
+
+/* ---- pips: three effort-gems (green = effort earned) ---- */
+.bb-rank-pips { display: flex; gap: 9px; margin-bottom: 14px; }
+.bb-rank-pip {
+  width: 15px; height: 15px; flex: none;
+  transform: rotate(45deg);            /* rotated-square gem, echoing the badge gem */
+  border-radius: 3px;
+  /* unlit = an empty socket: recessed, tier-tinted rim, no fill */
+  background: rgb(from var(--tier-deep) r g b / .10);
+  box-shadow: inset 0 0 0 1.5px rgb(from var(--tier-deep) r g b / .28);
+  transition: background .3s ease, box-shadow .3s ease, transform .3s cubic-bezier(.22,1,.36,1);
+}
+.bb-rank-pip.is-lit {
+  /* lit = a struck green effort-gem with a top-facet glint and seated shadow */
+  background:
+    linear-gradient(135deg, #1D9E75 0%, var(--green-500) 42%, var(--green-900) 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / .45),
+    0 2px 5px -1px rgb(from var(--green-900) r g b / .55);
+}
+
+/* ---- progress bar (green effort fill) ---- */
+.bb-rank-bar {
+  position: relative; height: 10px; border-radius: 999px; overflow: hidden;
+  background: rgb(from var(--tier-to) r g b / .16);
+  margin-bottom: 8px;
+}
+.bb-rank-bar-fill {
+  height: 100%; width: var(--bb-rank-progress, 0%);
+  min-width: 0; border-radius: inherit;
+  background: linear-gradient(90deg, var(--green-700), var(--green-500));
+  transform-origin: left center;
+  animation: bbRankFill .7s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes bbRankFill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* ---- xp caption ---- */
+.bb-rank-xp { font-size: 12px; color: var(--text-secondary); }
+
+/* ---- max rank: bar reads complete, gem-green so it echoes the lit pips ---- */
+.bb-rank-card[data-max] .bb-rank-bar-fill { width: 100%; }
+.bb-rank-card[data-max] .bb-rank-bar { background: rgb(from var(--green-500) r g b / .18); }
+.bb-rank-card[data-max] .bb-rank-xp { color: var(--green-700); font-weight: 600; }
+
+@media (max-width: 1023px) {
+  .bb-rank-card { padding: 16px; }
+  .bb-rank-tier { font-size: 23px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bb-rank-pip { transition: none; }
+  .bb-rank-bar-fill { animation: none; transform: none; }
+}
+
+@media (prefers-color-scheme: dark) {
+  /* Metals brighten in dark so the name stays legible; sheen sits a touch
+     stronger against the dark surface. Green fill/pips already read well. */
+  .bb-rank-card[data-tier="bronze"]   { --tier-ink:#E4A863; }
+  .bb-rank-card[data-tier="silver"]   { --tier-ink:#C6CDD5; }
+  .bb-rank-card[data-tier="gold"]     { --tier-ink:#F3CC63; }
+  .bb-rank-card[data-tier="platinum"] { --tier-ink:#7FD9C4; }
+  .bb-rank-card[data-tier="diamond"]  { --tier-ink:#C4A6F5; }
+  .bb-rank-card::before {
+    background:
+      radial-gradient(120% 90% at 100% 0%,
+        rgb(from var(--tier-from) r g b / .18) 0%,
+        rgb(from var(--tier-to)   r g b / .08) 36%,
+        transparent 64%);
+  }
+  .bb-rank-card[data-max] .bb-rank-xp { color: var(--green-500); }
+}
+
