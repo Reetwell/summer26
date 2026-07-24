@@ -38,6 +38,26 @@ enum RankTier: Int, CaseIterable, Identifiable {
     var numeral: String { ["I", "II", "III", "IV", "V"][rawValue] }   // tier order, not division
     var isFramed: Bool { rawValue >= RankTier.platinum.rawValue }     // laurel on top two
     var laurelFull: CGFloat { self == .diamond ? 1.0 : 0.66 }         // Diamond fuller wreath
+
+    /// Spoken label. Rank is never conveyed by colour or metal alone — VoiceOver
+    /// gets the tier *and* the division in words.
+    func badgeLabel(division: Int) -> String {
+        "\(name), division \(Rank.clampDivision(division)) of 3"
+    }
+}
+
+enum Rank {
+    /// Divisions run 1...3 inside every tier. You enter a tier at 1 and promote
+    /// out of 3; nothing here can ever move a user backwards.
+    static let divisionsPerTier = 3
+    static func clampDivision(_ d: Int) -> Int { min(max(d, 1), divisionsPerTier) }
+}
+
+/// What just happened, so the badge can pick the right beat. There is deliberately
+/// no demotion case: a pip that has been earned is never taken away.
+enum RankCelebration: Equatable {
+    case pipLit(Int)   // the division that just lit (1...3) — the smaller beat
+    case promoted      // new metal: numeral changes, pips reset to one
 }
 
 // Resolved metal stops for one tier.
@@ -50,10 +70,12 @@ struct TierPalette {
     }
 }
 
-// Brand effort-gem (the #00694c migration ramp; bright green survives as the top-facet glint).
+// Brand effort-gem — core/deep track the shipped green ramp (Color+Brand.swift,
+// migrated to #00694c natively on 2026-07-20). The older, brighter #1D9E75
+// survives only as the top-facet glint, by design — not a stray leftover.
 enum GemColor {
-    static let core  = Color(hex: "#00694c")
-    static let deep  = Color(hex: "#003F2E")
+    static let core  = Color.green500
+    static let deep  = Color.green900
     static let glint = Color(hex: "#1D9E75")
 }
 
@@ -62,11 +84,13 @@ struct RankState {
     var xp: Int
     var xpForNext: Int
     var level: Int
+    /// 1...3 within the current tier. Tier is the metal; division is the pips.
+    var division: Int = 1
     var progress: Double { min(Double(xp) / Double(xpForNext), 1) }
 
-    static let sample = RankState(tier: .gold, xp: 2450, xpForNext: 3000, level: 12)
-    // Fresh install — everyone starts at the bottom, 0 XP.
-    static let fresh = RankState(tier: .bronze, xp: 0, xpForNext: 500, level: 1)
+    static let sample = RankState(tier: .gold, xp: 2450, xpForNext: 3000, level: 12, division: 2)
+    // Fresh install — everyone starts at the bottom, 0 XP, first division.
+    static let fresh = RankState(tier: .bronze, xp: 0, xpForNext: 500, level: 1, division: 1)
 }
 
 // MARK: - Banner badge (crafted swallowtail, Canvas-rendered)
@@ -80,18 +104,146 @@ private let BADGE_ASPECT: CGFloat = 166.0 / 120.0
 
 struct RankBadge: View {
     let tier: RankTier
+    var division: Int = 1
     var size: CGFloat = 64
+    /// Assign a new value to play a beat; leave `nil` at rest. A promotion is a
+    /// full unfurl-and-shine moment, a pip is a single quick strike.
+    var celebrate: RankCelebration? = nil
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    @State private var unfurl: CGFloat = 1     // vertical scale; 1 = at rest
+    @State private var tilt: Double = 0
+    @State private var glow: Double = 0
+    @State private var sweep: CGFloat = -1     // shine travel, -1 → 1.3
+    @State private var shineOn = false
+    @State private var pipPop: CGFloat = 0
+
+    private var lit: Int { Rank.clampDivision(division) }
+    private var height: CGFloat { size * BADGE_ASPECT }
 
     var body: some View {
-        Canvas { ctx, cs in drawRankBadge(&ctx, cs, tier: tier) }
-            .frame(width: size, height: size * BADGE_ASPECT)
-            .shadow(color: tier.accent.opacity(0.40), radius: size * 0.12, y: 3)
-            .accessibilityLabel("\(tier.name) rank")
+        ZStack {
+            // Promotion glow, behind the metal.
+            Circle()
+                .fill(RadialGradient(colors: [tier.accent.opacity(0.85), .clear],
+                                     center: .center, startRadius: 0, endRadius: size * 0.78))
+                .frame(width: size * 1.8, height: size * 1.8)
+                .opacity(glow)
+                .allowsHitTesting(false)
+
+            Canvas { ctx, cs in drawRankBadge(&ctx, cs, tier: tier, division: lit) }
+                .frame(width: size, height: height)
+                .overlay {
+                    // Shine sweep, clipped to the banner face so it reads as light
+                    // travelling across struck metal rather than a rectangle.
+                    LinearGradient(colors: [.clear, .white.opacity(0.85), .clear],
+                                   startPoint: .leading, endPoint: .trailing)
+                        .frame(width: size * 0.42)
+                        .rotationEffect(.degrees(9))
+                        .offset(x: sweep * size * 1.3)
+                        .frame(width: size, height: height)
+                        .clipShape(BannerFaceShape())
+                        .opacity(shineOn ? 1 : 0)
+                        .allowsHitTesting(false)
+                }
+                .scaleEffect(x: 1, y: unfurl, anchor: UnitPoint(x: 0.5, y: 0.054))
+                .rotationEffect(.degrees(tilt), anchor: UnitPoint(x: 0.5, y: 0.054))
+
+            // The pip beat — a single strike over the pip that just lit.
+            if pipPop > 0, let idx = poppedPipIndex {
+                PipStrike(color: tier.palette.lite, progress: pipPop)
+                    .frame(width: size * 0.22, height: size * 0.22)
+                    .position(x: size * PIP_X_FRACTIONS[idx], y: height * PIP_Y_FRACTION)
+                    .allowsHitTesting(false)
+            }
+        }
+        .frame(width: size, height: height)
+        .shadow(color: tier.accent.opacity(0.40), radius: size * 0.12, y: 3)
+        .accessibilityElement()
+        .accessibilityLabel(tier.badgeLabel(division: lit))
+        .onChange(of: celebrate) { _, new in play(new) }
+    }
+
+    private var poppedPipIndex: Int? {
+        guard case .pipLit(let d) = celebrate else { return nil }
+        return Rank.clampDivision(d) - 1
+    }
+
+    private func play(_ beat: RankCelebration?) {
+        guard let beat else { return }
+        // Reduce Motion: the numeral and the pip have *already* changed on screen.
+        // That state change is the feedback; we just don't move anything.
+        guard !reduceMotion else { return }
+
+        let m = rankMotionScale
+        switch beat {
+        case .pipLit:
+            pipPop = 0
+            withAnimation(.easeOut(duration: 0.5 * m)) { pipPop = 1 }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.55 * m) { pipPop = 0 }
+
+        case .promoted:
+            unfurl = 0.62; tilt = -4.5; sweep = -1; shineOn = true
+            withAnimation(.spring(response: 0.62 * m, dampingFraction: 0.62)) { unfurl = 1; tilt = 0 }
+            withAnimation(.easeOut(duration: 1.0 * m).delay(0.18 * m)) { sweep = 1.3 }
+            withAnimation(.easeOut(duration: 0.42 * m)) { glow = 0.5 }
+            withAnimation(.easeIn(duration: 0.62 * m).delay(0.42 * m)) { glow = 0 }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.25 * m) { shineOn = false; sweep = -1 }
+        }
     }
 }
 
+/// Stretches the celebration timeline so a screenshot burst can sample it. Debug
+/// only, 1 unless `-BBMotionScale <n>` is passed; ships as a no-op.
+private let rankMotionScale: Double = {
+    #if DEBUG
+    let v = UserDefaults.standard.double(forKey: "BBMotionScale")
+    return v > 0 ? v : 1
+    #else
+    return 1
+    #endif
+}()
+
+/// The banner face polygon, normalised out of the 120×166 design space.
+private struct BannerFaceShape: Shape {
+    func path(in r: CGRect) -> Path {
+        var p = Path()
+        for (i, q) in [(CGFloat(30), CGFloat(32)), (90, 32), (90, 147), (60, 121), (30, 147)].enumerated() {
+            let c = CGPoint(x: r.minX + q.0 / 120 * r.width, y: r.minY + q.1 / 166 * r.height)
+            if i == 0 { p.move(to: c) } else { p.addLine(to: c) }
+        }
+        p.closeSubpath(); return p
+    }
+}
+
+/// One quick ring-and-core flash over a pip that just lit.
+private struct PipStrike: View {
+    let color: Color
+    let progress: CGFloat
+
+    var body: some View {
+        ZStack {
+            Circle().stroke(color, lineWidth: 1.6)
+                .scaleEffect(0.3 + progress * 1.15)
+                .opacity(Double(1 - progress))
+            Circle().fill(color)
+                .scaleEffect(max(0, 0.5 * (1 - progress)))
+                .opacity(Double(1 - progress) * 0.9)
+        }
+    }
+}
+
+// Division pips live on the hem band in design space: three across at x 42/60/78,
+// centred on y 26.2 *within the banner group* (which is itself offset +16 in y).
+// Exposed so the animated overlay can hit the exact same spot as the Canvas.
+let PIP_X_FRACTIONS: [CGFloat] = [42.0 / 120, 60.0 / 120, 78.0 / 120]
+let PIP_Y_FRACTION: CGFloat = (26.2 + 16) / 166
+/// Below this width a chevron's waist falls under a pixel, so pips switch to dots.
+private let PIP_CHEVRON_MIN_WIDTH: CGFloat = 44
+
 // The whole badge, drawn back-to-front in the 120×166 design space.
-private func drawRankBadge(_ ctx: inout GraphicsContext, _ cs: CGSize, tier: RankTier) {
+private func drawRankBadge(_ ctx: inout GraphicsContext, _ cs: CGSize, tier: RankTier, division: Int) {
     let W = cs.width, H = cs.height, s = W / 120
     let pal = tier.palette
 
@@ -211,6 +363,33 @@ private func drawRankBadge(_ ctx: inout GraphicsContext, _ cs: CGSize, tier: Ran
     // hem fold + highlight + specular
     ctx.fill(rr(30, 16, 60, 20, 0, dy), with: vg([pal.to, pal.deep], 60, 16, 36, dy))
     ctx.stroke(line(30, 17.2, 90, 17.2, dy), with: col(pal.lite, 0.55), lineWidth: 1.6 * s)
+
+    // ---- division pips (3 across the hem) ----
+    // The hem is the only genuinely empty horizontal strip on the banner, and it
+    // sits right under the clasp, so pips read as rank hardware without touching
+    // the numeral cartouche or the effort gem. Lit vs unlit differs in FORM
+    // (solid metal vs hollow socket), not just colour, so the count survives
+    // greyscale, colour-blindness and a squint at 52pt.
+    let lit = Rank.clampDivision(division)
+    let chevrons = W >= PIP_CHEVRON_MIN_WIDTH
+    func pipPath(_ cx: CGFloat, _ off: CGFloat) -> Path {
+        guard chevrons else { return circ(cx, 26.2, 3.6, dy + off) }
+        return poly([(cx, 20.6), (cx + 6.8, 27.6), (cx + 6.8, 31.8),
+                     (cx, 24.8), (cx - 6.8, 31.8), (cx - 6.8, 27.6)], dy + off)
+    }
+    for (i, cx) in [CGFloat(42), 60, 78].enumerated() {
+        if i < lit {
+            // Struck and polished: solid bright metal, hard dark edge, one specular.
+            ctx.fill(pipPath(cx, 1.0), with: black(0.38))
+            ctx.fill(pipPath(cx, 0), with: .color(pal.lite))
+            ctx.stroke(pipPath(cx, 0), with: col(pal.deep, 0.9), lineWidth: 0.7 * s)
+            if chevrons { ctx.fill(circ(cx - 2.0, 23.6, 0.8, dy), with: white(0.9)) }
+        } else {
+            // Empty socket: a hole in the hem, not a dimmer version of the pip.
+            ctx.fill(pipPath(cx, 0), with: black(0.34))
+            ctx.stroke(pipPath(cx, 0), with: col(pal.lite, 0.20), lineWidth: 0.8 * s)
+        }
+    }
     ctx.fill(rr(30, 36, 60, 8, 0, dy), with: .linearGradient(
         Gradient(stops: [.init(color: .black.opacity(0.22), location: 0), .init(color: .black.opacity(0), location: 1)]),
         startPoint: mp(60, 36, dy), endPoint: mp(60, 44, dy)))
@@ -295,12 +474,14 @@ private func drawRankBadge(_ ctx: inout GraphicsContext, _ cs: CGSize, tier: Ran
 struct RankCard: View {
     let rank: RankState
     var compact: Bool = false
+    var celebrate: RankCelebration? = nil
     var onTapLeague: () -> Void = {}
 
     var body: some View {
         Button(action: onTapLeague) {
             HStack(spacing: Spacing.md) {
-                RankBadge(tier: rank.tier, size: compact ? 52 : 64)
+                RankBadge(tier: rank.tier, division: rank.division,
+                          size: compact ? 52 : 64, celebrate: celebrate)
 
                 VStack(alignment: .leading, spacing: 5) {
                     HStack(spacing: 8) {
@@ -339,7 +520,13 @@ struct RankCard: View {
         .buttonStyle(ScaleButtonStyle())
     }
 
+    // Says what the *next* pip or metal is, so the goal is never colour-only.
+    // "division 3" rather than "Gold 3" — the badge numeral already means the tier,
+    // and reusing that shape for divisions is exactly the confusion to avoid.
     private var nextLine: String {
+        if rank.division < Rank.divisionsPerTier {
+            return "\(rank.xp) / \(rank.xpForNext) XP to division \(rank.division + 1)"
+        }
         if let next = rank.tier.next {
             return "\(rank.xp) / \(rank.xpForNext) XP to \(next.name)"
         }

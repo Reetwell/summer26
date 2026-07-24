@@ -1982,3 +1982,185 @@ html.show-splash .splash.splash-done {
   .tpt-mini { color: var(--green-500); }
 }
 
+/* ============================================================================
+   RANK BADGE — tier banner + division pips
+   Parity with the native badge (BuildYourBody/Features/Rank/RankSystem.swift).
+
+   MARKUP CONTRACT (app.js owns the markup; this file owns every pixel of it).
+   The ONLY things app.js has to set are the two data attributes — CSS derives
+   which pips are lit, so there is no per-pip class to keep in sync:
+
+     <div class="rank-badge" data-tier="gold" data-division="2"
+          role="img" aria-label="Gold, division 2 of 3">
+       <svg class="rank-banner" viewBox="0 0 120 166" aria-hidden="true">…</svg>
+       <span class="rank-pips" aria-hidden="true"><i></i><i></i><i></i></span>
+     </div>
+
+   data-tier      bronze | silver | gold | platinum | diamond   (the METAL)
+   data-division  1 | 2 | 3                                     (the PIPS)
+   The Roman numeral inside the banner still means the TIER. Divisions are the
+   pips and nothing else — never re-use the numeral for them.
+
+   Transient state classes, added to .rank-badge then removed:
+     .is-pip-lit    ~600ms   a pip just lit  (the smaller beat)
+     .is-promoting  ~1300ms  new metal       (the moment)
+   Always set data-division / data-tier to the NEW value first, then add the
+   class, so the animation plays over the finished state.
+   ========================================================================== */
+
+.rank-badge[data-tier="bronze"]   { --pip-lit: #F0C79A; --rank-accent: #D69A5C; }
+.rank-badge[data-tier="silver"]   { --pip-lit: #FFFFFF; --rank-accent: #DEE4EA; }
+.rank-badge[data-tier="gold"]     { --pip-lit: #FFE9A8; --rank-accent: #F5CB55; }
+.rank-badge[data-tier="platinum"] { --pip-lit: #EAFFF9; --rank-accent: #9AE7D6; }
+.rank-badge[data-tier="diamond"]  { --pip-lit: #F1E9FF; --rank-accent: #A98FD6; }
+
+.rank-badge {
+  position: relative; display: inline-block; width: 64px; flex: none;
+  container-type: inline-size;   /* drives the small-size pip fallback below */
+  filter: drop-shadow(0 3px 8px rgb(from var(--rank-accent) r g b / .40));
+}
+.rank-badge .rank-banner { display: block; width: 100%; height: auto; }
+
+/* Pips ride the hem band — the one empty horizontal strip on the banner, right
+   under the clasp. Positions match the native design space exactly:
+   x 42/60/78 of 120, y 26.2 (+16 group offset) of 166. */
+.rank-pips { position: absolute; inset: 0; pointer-events: none; }
+.rank-pips i {
+  position: absolute; top: 25.42%; width: 11.33%; height: 6.75%;
+  transform: translate(-50%, -50%);
+  clip-path: polygon(50% 0%, 100% 62.5%, 100% 100%, 50% 37.5%, 0% 100%, 0% 62.5%);
+  /* Unlit = an empty socket cut into the hem: dark body, one lit top edge.
+     Lit vs unlit differs in FORM and luminance, not hue, so the count still
+     reads in greyscale and for colour-blind users. */
+  background: linear-gradient(180deg,
+    rgb(from var(--pip-lit) r g b / .30) 0 14%, rgb(0 0 0 / .40) 14%);
+}
+.rank-pips i:nth-child(1) { left: 35%; }
+.rank-pips i:nth-child(2) { left: 50%; }
+.rank-pips i:nth-child(3) { left: 65%; }
+
+/* Lit = struck and polished. One rule per division; no per-pip class needed. */
+.rank-badge[data-division="1"] .rank-pips i:nth-child(-n+1),
+.rank-badge[data-division="2"] .rank-pips i:nth-child(-n+2),
+.rank-badge[data-division="3"] .rank-pips i {
+  background: linear-gradient(180deg, #fff 0 18%, var(--pip-lit) 100%);
+  filter: drop-shadow(0 1px 0 rgb(0 0 0 / .45));
+}
+
+/* Below ~44px a chevron's waist falls under a pixel and smears, so pips become
+   dots. Same "3 slots, N filled" reading, just a shape that survives the size.
+   Mirrors PIP_CHEVRON_MIN_WIDTH in RankSystem.swift. */
+@container (max-width: 43px) {
+  .rank-pips i {
+    clip-path: none; border-radius: 50%;
+    width: 6.6%; height: auto; aspect-ratio: 1;
+  }
+}
+
+/* ---- beat 1: a pip lights (small) ---- */
+@keyframes bbPipStrike {
+  0%   { transform: translate(-50%, -50%) scale(.5); }
+  55%  { transform: translate(-50%, -50%) scale(1.3); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes bbPipRing {
+  0%   { opacity: .9; transform: translate(-50%, -50%) scale(.4); }
+  100% { opacity: 0;  transform: translate(-50%, -50%) scale(2.6); }
+}
+/* Only the newest pip celebrates — the ones already earned stay put. */
+.rank-badge.is-pip-lit[data-division="1"] .rank-pips i:nth-child(1),
+.rank-badge.is-pip-lit[data-division="2"] .rank-pips i:nth-child(2),
+.rank-badge.is-pip-lit[data-division="3"] .rank-pips i:nth-child(3) {
+  animation: bbPipStrike .5s cubic-bezier(.22, 1, .36, 1);
+}
+.rank-badge.is-pip-lit .rank-pips::after {
+  content: ''; position: absolute; top: 25.42%; width: 11.33%; height: 6.75%;
+  border-radius: 50%; box-shadow: 0 0 0 1.5px var(--pip-lit);
+  animation: bbPipRing .55s cubic-bezier(.33, 1, .68, 1);
+}
+.rank-badge.is-pip-lit[data-division="1"] .rank-pips::after { left: 35%; }
+.rank-badge.is-pip-lit[data-division="2"] .rank-pips::after { left: 50%; }
+.rank-badge.is-pip-lit[data-division="3"] .rank-pips::after { left: 65%; }
+
+/* ---- beat 2: promotion (the moment) ---- */
+/* Same language as the native badge: unfurl from the clasp, a shine travels
+   across the metal, a glow blooms and settles. */
+@keyframes bbUnfurl {
+  0%   { transform: scaleY(.62) rotate(-4.5deg); }
+  55%  { transform: scaleY(1.04) rotate(.8deg); }
+  100% { transform: none; }
+}
+@keyframes bbSweep {
+  from { transform: translateX(-90%) rotate(9deg); opacity: 0; }
+  12%  { opacity: 1; }
+  to   { transform: translateX(320%) rotate(9deg); opacity: 0; }
+}
+@keyframes bbGlow {
+  0%   { opacity: 0; transform: scale(.72); }
+  32%  { opacity: .55; }
+  100% { opacity: 0; transform: scale(1.22); }
+}
+.rank-badge.is-promoting .rank-banner,
+.rank-badge.is-promoting .rank-pips {
+  transform-origin: 50% 5.4%;                     /* hangs from the clasp */
+  animation: bbUnfurl .74s cubic-bezier(.22, 1, .36, 1) both;
+}
+.rank-badge.is-promoting::before {                /* glow */
+  content: ''; position: absolute; inset: -26%; border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 44%, var(--rank-accent) 0%, transparent 62%);
+  animation: bbGlow 1.1s cubic-bezier(.33, 1, .68, 1);
+}
+.rank-badge.is-promoting::after {                 /* shine, clipped to the face */
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  clip-path: polygon(25% 19.3%, 75% 19.3%, 75% 88.6%, 50% 72.9%, 25% 88.6%);
+  background: linear-gradient(100deg, transparent 42%,
+    rgb(255 255 255 / .85) 50%, transparent 58%);
+  animation: bbSweep 1.05s cubic-bezier(.33, 1, .68, 1) .18s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The pip and the numeral have already changed — that IS the feedback. */
+  .rank-badge.is-pip-lit .rank-pips i,
+  .rank-badge.is-pip-lit .rank-pips::after,
+  .rank-badge.is-promoting .rank-banner,
+  .rank-badge.is-promoting .rank-pips,
+  .rank-badge.is-promoting::before,
+  .rank-badge.is-promoting::after { animation: none; }
+  .rank-badge.is-pip-lit .rank-pips::after,
+  .rank-badge.is-promoting::before,
+  .rank-badge.is-promoting::after { display: none; }
+}
+
+/* ---- rank card (profile / dashboard row) ---- */
+.rank-card {
+  display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
+  padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-lg);
+  background: var(--surface, #fff); color: var(--text-primary); cursor: pointer;
+  transition: transform .18s cubic-bezier(.25, 1, .5, 1), box-shadow .18s;
+}
+.rank-card:hover { transform: translateY(-1px); box-shadow: 0 10px 24px -14px rgb(0 0 0 / .35); }
+.rank-card:active { transform: scale(.99); }
+.rank-card .rank-badge { width: 56px; }
+.rank-meta { flex: 1; min-width: 0; display: grid; gap: 6px; }
+.rank-head { display: flex; align-items: center; gap: 8px; }
+.rank-tier { font-family: 'DM Serif Display', Georgia, serif; font-size: 21px; }
+.rank-level {
+  font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-secondary); background: var(--gray-100);
+  padding: 3px 8px; border-radius: 999px;
+}
+.rank-xp { height: 7px; border-radius: 999px; background: rgb(from var(--rank-accent, #00694c) r g b / .18); overflow: hidden; }
+.rank-xp > i { display: block; height: 100%; border-radius: inherit; background: var(--green-500); transition: width .5s cubic-bezier(.22, 1, .36, 1); }
+.rank-next { font-size: 11px; color: var(--text-secondary); }
+.rank-go { color: var(--text-secondary); opacity: .5; font-size: 13px; }
+@media (prefers-reduced-motion: reduce) {
+  .rank-card { transition: box-shadow .18s; }
+  .rank-card:hover, .rank-card:active { transform: none; }
+  .rank-xp > i { transition: none; }
+}
+@media (prefers-color-scheme: dark) {
+  /* --gray-100 stays a light tint in dark mode, so the pill needs its own value. */
+  .rank-level { background: rgb(255 255 255 / .10); }
+}
+

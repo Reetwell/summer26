@@ -10,8 +10,18 @@ struct BuildYourBodyApp: App {
 
     var body: some Scene {
         WindowGroup {
+            #if DEBUG
+            // Design QA route, off unless explicitly launched with
+            // `-BBRankGallery YES`. Never present in a release build.
+            if UserDefaults.standard.bool(forKey: "BBRankGallery") {
+                RankBadgeGallery()
+            } else {
+                RootView().environment(appState)
+            }
+            #else
             RootView()
                 .environment(appState)
+            #endif
         }
     }
 }

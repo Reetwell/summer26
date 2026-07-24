@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rank badge — division pips (verification harness)</title>
+
+<!-- Loads the SHIPPED stylesheet on purpose: every pip colour, position,
+     size-fallback and animation below comes from styles.css, not from this
+     file. If it looks right here, it is right in the app. -->
+<link rel="stylesheet" href="../styles.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  /* Harness chrome only — never ship any of this. */
+  body { background:#F9F6F0; font-family:'DM Sans',sans-serif; color:#1A1A18; margin:0; padding:28px 32px 60px; }
+  h1 { font-family:'DM Serif Display',serif; font-weight:400; font-size:26px; margin:0 0 2px; }
+  .sub { color:#5F5E5A; font-size:13px; margin-bottom:26px; }
+  .lbl { font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:#6B6A63; margin:30px 0 12px; }
+  table.grid { border-collapse:collapse; }
+  table.grid th { font-size:11px; font-weight:700; color:#6B6A63; padding:0 0 8px; }
+  table.grid th.rowh { text-align:left; width:84px; }
+  table.grid td { padding:6px 14px; text-align:center; }
+  .sizes { display:flex; gap:26px; align-items:flex-end; }
+  .sizes figcaption { font-size:10px; color:#6B6A63; text-align:center; margin-top:6px; }
+  .demo { display:flex; gap:22px; align-items:center; flex-wrap:wrap; }
+  .demo button { font:700 13px 'DM Sans',sans-serif; border:none; border-radius:999px; padding:10px 18px; cursor:pointer; background:#00694c; color:#fff; }
+  .demo button.sec { background:#F0EFEA; color:#5F5E5A; }
+  .note { max-width:62ch; font-size:12px; color:#5F5E5A; line-height:1.55; }
+</style>
+</head>
+<body>
+<h1>Division pips — verification</h1>
+<div class="sub">Numeral = tier. Pips = division. Styling comes from ../styles.css.</div>
+
+<div class="lbl">All 15 states</div>
+<table class="grid" id="grid"></table>
+
+<div class="lbl">Sizes — 56px is the smallest in the card</div>
+<div class="sizes" id="sizes"></div>
+<p class="note">Chevrons down to 44px. Below that the container query in styles.css swaps them for dots, because a chevron's waist falls under a pixel and smears.</p>
+
+<div class="lbl">The two beats</div>
+<div class="demo">
+  <div id="demoWrap"></div>
+  <div>
+    <div id="demoCap" style="font-size:12px;font-weight:600;margin-bottom:10px"></div>
+    <button id="pipBtn">Light a pip</button>
+    <button id="promoBtn" class="sec">Promote</button>
+    <button id="resetBtn" class="sec">Reset</button>
+  </div>
+</div>
+
+<div class="lbl">In a rank card</div>
+<div id="cardWrap" style="max-width:420px"></div>
+
+<script>
+// Effort-gem on the shipped #00694c ramp.
+const GEM = { c:'#00694c', d:'#003F2E', l:'#1D9E75' };
+
+const TIERS = {
+  bronze:   { name:'Bronze',   num:'I',   from:'#D69A5C', shn:'#EDBE8A', to:'#8A5A2B', deep:'#5E3A17', ink:.45, lvl:0, streak:0,    irid:false, extra:null,      lite:'#F0C79A' },
+  silver:   { name:'Silver',   num:'II',  from:'#DEE4EA', shn:'#F6F9FC', to:'#98A2AD', deep:'#4F5963', ink:.82, lvl:1, streak:0.10, irid:false, extra:'brushed', lite:'#FFFFFF' },
+  gold:     { name:'Gold',     num:'III', from:'#F5CB55', shn:'#FFE594', to:'#C9922A', deep:'#8F6212', ink:.5,  lvl:2, streak:0.13, irid:false, extra:'trim',    lite:'#FFE9A8' },
+  platinum: { name:'Platinum', num:'IV',  from:'#9AE7D6', shn:'#C6F5EA', to:'#3FA894', deep:'#256B5E', ink:.6,  lvl:3, streak:0.15, irid:false, extra:'frost',   lite:'#EAFFF9', frame:true, full:0.66 },
+  diamond:  { name:'Diamond',  num:'V',   from:'#E7DBFF', shn:'#F5EFFF', to:'#A98FD6', deep:'#523A85', ink:.55, lvl:4, streak:0.18, irid:true,  extra:'trim',    lite:'#F1E9FF', frame:true, full:1 },
+};
+const ORDER = ['bronze','silver','gold','platinum','diamond'];
+
+function leaf(cx, cy, ang, len, wid, id, stroke){
+  return `<g transform="translate(${cx.toFixed(1)} ${cy.toFixed(1)}) rotate(${ang.toFixed(1)})">`
+    + `<path d="M0 0 Q ${wid} ${(-len*0.55).toFixed(1)} 0 ${(-len).toFixed(1)} Q ${-wid} ${(-len*0.55).toFixed(1)} 0 0 Z" fill="url(#lg${id})" stroke="${stroke}" stroke-opacity=".32" stroke-width=".5"/>`
+    + `<line x1="0" y1="${(-len*0.14).toFixed(1)}" x2="0" y2="${(-len*0.88).toFixed(1)}" stroke="${stroke}" stroke-opacity=".3" stroke-width=".5"/></g>`;
+}
+function laurelSVG(t, id, full){
+  full = full || 0.66;
+  const N = Math.round(7 * full) + 3;
+  function branch(mirror){
+    const P0=[42,150], P1=[8,124], P2=[18, 150 - 96*full];
+    const mx = x => mirror ? 120 - x : x;
+    let out = `<path d="M${mx(P0[0])},${P0[1]} Q${mx(P1[0])},${P1[1]} ${mx(P2[0])},${P2[1]}" fill="none" stroke="${t.deep}" stroke-opacity=".42" stroke-width="1.3"/>`;
+    for(let i=1;i<=N;i++){
+      const u=i/(N+0.4), v=1-u;
+      const x=v*v*P0[0]+2*v*u*P1[0]+u*u*P2[0];
+      const y=v*v*P0[1]+2*v*u*P1[1]+u*u*P2[1];
+      const dx=2*v*(P1[0]-P0[0])+2*u*(P2[0]-P1[0]);
+      const dy=2*v*(P1[1]-P0[1])+2*u*(P2[1]-P1[1]);
+      const aL=Math.atan2(dy,dx)*180/Math.PI + 110;
+      out += leaf(mx(x), y, mirror ? -aL : aL, 12.5*(1-0.4*u), 4.4*(1-0.26*u), id, t.deep);
+    }
+    return out;
+  }
+  return `<g opacity=".95">${branch(false)}${branch(true)}`
+    + `<circle cx="60" cy="149.5" r="2.5" fill="url(#lg${id})" stroke="${t.deep}" stroke-opacity=".35" stroke-width=".5"/>`
+    + `<circle cx="55.6" cy="151.4" r="1.8" fill="url(#lg${id})" stroke="${t.deep}" stroke-opacity=".35" stroke-width=".5"/>`
+    + `<circle cx="64.4" cy="151.4" r="1.8" fill="url(#lg${id})" stroke="${t.deep}" stroke-opacity=".35" stroke-width=".5"/></g>`;
+}
+function claspSVG(t, id){
+  const L = t.lvl; let s = '';
+  if(L>=2) [15,93].forEach(cx => {
+    s += `<rect x="${cx}" y="1.5" width="12" height="16" rx="3" fill="url(#r${id})" stroke="${t.deep}" stroke-width="1.3"/>`;
+    s += `<rect x="${cx+1.5}" y="2.8" width="9" height="2.4" rx="1.2" fill="${t.lite}" opacity=".5"/>`;
+  });
+  s += `<rect x="22" y="3" width="76" height="13" rx="3.5" fill="url(#r${id})" stroke="${t.deep}" stroke-width="1.5"/>`;
+  s += `<rect x="24.5" y="4.6" width="71" height="3" rx="1.5" fill="${t.lite}" opacity=".5"/>`;
+  s += `<rect x="24.5" y="12.6" width="71" height="2.2" rx="1.1" fill="#000000" opacity=".22"/>`;
+  if(L>=1){
+    s += `<polygon points="22,3 30,3 26,9.5 30,16 22,16" fill="#000000" opacity=".12"/>`;
+    s += `<polygon points="98,3 90,3 94,9.5 90,16 98,16" fill="#000000" opacity=".12"/>`;
+    s += `<polygon points="22,3 30,3 26,9.5" fill="${t.lite}" opacity=".3"/><polygon points="98,3 90,3 94,9.5" fill="${t.lite}" opacity=".3"/>`;
+  }
+  if(L>=3){
+    s += `<line x1="34" y1="9.5" x2="86" y2="9.5" stroke="${t.deep}" stroke-opacity=".4" stroke-width=".8"/>`;
+    s += `<line x1="34" y1="10.4" x2="86" y2="10.4" stroke="${t.lite}" stroke-opacity=".35" stroke-width=".6"/>`;
+    [52,60,68].forEach(xx => s += `<line x1="${xx}" y1="6" x2="${xx}" y2="13" stroke="${t.deep}" stroke-opacity=".3" stroke-width=".7"/>`);
+  }
+  [34,86].forEach(cx => s += `<circle cx="${cx}" cy="9.7" r="2.7" fill="#000000" opacity=".25"/><circle cx="${cx}" cy="9" r="2.7" fill="${t.deep}"/><circle cx="${(cx-0.7).toFixed(1)}" cy="8.3" r="1.4" fill="${t.lite}" opacity=".9"/>`);
+  if(L>=4) [21,99].forEach(cx => {
+    s += `<polygon points="${cx},6 ${cx+3},9 ${cx},12 ${cx-3},9" fill="${GEM.c}" stroke="${GEM.d}" stroke-width=".6"/><polygon points="${cx},6 ${cx+3},9 ${cx-3},9" fill="${GEM.l}"/>`;
+  });
+  return s;
+}
+
+// The banner SVG. NOTE: it carries NO pips — the three pips are HTML spans
+// overlaid by styles.css, so app.js never has to compute their geometry.
+function bannerSVG(key){
+  const t = TIERS[key], id = key;
+  const irid = t.irid ? `<linearGradient id="ir${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C9A0FF" stop-opacity=".42"/><stop offset=".5" stop-color="#FFFFFF" stop-opacity="0"/><stop offset="1" stop-color="#FF9ED8" stop-opacity=".36"/></linearGradient>` : '';
+  const iridFace = t.irid ? `<polygon points="30,16 90,16 90,131 60,105 30,131" fill="url(#ir${id})"/>` : '';
+  const streak = t.streak ? `<polygon points="32,56 54,46 90,66 68,76" fill="#FFFFFF" opacity="${t.streak}"/>` : '';
+  let extra = '';
+  if(t.extra === 'brushed') extra = `<line x1="34" y1="58" x2="86" y2="58" stroke="#FFFFFF" stroke-opacity=".13" stroke-width="1.3"/><line x1="34" y1="90" x2="86" y2="90" stroke="#FFFFFF" stroke-opacity=".09" stroke-width="1.1"/>`;
+  if(t.extra === 'trim') extra = `<polygon points="34,41 86,41 86,126 60,99.5 34,126" fill="none" stroke="${t.lite}" stroke-opacity=".5" stroke-width="1.5"/>`;
+  if(t.extra === 'frost') extra = `<polygon points="34,41 86,41 86,126 60,99.5 34,126" fill="none" stroke="${t.lite}" stroke-opacity=".45" stroke-width="1.5"/><path d="M37 52 l5 -2.6 M83 50 l-5 -2.6" stroke="${t.lite}" stroke-opacity=".55" stroke-width="1.3" stroke-linecap="round"/>`;
+  return `
+<svg class="rank-banner" viewBox="0 0 120 166" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="g${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${t.from}"/><stop offset=".42" stop-color="${t.shn}"/><stop offset="1" stop-color="${t.to}"/></linearGradient>
+    <linearGradient id="r${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${t.to}"/><stop offset="1" stop-color="${t.deep}"/></linearGradient>
+    <linearGradient id="sh${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000000" stop-opacity=".22"/><stop offset="1" stop-color="#000000" stop-opacity="0"/></linearGradient>
+    <linearGradient id="w${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E7E7E2"/></linearGradient>
+    <linearGradient id="lg${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${t.shn}"/><stop offset="1" stop-color="${t.to}"/></linearGradient>
+    <clipPath id="fc${id}"><polygon points="30,16 90,16 90,131 60,105 30,131"/></clipPath>
+    ${irid}
+  </defs>
+  ${t.frame ? laurelSVG(t, id, t.full) : ''}
+  <rect x="38" y="13" width="4.6" height="15" rx="1.6" fill="url(#r${id})" stroke="${t.deep}" stroke-opacity=".5" stroke-width=".6"/>
+  <rect x="77.4" y="13" width="4.6" height="15" rx="1.6" fill="url(#r${id})" stroke="${t.deep}" stroke-opacity=".5" stroke-width=".6"/>
+  <g transform="translate(0,16)">
+    <polygon points="24,10 96,10 96,140 60,114 24,140" fill="url(#r${id})" stroke="${t.deep}" stroke-width="2"/>
+    <polygon points="24,10 96,10 90,16 30,16" fill="${t.lite}" opacity=".5"/>
+    <polygon points="24,10 30,16 30,131 24,140" fill="#FFFFFF" opacity=".22"/>
+    <polygon points="96,10 96,140 90,131 90,16" fill="#000000" opacity=".24"/>
+    <polygon points="24,140 30,131 60,105 60,114" fill="#000000" opacity=".10"/>
+    <polygon points="96,140 90,131 60,105 60,114" fill="#000000" opacity=".30"/>
+    <polygon points="30,16 90,16 90,131 60,105 30,131" fill="url(#g${id})"/>
+    <polygon points="30,16 60,16 60,105 30,131" fill="#FFFFFF" opacity=".05"/>
+    <polygon points="60,16 90,16 90,131 60,105" fill="#000000" opacity=".06"/>
+    <g clip-path="url(#fc${id})">
+      <polygon points="30,16 55,16 41,131 30,131" fill="#FFFFFF" opacity=".07"/>
+      <polygon points="90,16 79,16 87,131 90,131" fill="#000000" opacity=".05"/>
+    </g>
+    <rect x="30" y="16" width="60" height="20" fill="url(#r${id})"/>
+    <line x1="30" y1="17.2" x2="90" y2="17.2" stroke="${t.lite}" stroke-opacity=".55" stroke-width="1.6"/>
+    <rect x="30" y="36" width="60" height="8" fill="url(#sh${id})"/>
+    <polygon points="34,41 86,41 86,126 60,99.5 34,126" fill="none" stroke="#000000" stroke-opacity=".16" stroke-width="1"/>
+    <polygon points="34,42.2 86,42.2 86,127.2 60,100.7 34,127.2" fill="none" stroke="#FFFFFF" stroke-opacity=".14" stroke-width="1"/>
+    ${streak}${extra}${iridFace}
+    <rect x="39" y="49" width="42" height="43" rx="6" fill="#000000" opacity=".06"/>
+    <rect x="39" y="49" width="42" height="43" rx="6" fill="none" stroke="#000000" stroke-opacity=".14" stroke-width="1"/>
+    <rect x="40" y="50" width="40" height="41" rx="5" fill="none" stroke="${t.lite}" stroke-opacity=".26" stroke-width="1"/>
+    <text x="60" y="84" text-anchor="middle" font-family="'DM Serif Display',serif" font-size="44" fill="${t.deep}" opacity="${t.ink}" transform="translate(0,2.6)">${t.num}</text>
+    <text x="60" y="84" text-anchor="middle" font-family="'DM Serif Display',serif" font-size="44" fill="url(#w${id})" stroke="${t.deep}" stroke-opacity="${Math.min(t.ink,.5)}" stroke-width="1" paint-order="stroke fill">${t.num}</text>
+    <polygon points="60,95.7 63.9,99.9 60,104.1 56.1,99.9" fill="#000000" opacity=".28" transform="translate(0,.9)"/>
+    <polygon points="60,95.7 63.9,99.9 60,104.1 56.1,99.9" fill="${GEM.c}" stroke="${GEM.d}" stroke-width=".8"/>
+    <polygon points="60,95.7 63.9,99.9 56.1,99.9" fill="${GEM.l}"/>
+    <circle cx="58.9" cy="98.4" r=".8" fill="#FFFFFF" opacity=".85"/>
+  </g>${claspSVG(t, id)}
+</svg>`;
+}
+
+// THE contract markup. This is exactly what app.js should emit.
+function badgeHTML(key, division, width){
+  const t = TIERS[key];
+  const w = width ? ` style="width:${width}px"` : '';
+  return `<div class="rank-badge" data-tier="${key}" data-division="${division}"`
+    + ` role="img" aria-label="${t.name}, division ${division} of 3"${w}>`
+    + bannerSVG(key)
+    + `<span class="rank-pips" aria-hidden="true"><i></i><i></i><i></i></span>`
+    + `</div>`;
+}
+
+// ---- 15 states ----
+let html = '<tr><th class="rowh"></th><th>division 1</th><th>division 2</th><th>division 3</th></tr>';
+ORDER.forEach(k => {
+  html += `<tr><th class="rowh">${TIERS[k].name}</th>`;
+  [1,2,3].forEach(d => html += `<td>${badgeHTML(k, d, 62)}</td>`);
+  html += '</tr>';
+});
+document.getElementById('grid').innerHTML = html;
+
+// ---- sizes ----
+document.getElementById('sizes').innerHTML = [56,44,34,26]
+  .map(s => `<figure style="margin:0">${badgeHTML('gold', 2, s)}<figcaption>${s}px</figcaption></figure>`).join('');
+
+// ---- the two beats ----
+let dTier = 'gold', dDiv = 1;
+const wrap = document.getElementById('demoWrap'), cap = document.getElementById('demoCap');
+function renderDemo(){
+  wrap.innerHTML = badgeHTML(dTier, dDiv, 120);
+  cap.textContent = `${TIERS[dTier].name}, division ${dDiv} of 3`;
+}
+function flash(cls, ms){
+  const el = wrap.querySelector('.rank-badge');
+  el.classList.add(cls);
+  setTimeout(() => el.classList.remove(cls), ms);
+}
+renderDemo();
+document.getElementById('pipBtn').onclick = () => {
+  if(dDiv >= 3) return document.getElementById('promoBtn').click();
+  dDiv++; renderDemo(); flash('is-pip-lit', 600);
+};
+document.getElementById('promoBtn').onclick = () => {
+  const i = ORDER.indexOf(dTier);
+  if(i >= ORDER.length - 1) return;
+  dTier = ORDER[i+1]; dDiv = 1; renderDemo(); flash('is-promoting', 1300);
+};
+document.getElementById('resetBtn').onclick = () => { dTier='bronze'; dDiv=1; renderDemo(); };
+
+// ---- rank card ----
+document.getElementById('cardWrap').innerHTML =
+  `<button class="rank-card" type="button">
+     ${badgeHTML('gold', 2)}
+     <span class="rank-meta">
+       <span class="rank-head"><span class="rank-tier">Gold</span><span class="rank-level">Level 12</span></span>
+       <span class="rank-xp"><i style="width:82%"></i></span>
+       <span class="rank-next">2450 / 3000 XP to division 3</span>
+     </span>
+     <i class="fa-solid fa-chevron-right rank-go"></i>
+   </button>`;
+</script>
+</body>
+</html>
