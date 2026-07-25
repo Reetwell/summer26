@@ -12,7 +12,7 @@ struct AccountView: View {
     @State private var deleteText = ""
     @State private var deleting = false
     @State private var deleteError: String?
-    private let rank = RankState.fresh
+    private let rank = DemoData.isActive ? DemoData.rank : .fresh
 
     var body: some View {
         #if os(macOS)
@@ -74,7 +74,7 @@ struct AccountView: View {
                     HStack(spacing: Spacing.sm) {
                         heroStat(value: "\(ts.currentStreak)", label: "day streak")
                         heroStat(value: "\(ts.totalWorkouts)", label: "workouts")
-                        heroStat(value: "—", label: "this month")
+                        heroStat(value: DemoData.isActive ? DemoData.sessionsThisMonthText : "—", label: "this month")
                     }
                 }
                 .padding(Spacing.md)

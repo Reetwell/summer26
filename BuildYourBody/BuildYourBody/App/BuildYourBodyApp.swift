@@ -6,6 +6,7 @@ struct BuildYourBodyApp: App {
 
     init() {
         BrandFont.register()
+        DemoData.seedIfActive()   // DEBUG screenshot data; no-op unless -BB_DEMO 1
     }
 
     var body: some Scene {

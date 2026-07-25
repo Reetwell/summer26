@@ -6,7 +6,7 @@ struct TodayView: View {
     @State private var showJunkEntry = false
     @State private var junkText = ""
     @State private var showLeague = false
-    private let rank = RankState.fresh
+    private let rank = DemoData.isActive ? DemoData.rank : .fresh
 
     private var dateString: String {
         Date.now.formatted(.dateTime.weekday(.wide).day().month(.wide))
@@ -56,18 +56,18 @@ struct TodayView: View {
                             Text("Nutrition")
                                 .font(.sans(15, weight: .semibold))
                             Spacer()
-                            Text("Not logged yet")
+                            Text(DemoData.isActive ? "3 meals logged" : "Not logged yet")
                                 .font(.sans(12, weight: .semibold))
                                 .foregroundStyle(.secondary)
                         }
 
                         HStack(spacing: Spacing.lg) {
-                            CalorieRingView(consumed: 0, target: 2600)
+                            CalorieRingView(consumed: DemoData.isActive ? DemoData.kcalConsumed : 0, target: 2600)
 
                             VStack(spacing: Spacing.sm) {
-                                MacroBarView(label: "Protein", value: 0, target: 160, color: .green500, delay: 0.35)
-                                MacroBarView(label: "Carbs",   value: 0, target: 300, color: Color(hex: "#4A90D9"), delay: 0.45)
-                                MacroBarView(label: "Fat",     value: 0, target: 80,  color: Color(hex: "#E8A13A"), delay: 0.55)
+                                MacroBarView(label: "Protein", value: DemoData.isActive ? DemoData.protein.value : 0, target: 160, color: .green500, delay: 0.35)
+                                MacroBarView(label: "Carbs",   value: DemoData.isActive ? DemoData.carbs.value : 0, target: 300, color: Color(hex: "#4A90D9"), delay: 0.45)
+                                MacroBarView(label: "Fat",     value: DemoData.isActive ? DemoData.fat.value : 0, target: 80,  color: Color(hex: "#E8A13A"), delay: 0.55)
                             }
                         }
                     }
@@ -153,10 +153,10 @@ struct TodayView: View {
                     #if os(iOS)
                     quickStat(icon: "figure.walk", value: stepsString, label: "steps")
                     #else
-                    quickStat(icon: "figure.walk", value: "—", label: "steps")
+                    quickStat(icon: "figure.walk", value: DemoData.isActive ? DemoData.stepsText : "—", label: "steps")
                     #endif
                     quickStat(icon: "drop.fill", value: String(format: "%.1fL", todayStore.todayLog.water), label: "water")
-                    quickStat(icon: "scalemass.fill", value: "—", label: "weight")
+                    quickStat(icon: "scalemass.fill", value: DemoData.isActive ? DemoData.weightText : "—", label: "weight")
                 }
                 .slideIn(delay: 0.24)
 
@@ -260,6 +260,7 @@ struct TodayView: View {
 
     #if os(iOS)
     private var stepsString: String {
+        if DemoData.isActive { return DemoData.stepsText }
         if let steps = HealthKitService.shared.steps { return steps >= 1000 ? String(format: "%.1fk", Double(steps) / 1000) : "\(steps)" }
         return "—"
     }
@@ -357,19 +358,20 @@ struct TodayView: View {
                     VStack(alignment: .leading, spacing: Spacing.md) {
                         Text("NUTRITION").font(.sans(11, weight: .bold)).foregroundStyle(.secondary).kerning(1.4)
                         HStack(alignment: .firstTextBaseline, spacing: 6) {
-                            Text("0").font(.serifDisplay(44)).foregroundStyle(Color.green700)
+                            Text(DemoData.isActive ? "\(DemoData.kcalConsumed)" : "0").font(.serifDisplay(44)).foregroundStyle(Color.green700)
                             Text("/ 2,600 kcal").font(.sans(16)).foregroundStyle(.secondary)
                         }
                         HStack(spacing: Spacing.lg) {
-                            macroCol("0g", "Protein")
-                            macroCol("0g", "Carbs")
-                            macroCol("0g", "Fat")
+                            macroCol(DemoData.isActive ? "\(DemoData.protein.value)g" : "0g", "Protein")
+                            macroCol(DemoData.isActive ? "\(DemoData.carbs.value)g" : "0g", "Carbs")
+                            macroCol(DemoData.isActive ? "\(DemoData.fat.value)g" : "0g", "Fat")
                         }
                     }
                     Spacer()
                     ZStack {
                         Circle().stroke(Color.green500.opacity(0.13), lineWidth: 12)
-                        Text("0%").font(.serifDisplay(24)).foregroundStyle(.secondary)
+                        let pct = DemoData.isActive ? Int(Double(DemoData.kcalConsumed) / 2600.0 * 100) : 0
+                        Text("\(pct)%").font(.serifDisplay(24)).foregroundStyle(.secondary)
                     }
                     .frame(width: 130, height: 130)
                 }
@@ -384,9 +386,9 @@ struct TodayView: View {
                         .frame(maxWidth: .infinity)
                     let g = [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)]
                     LazyVGrid(columns: g, spacing: 16) {
-                        statTile("figure.walk", "—", "Steps")
+                        statTile("figure.walk", DemoData.isActive ? DemoData.stepsText : "—", "Steps")
                         statTile("drop.fill", String(format: "%.1fL", todayStore.todayLog.water), "Water")
-                        statTile("scalemass.fill", "—", "kg")
+                        statTile("scalemass.fill", DemoData.isActive ? DemoData.weightText : "—", "kg")
                         statTile("bolt.fill", "\(tsStore.currentStreak)", "Days", highlight: true)
                     }
                     .frame(width: 300)
