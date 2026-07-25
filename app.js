@@ -3776,7 +3776,9 @@ function _injectAgeCheck(){
   const cta = document.getElementById('auth-cta');
   if (!form || !cta || document.getElementById('auth-age-field')) return;
   const wrap = document.createElement('label');
-  wrap.className = 'signin-age hide';
+  // needs `signin-field` too: the only hide rule in styles.css is
+  // `.signin-field.hide`, so without it the age box never hides on sign-in.
+  wrap.className = 'signin-field signin-age hide';
   wrap.id = 'auth-age-field';
   wrap.setAttribute('for', 'auth-age');
   wrap.innerHTML =
@@ -4103,18 +4105,6 @@ function syncNow(){
     .catch(() => showToast('Sync failed — try again', 'error'));
 }
 
-// TEMP (dev only): skip the sign-in gate while building the app. Persists across
-// reloads via localStorage; the floating dev pill clears it. Remove before launch.
-function devSkipSignin(){
-  localStorage.setItem('sbp-dev-skip', '1');
-  reflectAuth();
-  showToast('Sign-in skipped (dev mode). Tap the pill to bring it back.', 'info');
-}
-function devUndoSkip(){
-  localStorage.removeItem('sbp-dev-skip');
-  reflectAuth();
-}
-
 function reflectAuth(){
   const gate = document.getElementById('signin-gate');
   const inn = document.getElementById('auth-in');
@@ -4122,18 +4112,14 @@ function reflectAuth(){
   // Account-first: show the full-screen front door whenever the auth client is
   // ready but nobody's signed in. If the SDK never loaded (offline / not
   // configured) sb stays null and we DON'T gate — the app stays usable.
-  const devSkip = localStorage.getItem('sbp-dev-skip') === '1';
   // Once you've signed in on this device we don't slam the front door on every
   // cold launch — Supabase restores/refreshes the session in the background, and
   // even if it can't (e.g. offline) the app stays usable with local data. The
   // gate only returns for a brand-new device or after an explicit sign-out.
   const onboarded = localStorage.getItem('sbp-onboarded') === '1';
-  const showGate = !!sb && !authUser && !devSkip && !onboarded;
+  const showGate = !!sb && !authUser && !onboarded;
   if (gate) { gate.classList.toggle('show', showGate); gate.setAttribute('aria-hidden', showGate ? 'false' : 'true'); }
   document.documentElement.classList.toggle('gated', showGate);
-  // TEMP dev pill: visible only while sign-in is skipped & nobody's signed in.
-  const pill = document.getElementById('dev-skip-pill');
-  if (pill) pill.style.display = (devSkip && !authUser) ? 'inline-flex' : 'none';
   if (accBtn) { accBtn.classList.toggle('signed-in', !!authUser); accBtn.style.display = authUser ? '' : 'none'; }
   const out = document.getElementById('auth-out');
   if (out) out.style.display = authUser ? 'none' : 'block';

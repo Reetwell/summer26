@@ -100,13 +100,9 @@
       <div class="sigate-forgot" id="auth-forgot">Forgot your password? <a onclick="authForgot()">Reset it</a></div>
       <div class="sigate-toggle" id="auth-toggle">New here? <b onclick="authSetMode('up')">Create account</b></div>
       <div class="sigate-fine">By continuing you agree to our Terms &amp; Privacy Policy.</div>
-      <!-- TEMP dev only — remove before launch -->
-      <div class="sigate-dev"><a onclick="devSkipSignin()">Skip sign-in (dev) →</a></div>
     </div>
   </div>
 </div>
-<!-- TEMP dev only — floating pill to restore the gate while sign-in is skipped -->
-<button class="dev-skip-pill" id="dev-skip-pill" style="display:none" onclick="devUndoSkip()">🔓 sign-in skipped · tap to restore</button>
 <script>
   (function () {
     try {
@@ -915,7 +911,7 @@
     <p>Manage your account and keep everything synced across your devices.</p>
   </div>
 
-  <!-- Signed out (incl. dev-skip state) -->
+  <!-- Signed out -->
   <div id="auth-out" style="display:none">
     <div class="signin-card" style="text-align:center">
       <div style="font-size:2.4rem;margin-bottom:12px;color:var(--text-secondary)"><i class="fa-solid fa-circle-user" aria-hidden="true"></i></div>
