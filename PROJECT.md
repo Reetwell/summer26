@@ -95,8 +95,9 @@ it factual and concise:
    or `python3 -m http.server`.
 2. Load the app, check the **console has no errors**, click through the changed screens.
 3. Screenshot the change. Then commit + push.
-- Dev shortcut: the sign-in gate has a "Skip sign-in (dev)" link; localStorage flags
-  `sbp-dev-skip`, `sbp-onboarded` bypass it. **Remove the dev skip before launch.**
+- The dev sign-in skip was **removed for launch** (`413a7c9`) — don't re-add it. To work
+  on a signed-out screen, set `sbp-onboarded` in localStorage (that's the real
+  "remember this device" flag, set on sign-in) or just sign in.
 
 ## Multi-chat workflow
 - Chats don't share live memory — **git/files are the source of truth.** Always start a
