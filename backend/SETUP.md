@@ -22,36 +22,66 @@ URL and it'll do the final wiring.
 1. In the Cloudflare dashboard, go to **Storage & Databases → KV**.
 2. Click **Create a namespace**. Name it `summerbody-reminders`. Create.
 
-## Step 2 — Create the Worker
+## Step 2 — Deploy the Worker  ⚠️ THE OLD COPY-PASTE METHOD NO LONGER WORKS
 
-1. Go to **Compute (Workers) → Workers & Pages → Create → Start with Hello World → Create Worker**.
-2. Give it a name like `summerbody-reminders`. Deploy.
-3. Click **Edit code**. Delete everything in the editor and paste the entire
-   contents of `worker.js` (in this folder). Click **Deploy**.
+**Do not use the dashboard's "Edit code" box.** This used to say "paste the whole
+of `worker.js` into the editor" — that stopped being possible once the backend
+became four ES modules that import each other:
 
-## Step 3 — Bind the KV namespace
+```
+worker.js  →  wearables.js  →  account.js  →  food.js
+```
 
-1. In the Worker, go to **Settings → Bindings → Add → KV namespace**.
-2. **Variable name:** `REMINDERS`  •  **KV namespace:** `summerbody-reminders`.
-3. Save / Deploy.
+The editor takes a single file and cannot resolve those imports. The Worker
+currently running in production is still the old single-file version, which is
+exactly why `/wearable/*`, `/account/*` and `/food/*` return 404 today.
 
-## Step 4 — Add the variables
+Deploy with **wrangler** instead. `backend/wrangler.toml` already has the name,
+KV binding, cron trigger and non-secret vars, so this is one command:
 
-Go to **Settings → Variables and Secrets** and add:
+```bash
+cd backend
+npx wrangler login     # one-time, opens a browser
+npx wrangler deploy
+```
 
-| Type             | Name                | Value                                              |
-|------------------|---------------------|----------------------------------------------------|
-| Text (plaintext) | `VAPID_PUBLIC_KEY`  | your VAPID **public** key                           |
-| Text (plaintext) | `VAPID_SUBJECT`     | `mailto:brian.rothwell@clickbill.co.uk`             |
-| **Secret** (encrypt) | `VAPID_PRIVATE_JWK` | your VAPID **private** key JSON (the whole `{...}`) |
+To check what would be uploaded without touching production:
 
-Deploy after adding them.
+```bash
+npx wrangler deploy --dry-run
+```
 
-## Step 5 — Add the cron trigger (the scheduler)
+Steps 3 (KV binding) and 5 (cron trigger) below are now handled automatically by
+`wrangler.toml` — no dashboard clicking needed.
 
-1. Go to **Settings → Triggers (Cron Triggers) → Add Cron Trigger**.
-2. Enter:  `*/5 * * * *`  (runs every 5 minutes).
-3. Save.
+## Step 3 — ~~Bind the KV namespace~~ (now automatic)
+
+Declared in `wrangler.toml` as `REMINDERS` → namespace `summerbody-reminders`
+(`681a24d4f838462aabfe9eca8ab4e07c`).
+
+## Step 4 — Add the secrets
+
+Non-secret vars (`VAPID_PUBLIC_KEY`, `VAPID_SUBJECT`, `SUPABASE_URL`) live in
+`wrangler.toml`. **Secrets never go in that file** — set each one interactively so
+the value goes straight from your terminal to Cloudflare:
+
+```bash
+npx wrangler secret put VAPID_PRIVATE_JWK           # push reminders
+npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY   # /account/delete + /wearable/*
+npx wrangler secret put ANTHROPIC_API_KEY           # /recipe/extract (v1.1)
+```
+
+Secrets survive a deploy — you only set them once. A missing secret makes that
+one feature inert; it does not take the Worker down. `/food/*` needs no secret.
+
+⚠️ **Before the first wrangler deploy:** open **Settings → Variables** in the
+dashboard and check the three plain-text vars match `wrangler.toml`. A deploy
+makes the file the source of truth for vars, so a value that only exists in the
+dashboard can be dropped. (Encrypted secrets are unaffected.)
+
+## Step 5 — ~~Add the cron trigger~~ (now automatic)
+
+Declared in `wrangler.toml` as `crons = ["*/5 * * * *"]`.
 
 ## Step 6 — Send Claude the URL
 
@@ -91,6 +121,64 @@ returns a blank editable draft instead of an AI-filled one.
 
 These limit accidental/abusive spend, but the endpoint is still public (no user
 auth), so keep an eye on Anthropic usage if the app goes widely public.
+
+---
+
+## Data-deletion end-to-end test (AADC launch gate)
+
+`POST /account/delete` is written and mounted but has **never been run against the
+live stack**. It needs `SUPABASE_SERVICE_ROLE_KEY` set (above) and the Worker
+deployed, because it hard-deletes the auth user via the Admin API.
+
+### ⚠️ Two things to get right before you run it
+
+**1. Never run this against your own account.** `me@reecerothwell.me` is currently
+the *only* row in `auth.users`. The endpoint does exactly what it says — the
+delete cascades and is irreversible. Use a throwaway account.
+
+**2. You probably can't create that throwaway yet.** Sign-up needs an emailed OTP,
+and the sender is still `onboarding@resend.dev`, which only delivers to your own
+address. So a fresh test address will never receive its code.
+
+**→ Verify the Resend domain first.** It's the ~1-day DNS item, and it gates this
+test. Start it now and it runs in the background while you deploy.
+(Possible shortcut worth trying: a plus-address like
+`brian.rothwell+deltest@clickbill.co.uk` may pass Resend's own-recipient check and
+still land in your inbox. If it does, you can test without waiting for DNS.)
+
+### The test
+
+1. Sign up as the throwaway account, verify the OTP, sign in.
+2. Log something real (a session, a weight) so it has `app_data` rows to delete —
+   deleting an empty account proves very little.
+3. Grab that session's access token and call the endpoint:
+
+```bash
+curl -i -X POST https://summerbody.me-e29.workers.dev/account/delete \
+  -H "Authorization: Bearer <the-test-account-access-token>"
+```
+
+Expect `200 {"ok":true}`. A `500 {"failed":[...]}` names the step that failed.
+
+4. Confirm it's gone — tell me and I'll run the read-only check:
+
+```sql
+select
+  (select count(*) from auth.users      where email = '<test-address>') as user_row,
+  (select count(*) from public.profiles where email = '<test-address>') as profile_row,
+  (select count(*) from public.app_data
+     where user_id = '<the-test-uuid>')                                 as data_rows;
+```
+
+All three must be `0`. Capture that result — it's the evidence the deletion gate
+was actually exercised, not just coded.
+
+**Worth testing too:** call it a second time with the same (now-dead) token. It
+should fail cleanly, not 500 — the endpoint is meant to be idempotent and
+retry-safe.
+
+I can't drive this one end to end: creating accounts and permanently deleting
+data are both actions I don't take on your behalf. You run it, I'll verify.
 
 ---
 

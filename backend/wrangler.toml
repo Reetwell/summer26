@@ -1,0 +1,65 @@
+# Build Your Body — Cloudflare Worker deploy config.
+#
+# WHY THIS FILE EXISTS (added 2026-07-25)
+# ───────────────────────────────────────
+# The deployed Worker is a SINGLE file with no imports — it was published with the
+# dashboard's quick-edit box. The current code is FOUR ES modules that import each
+# other (worker.js → wearables.js → account.js → food.js). You cannot paste that
+# into the dashboard editor: it only takes one file, and the imports would fail.
+#
+# That is why the deploy has kept not happening. It was never a to-do that got
+# skipped — there was no supported way to do it. This file makes it one command.
+#
+# DEPLOY
+#   cd backend
+#   npx wrangler login          # one-time, opens a browser
+#   npx wrangler deploy
+#
+# ⚠️ BEFORE YOUR FIRST DEPLOY — CHECK THE THREE [vars] BELOW
+# `wrangler deploy` makes this file the source of truth for plain-text vars, so a
+# var set in the dashboard but missing here can be dropped. VAPID_SUBJECT is used
+# to sign every push JWT — if it lands wrong, reminders break for existing users.
+# Open the Worker → Settings → Variables, compare all three, and correct them here
+# before deploying. (Encrypted SECRETS are not affected — they survive a deploy.)
+#
+# SECRETS ARE NEVER STORED IN THIS FILE. Set each one interactively; the value is
+# typed into your terminal and goes straight to Cloudflare:
+#   npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY   # /account/delete + /wearable/*
+#   npx wrangler secret put VAPID_PRIVATE_JWK           # push reminders
+#   npx wrangler secret put ANTHROPIC_API_KEY           # /recipe/extract (v1.1)
+# Wearables are post-launch — these can wait:
+#   npx wrangler secret put OURA_ID     / OURA_SECRET
+#   npx wrangler secret put WHOOP_ID    / WHOOP_SECRET
+#   npx wrangler secret put FITBIT_ID   / FITBIT_SECRET
+#
+# Routes still work with a secret missing — the feature is simply inert, it does
+# not take the Worker down. /food/* needs no secret at all and goes live on deploy.
+
+name = "summerbody"
+main = "worker.js"
+
+# Matches the Worker's original creation date (2026-06-05) to preserve the exact
+# runtime semantics it has been running under. The code only uses stable APIs
+# (fetch, crypto.subtle, URL, btoa), so nothing here depends on a newer date.
+compatibility_date = "2026-06-05"
+
+# Push reminders + per-IP rate-limit counters for /recipe/extract and /food/*.
+[[kv_namespaces]]
+binding = "REMINDERS"
+id = "681a24d4f838462aabfe9eca8ab4e07c"     # namespace "summerbody-reminders"
+
+# Reminder sweep — every 5 minutes; each reminder fires within a 6-minute window.
+[triggers]
+crons = ["*/5 * * * *"]
+
+# Non-secret values only. Safe to commit — the anon-side VAPID key is public by
+# design and the Supabase URL is already shipped in app.js.
+[vars]
+VAPID_PUBLIC_KEY = "BJeO4EGkQZRdMrAP9f8cTc98lNWPXGLeq0jkjJOWybAlmvmfHBIlIQpmV-z9VvwjGL32YjOc3p1Q6ZMq0PiJQJY"
+SUPABASE_URL     = "https://owqyrgufwvqgbrpdpskx.supabase.co"
+
+# Signs every push JWT. This is the value SETUP.md step 4 already specifies (and
+# already commits to this repo), so it should match what the live Worker has.
+# Confirm it in the dashboard before the first deploy — if it drifts, reminders
+# break for existing subscribers.
+VAPID_SUBJECT    = "mailto:brian.rothwell@clickbill.co.uk"
